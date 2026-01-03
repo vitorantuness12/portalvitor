@@ -15,6 +15,98 @@ interface CourseRequest {
   additionalInstructions?: string;
 }
 
+// Tool schemas for structured output
+const courseContentTool = {
+  type: "function",
+  function: {
+    name: "create_course_content",
+    description: "Create complete course content with title, descriptions, and modules",
+    parameters: {
+      type: "object",
+      properties: {
+        title: { type: "string", description: "Course title" },
+        shortDescription: { type: "string", description: "Short description (max 100 chars)" },
+        description: { type: "string", description: "Full course description (2-3 paragraphs)" },
+        modules: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              title: { type: "string", description: "Module title" },
+              content: { type: "string", description: "Detailed module content with explanations and examples (min 300 words)" }
+            },
+            required: ["title", "content"]
+          },
+          description: "Course modules (3-6 modules)"
+        }
+      },
+      required: ["title", "shortDescription", "description", "modules"]
+    }
+  }
+};
+
+const exercisesTool = {
+  type: "function",
+  function: {
+    name: "create_exercises",
+    description: "Create practice exercises for the course",
+    parameters: {
+      type: "object",
+      properties: {
+        exercises: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              question: { type: "string", description: "Exercise question" },
+              options: {
+                type: "array",
+                items: { type: "string" },
+                description: "4 answer options"
+              },
+              correctAnswer: { type: "number", description: "Index of correct answer (0-3)" }
+            },
+            required: ["question", "options", "correctAnswer"]
+          },
+          description: "10 multiple choice exercises"
+        }
+      },
+      required: ["exercises"]
+    }
+  }
+};
+
+const examTool = {
+  type: "function",
+  function: {
+    name: "create_exam",
+    description: "Create final exam questions for the course",
+    parameters: {
+      type: "object",
+      properties: {
+        examQuestions: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              question: { type: "string", description: "Exam question" },
+              options: {
+                type: "array",
+                items: { type: "string" },
+                description: "4 answer options"
+              },
+              correctAnswer: { type: "number", description: "Index of correct answer (0-3)" }
+            },
+            required: ["question", "options", "correctAnswer"]
+          },
+          description: "15 multiple choice exam questions"
+        }
+      },
+      required: ["examQuestions"]
+    }
+  }
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -38,7 +130,6 @@ serve(async (req) => {
       });
     }
 
-    // Verify user is admin
     const token = authHeader.replace("Bearer ", "");
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
     
@@ -67,27 +158,13 @@ serve(async (req) => {
 
     console.log("Generating course:", { topic, level, duration, price });
 
-    // Step 1: Generate course content
-    const contentPrompt = `Você é um especialista em criação de cursos educacionais. Crie o conteúdo completo para um curso sobre "${topic}".
-
+    // Step 1: Generate course content using tool calling
+    const contentPrompt = `Crie um curso completo sobre "${topic}".
 Nível: ${level}
 Carga horária: ${duration} horas
 ${additionalInstructions ? `Instruções adicionais: ${additionalInstructions}` : ""}
 
-Gere o conteúdo no seguinte formato JSON:
-{
-  "title": "Título do curso",
-  "shortDescription": "Descrição curta (máximo 100 caracteres)",
-  "description": "Descrição completa do curso (2-3 parágrafos)",
-  "modules": [
-    {
-      "title": "Título do Módulo",
-      "content": "Conteúdo detalhado do módulo com explicações, conceitos e exemplos práticos. Mínimo 500 palavras por módulo."
-    }
-  ]
-}
-
-Crie entre 3 e 6 módulos dependendo da carga horária. O conteúdo deve ser educativo, bem estruturado e adequado ao nível do aluno.`;
+Crie entre 3 e 6 módulos dependendo da carga horária. O conteúdo deve ser educativo, bem estruturado e adequado ao nível do aluno. Cada módulo deve ter pelo menos 300 palavras de conteúdo.`;
 
     const contentResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -98,9 +175,11 @@ Crie entre 3 e 6 módulos dependendo da carga horária. O conteúdo deve ser edu
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [
-          { role: "system", content: "Você é um especialista em educação e criação de cursos. Responda sempre em JSON válido." },
+          { role: "system", content: "Você é um especialista em educação e criação de cursos. Use a função fornecida para estruturar o curso." },
           { role: "user", content: contentPrompt },
         ],
+        tools: [courseContentTool],
+        tool_choice: { type: "function", function: { name: "create_course_content" } },
       }),
     });
 
@@ -112,33 +191,28 @@ Crie entre 3 e 6 módulos dependendo da carga horária. O conteúdo deve ser edu
 
     const contentData = await contentResponse.json();
     let courseContent;
+    
     try {
-      const rawContent = contentData.choices[0].message.content;
-      // Extract JSON from markdown code blocks if present
-      const jsonMatch = rawContent.match(/```(?:json)?\s*([\s\S]*?)```/) || [null, rawContent];
-      courseContent = JSON.parse(jsonMatch[1].trim());
+      const toolCall = contentData.choices[0].message.tool_calls?.[0];
+      if (toolCall && toolCall.function.arguments) {
+        courseContent = JSON.parse(toolCall.function.arguments);
+      } else {
+        // Fallback: try to parse from content
+        const rawContent = contentData.choices[0].message.content || "";
+        const jsonMatch = rawContent.match(/```(?:json)?\s*([\s\S]*?)```/) || [null, rawContent];
+        courseContent = JSON.parse(jsonMatch[1].trim());
+      }
     } catch (e) {
       console.error("Failed to parse course content:", e);
+      console.error("Raw response:", JSON.stringify(contentData));
       throw new Error("Failed to parse AI response for course content");
     }
 
-    console.log("Course content generated successfully");
+    console.log("Course content generated:", courseContent.title);
 
-    // Step 2: Generate exercises
-    const exercisesPrompt = `Baseado no curso "${courseContent.title}" sobre "${topic}", crie 10 exercícios de múltipla escolha para praticar o conteúdo.
-
-Retorne no formato JSON:
-{
-  "exercises": [
-    {
-      "question": "Pergunta do exercício",
-      "options": ["Opção A", "Opção B", "Opção C", "Opção D"],
-      "correctAnswer": 0
-    }
-  ]
-}
-
-O campo correctAnswer é o índice (0-3) da resposta correta. Crie perguntas que testem a compreensão do conteúdo, variando a dificuldade.`;
+    // Step 2: Generate exercises using tool calling
+    const exercisesPrompt = `Crie 10 exercícios de múltipla escolha para o curso "${courseContent.title}" sobre "${topic}". 
+As questões devem testar a compreensão do conteúdo e ter níveis variados de dificuldade.`;
 
     const exercisesResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -149,9 +223,11 @@ O campo correctAnswer é o índice (0-3) da resposta correta. Crie perguntas que
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [
-          { role: "system", content: "Você é um especialista em avaliação educacional. Responda sempre em JSON válido." },
+          { role: "system", content: "Você é um especialista em avaliação educacional. Use a função fornecida para criar exercícios." },
           { role: "user", content: exercisesPrompt },
         ],
+        tools: [exercisesTool],
+        tool_choice: { type: "function", function: { name: "create_exercises" } },
       }),
     });
 
@@ -162,32 +238,26 @@ O campo correctAnswer é o índice (0-3) da resposta correta. Crie perguntas que
 
     const exercisesData = await exercisesResponse.json();
     let exercises;
+    
     try {
-      const rawExercises = exercisesData.choices[0].message.content;
-      const jsonMatch = rawExercises.match(/```(?:json)?\s*([\s\S]*?)```/) || [null, rawExercises];
-      exercises = JSON.parse(jsonMatch[1].trim());
+      const toolCall = exercisesData.choices[0].message.tool_calls?.[0];
+      if (toolCall && toolCall.function.arguments) {
+        exercises = JSON.parse(toolCall.function.arguments);
+      } else {
+        const rawExercises = exercisesData.choices[0].message.content || "";
+        const jsonMatch = rawExercises.match(/```(?:json)?\s*([\s\S]*?)```/) || [null, rawExercises];
+        exercises = JSON.parse(jsonMatch[1].trim());
+      }
     } catch (e) {
       console.error("Failed to parse exercises:", e);
       throw new Error("Failed to parse AI response for exercises");
     }
 
-    console.log("Exercises generated successfully");
+    console.log("Exercises generated:", exercises.exercises?.length || 0);
 
-    // Step 3: Generate final exam
-    const examPrompt = `Baseado no curso "${courseContent.title}" sobre "${topic}", crie uma prova final com 15 questões de múltipla escolha.
-
-Retorne no formato JSON:
-{
-  "examQuestions": [
-    {
-      "question": "Pergunta da prova",
-      "options": ["Opção A", "Opção B", "Opção C", "Opção D"],
-      "correctAnswer": 0
-    }
-  ]
-}
-
-O campo correctAnswer é o índice (0-3) da resposta correta. A prova deve cobrir todos os módulos do curso e ter questões de diferentes níveis de dificuldade.`;
+    // Step 3: Generate final exam using tool calling
+    const examPrompt = `Crie uma prova final com 15 questões de múltipla escolha para o curso "${courseContent.title}" sobre "${topic}".
+A prova deve cobrir todos os módulos e ter questões de diferentes níveis de dificuldade.`;
 
     const examResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -198,9 +268,11 @@ O campo correctAnswer é o índice (0-3) da resposta correta. A prova deve cobri
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [
-          { role: "system", content: "Você é um especialista em avaliação educacional. Responda sempre em JSON válido." },
+          { role: "system", content: "Você é um especialista em avaliação educacional. Use a função fornecida para criar a prova." },
           { role: "user", content: examPrompt },
         ],
+        tools: [examTool],
+        tool_choice: { type: "function", function: { name: "create_exam" } },
       }),
     });
 
@@ -211,31 +283,36 @@ O campo correctAnswer é o índice (0-3) da resposta correta. A prova deve cobri
 
     const examData = await examResponse.json();
     let exam;
+    
     try {
-      const rawExam = examData.choices[0].message.content;
-      const jsonMatch = rawExam.match(/```(?:json)?\s*([\s\S]*?)```/) || [null, rawExam];
-      exam = JSON.parse(jsonMatch[1].trim());
+      const toolCall = examData.choices[0].message.tool_calls?.[0];
+      if (toolCall && toolCall.function.arguments) {
+        exam = JSON.parse(toolCall.function.arguments);
+      } else {
+        const rawExam = examData.choices[0].message.content || "";
+        const jsonMatch = rawExam.match(/```(?:json)?\s*([\s\S]*?)```/) || [null, rawExam];
+        exam = JSON.parse(jsonMatch[1].trim());
+      }
     } catch (e) {
       console.error("Failed to parse exam:", e);
       throw new Error("Failed to parse AI response for exam");
     }
 
-    console.log("Exam generated successfully");
+    console.log("Exam generated:", exam.examQuestions?.length || 0);
 
     // Step 4: Save everything to database
-    // Create the course
     const { data: course, error: courseError } = await supabase
       .from("courses")
       .insert({
         title: courseContent.title,
         description: courseContent.description,
-        short_description: courseContent.shortDescription,
+        short_description: courseContent.shortDescription?.substring(0, 100),
         category_id: categoryId || null,
         duration_hours: duration,
         level: level,
         price: price || 0,
         status: "active",
-        content_pdf_url: JSON.stringify(courseContent.modules), // Store modules as JSON for now
+        content_pdf_url: JSON.stringify(courseContent.modules),
       })
       .select()
       .single();
@@ -248,37 +325,41 @@ O campo correctAnswer é o índice (0-3) da resposta correta. A prova deve cobri
     console.log("Course saved:", course.id);
 
     // Insert exercises
-    const exercisesToInsert = exercises.exercises.map((ex: any, index: number) => ({
-      course_id: course.id,
-      question: ex.question,
-      options: ex.options,
-      correct_answer: ex.correctAnswer,
-      order_index: index,
-    }));
+    if (exercises.exercises && exercises.exercises.length > 0) {
+      const exercisesToInsert = exercises.exercises.map((ex: any, index: number) => ({
+        course_id: course.id,
+        question: ex.question,
+        options: ex.options,
+        correct_answer: ex.correctAnswer,
+        order_index: index,
+      }));
 
-    const { error: exercisesError } = await supabase
-      .from("course_exercises")
-      .insert(exercisesToInsert);
+      const { error: exercisesError } = await supabase
+        .from("course_exercises")
+        .insert(exercisesToInsert);
 
-    if (exercisesError) {
-      console.error("Error inserting exercises:", exercisesError);
+      if (exercisesError) {
+        console.error("Error inserting exercises:", exercisesError);
+      }
     }
 
     // Insert exam questions
-    const examQuestionsToInsert = exam.examQuestions.map((q: any, index: number) => ({
-      course_id: course.id,
-      question: q.question,
-      options: q.options,
-      correct_answer: q.correctAnswer,
-      order_index: index,
-    }));
+    if (exam.examQuestions && exam.examQuestions.length > 0) {
+      const examQuestionsToInsert = exam.examQuestions.map((q: any, index: number) => ({
+        course_id: course.id,
+        question: q.question,
+        options: q.options,
+        correct_answer: q.correctAnswer,
+        order_index: index,
+      }));
 
-    const { error: examError } = await supabase
-      .from("course_exams")
-      .insert(examQuestionsToInsert);
+      const { error: examError } = await supabase
+        .from("course_exams")
+        .insert(examQuestionsToInsert);
 
-    if (examError) {
-      console.error("Error inserting exam questions:", examError);
+      if (examError) {
+        console.error("Error inserting exam questions:", examError);
+      }
     }
 
     console.log("Course generation complete!");
@@ -289,8 +370,8 @@ O campo correctAnswer é o índice (0-3) da resposta correta. A prova deve cobri
         course: {
           id: course.id,
           title: course.title,
-          exercisesCount: exercises.exercises.length,
-          examQuestionsCount: exam.examQuestions.length,
+          exercisesCount: exercises.exercises?.length || 0,
+          examQuestionsCount: exam.examQuestions?.length || 0,
         },
       }),
       {

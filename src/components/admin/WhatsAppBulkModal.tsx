@@ -15,10 +15,13 @@ import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MessageSquare, Phone, ExternalLink, Users, AlertCircle, FileText, Plus, Trash2, Save } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { MessageSquare, Phone, ExternalLink, Users, AlertCircle, FileText, Plus, Trash2, Save, Info } from 'lucide-react';
 import { formatPhoneBR } from '@/lib/masks';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 interface WhatsAppBulkModalProps {
   open: boolean;
@@ -29,12 +32,22 @@ interface WhatsAppBulkModalProps {
 
 interface EnrolledStudent {
   user_id: string;
+  progress: number;
+  created_at: string;
   profiles: {
     full_name: string;
     email: string;
     whatsapp: string | null;
   } | null;
 }
+
+const DYNAMIC_VARIABLES = [
+  { key: '{nomeAluno}', description: 'Nome do aluno' },
+  { key: '{courseTitle}', description: 'Nome do curso' },
+  { key: '{progresso}', description: 'Progresso do aluno (%)' },
+  { key: '{dataMatricula}', description: 'Data de matrícula' },
+  { key: '{dataHoje}', description: 'Data de hoje' },
+];
 
 const DEFAULT_TEMPLATES = [
   {
@@ -98,13 +111,13 @@ export function WhatsAppBulkModal({ open, onOpenChange, courseId, courseTitle }:
     enabled: open,
   });
 
-  // Fetch students
+  // Fetch students with enrollment data
   const { data: students, isLoading } = useQuery({
     queryKey: ['course-students-whatsapp', courseId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('enrollments')
-        .select('user_id')
+        .select('user_id, progress, created_at')
         .eq('course_id', courseId);
 
       if (error) throw error;
@@ -123,6 +136,8 @@ export function WhatsAppBulkModal({ open, onOpenChange, courseId, courseTitle }:
 
       return data.map(enrollment => ({
         user_id: enrollment.user_id,
+        progress: enrollment.progress,
+        created_at: enrollment.created_at,
         profiles: profilesMap.get(enrollment.user_id) || null,
       })) as EnrolledStudent[];
     },
@@ -171,6 +186,20 @@ export function WhatsAppBulkModal({ open, onOpenChange, courseId, courseTitle }:
   const studentsWithWhatsApp = students?.filter(s => s.profiles?.whatsapp) || [];
   const studentsWithoutWhatsApp = students?.filter(s => !s.profiles?.whatsapp) || [];
 
+  const replaceVariables = (text: string, student: EnrolledStudent) => {
+    const today = format(new Date(), "dd/MM/yyyy", { locale: ptBR });
+    const enrollmentDate = student.created_at 
+      ? format(new Date(student.created_at), "dd/MM/yyyy", { locale: ptBR })
+      : 'N/A';
+
+    return text
+      .replace(/{nomeAluno}/g, student.profiles?.full_name || 'Aluno')
+      .replace(/{courseTitle}/g, courseTitle)
+      .replace(/{progresso}/g, `${student.progress}%`)
+      .replace(/{dataMatricula}/g, enrollmentDate)
+      .replace(/{dataHoje}/g, today);
+  };
+
   const generateWhatsAppLink = (phone: string, text: string) => {
     const encodedMessage = encodeURIComponent(text);
     return `https://wa.me/55${phone}?text=${encodedMessage}`;
@@ -181,15 +210,16 @@ export function WhatsAppBulkModal({ open, onOpenChange, courseId, courseTitle }:
     
     studentsWithWhatsApp.forEach((student, index) => {
       if (student.profiles?.whatsapp) {
+        const personalizedMessage = replaceVariables(message, student);
         setTimeout(() => {
-          window.open(generateWhatsAppLink(student.profiles!.whatsapp!, message), '_blank');
+          window.open(generateWhatsAppLink(student.profiles!.whatsapp!, personalizedMessage), '_blank');
         }, index * 500);
       }
     });
   };
 
   const applyTemplate = (template: string) => {
-    setMessage(template.replace('{courseTitle}', courseTitle));
+    setMessage(template);
   };
 
   const handleSaveTemplate = () => {
@@ -304,12 +334,38 @@ export function WhatsAppBulkModal({ open, onOpenChange, courseId, courseTitle }:
             </div>
           </div>
 
+          {/* Dynamic Variables Info */}
+          <div className="flex flex-wrap items-center gap-2 p-2 bg-muted/30 rounded-lg">
+            <span className="text-xs text-muted-foreground flex items-center gap-1">
+              <Info className="h-3 w-3" />
+              Variáveis disponíveis:
+            </span>
+            <TooltipProvider>
+              {DYNAMIC_VARIABLES.map((variable) => (
+                <Tooltip key={variable.key}>
+                  <TooltipTrigger asChild>
+                    <Badge
+                      variant="outline"
+                      className="text-xs cursor-pointer hover:bg-primary/10"
+                      onClick={() => setMessage(prev => prev + variable.key)}
+                    >
+                      {variable.key}
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{variable.description}</p>
+                  </TooltipContent>
+                </Tooltip>
+              ))}
+            </TooltipProvider>
+          </div>
+
           {/* Message Input */}
           <div className="space-y-2">
             <Label htmlFor="message">Mensagem</Label>
             <Textarea
               id="message"
-              placeholder="Digite a mensagem ou selecione um template acima..."
+              placeholder="Digite a mensagem ou selecione um template acima. Clique nas variáveis para adicioná-las."
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               rows={4}
@@ -365,9 +421,12 @@ export function WhatsAppBulkModal({ open, onOpenChange, courseId, courseTitle }:
                           <p className="font-medium text-sm truncate">
                             {student.profiles?.full_name || 'Usuário'}
                           </p>
-                          <p className="text-xs text-muted-foreground truncate">
-                            {student.profiles?.email}
-                          </p>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <span className="truncate">{student.profiles?.email}</span>
+                            <Badge variant="outline" className="text-[10px] px-1">
+                              {student.progress}%
+                            </Badge>
+                          </div>
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="text-sm text-muted-foreground hidden sm:block">
@@ -379,8 +438,9 @@ export function WhatsAppBulkModal({ open, onOpenChange, courseId, courseTitle }:
                             disabled={!message.trim()}
                             onClick={() => {
                               if (student.profiles?.whatsapp) {
+                                const personalizedMessage = replaceVariables(message, student);
                                 window.open(
-                                  generateWhatsAppLink(student.profiles.whatsapp, message),
+                                  generateWhatsAppLink(student.profiles.whatsapp, personalizedMessage),
                                   '_blank'
                                 );
                               }

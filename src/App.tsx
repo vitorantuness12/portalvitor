@@ -15,6 +15,7 @@ import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminCourses from "./pages/admin/Courses";
 import AdminUsers from "./pages/admin/Users";
+import AdminCategories from "./pages/admin/Categories";
 import CreateCourseAI from "./pages/admin/CreateCourseAI";
 import NotFound from "./pages/NotFound";
 
@@ -41,6 +42,7 @@ const App = () => (
               <Route index element={<AdminDashboard />} />
               <Route path="cursos" element={<AdminCourses />} />
               <Route path="usuarios" element={<AdminUsers />} />
+              <Route path="categorias" element={<AdminCategories />} />
               <Route path="criar-curso" element={<CreateCourseAI />} />
             </Route>
             

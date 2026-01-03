@@ -29,7 +29,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
-import { Search, MoreHorizontal, Eye, Edit, Trash2, Sparkles, MessageSquare } from 'lucide-react';
+import { Search, MoreHorizontal, Eye, Edit, Trash2, Sparkles, MessageSquare, RefreshCw } from 'lucide-react';
 import { WhatsAppBulkModal } from '@/components/admin/WhatsAppBulkModal';
 import { EditCourseModal } from '@/components/admin/EditCourseModal';
 import { Link, useNavigate } from 'react-router-dom';
@@ -42,6 +42,7 @@ export default function AdminCourses() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [whatsAppCourse, setWhatsAppCourse] = useState<{ id: string; title: string } | null>(null);
   const [editCourse, setEditCourse] = useState<Course | null>(null);
+  const [regeneratingId, setRegeneratingId] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -89,6 +90,34 @@ export default function AdminCourses() {
       toast.error('Erro ao atualizar status');
     },
   });
+
+  const handleRegenerateContent = async (courseId: string, courseTitle: string) => {
+    setRegeneratingId(courseId);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/regenerate-course-content`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token}`,
+        },
+        body: JSON.stringify({ courseId }),
+      });
+
+      const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.error || 'Erro ao regenerar conteúdo');
+      }
+
+      toast.success(`Conteúdo regenerado com sucesso! ${result.modulesCount} módulos atualizados.`);
+      queryClient.invalidateQueries({ queryKey: ['admin-courses'] });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Erro ao regenerar conteúdo');
+    } finally {
+      setRegeneratingId(null);
+    }
+  };
 
   const filteredCourses = courses?.filter((course) =>
     course.title.toLowerCase().includes(search.toLowerCase())
@@ -198,6 +227,15 @@ export default function AdminCourses() {
                     <Eye className="h-4 w-4" />
                   </Button>
                 </Link>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleRegenerateContent(course.id, course.title)}
+                  disabled={regeneratingId === course.id}
+                  title="Regenerar conteúdo dos módulos"
+                >
+                  <RefreshCw className={`h-4 w-4 ${regeneratingId === course.id ? 'animate-spin' : ''}`} />
+                </Button>
                 <Button
                   variant="outline"
                   size="sm"
@@ -325,6 +363,13 @@ export default function AdminCourses() {
                         >
                           <MessageSquare className="h-4 w-4 mr-2" />
                           Enviar WhatsApp
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleRegenerateContent(course.id, course.title)}
+                          disabled={regeneratingId === course.id}
+                        >
+                          <RefreshCw className={`h-4 w-4 mr-2 ${regeneratingId === course.id ? 'animate-spin' : ''}`} />
+                          {regeneratingId === course.id ? 'Regenerando...' : 'Regenerar Conteúdo'}
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           className="text-destructive"

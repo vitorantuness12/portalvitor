@@ -18,6 +18,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 const sidebarLinks = [
   { href: '/admin', icon: LayoutDashboard, label: 'Dashboard', exact: true },
@@ -26,10 +28,10 @@ const sidebarLinks = [
   { href: '/admin/usuarios', icon: Users, label: 'Usuários' },
   { href: '/admin/categorias', icon: FolderOpen, label: 'Categorias' },
   { href: '/admin/certificados', icon: Award, label: 'Certificados' },
-  { href: '/admin/suporte', icon: Headphones, label: 'Suporte' },
+  { href: '/admin/suporte', icon: Headphones, label: 'Suporte', badge: true },
 ];
 
-function SidebarContent() {
+function SidebarContent({ openTicketsCount }: { openTicketsCount: number }) {
   const location = useLocation();
   const { signOut } = useAuth();
   const navigate = useNavigate();
@@ -73,7 +75,12 @@ function SidebarContent() {
               )}
             >
               <link.icon className="h-5 w-5" />
-              {link.label}
+              <span className="flex-1">{link.label}</span>
+              {link.badge && openTicketsCount > 0 && (
+                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive text-destructive-foreground text-xs font-bold px-1.5">
+                  {openTicketsCount > 99 ? '99+' : openTicketsCount}
+                </span>
+              )}
             </Link>
           );
         })}
@@ -104,6 +111,20 @@ export default function AdminLayout() {
   const { user, loading, isAdmin } = useAuth();
   const navigate = useNavigate();
 
+  // Fetch open tickets count
+  const { data: openTicketsCount = 0 } = useQuery({
+    queryKey: ['open-tickets-count'],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('support_tickets')
+        .select('*', { count: 'exact', head: true })
+        .in('status', ['open', 'in_progress']);
+      if (error) throw error;
+      return count || 0;
+    },
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
+
   useEffect(() => {
     if (!loading && (!user || !isAdmin)) {
       navigate('/');
@@ -126,7 +147,7 @@ export default function AdminLayout() {
     <div className="min-h-screen bg-background flex">
       {/* Desktop Sidebar */}
       <aside className="hidden lg:flex w-64 border-r border-border bg-card flex-col">
-        <SidebarContent />
+        <SidebarContent openTicketsCount={openTicketsCount} />
       </aside>
 
       {/* Mobile Header */}
@@ -138,7 +159,7 @@ export default function AdminLayout() {
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="p-0 w-64">
-            <SidebarContent />
+            <SidebarContent openTicketsCount={openTicketsCount} />
           </SheetContent>
         </Sheet>
         <div className="flex items-center gap-2 ml-4">

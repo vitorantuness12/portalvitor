@@ -119,7 +119,7 @@ export default function CreateCourseAI() {
 
       toast({
         title: 'Curso criado com sucesso!',
-        description: `"${result.course.title}" foi gerado com ${result.course.exercisesCount} exercícios e ${result.course.examQuestionsCount} questões de prova.`,
+        description: `"${result.course.title}" foi gerado com ${result.course.exercisesCount} exercícios e ${result.course.examQuestionsCount} questões de prova.${result.course.subtitle ? ` Subtítulo: "${result.course.subtitle}"` : ''}`,
       });
 
       setFormData({

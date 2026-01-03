@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Camera, Save, Loader2, User, MessageSquare, Clock, CheckCircle, ExternalLink } from 'lucide-react';
+import { Camera, Save, Loader2, User, MessageSquare, Clock, CheckCircle, ExternalLink, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -27,9 +27,10 @@ export default function Profile() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
   const [fullName, setFullName] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+  const [ticketPage, setTicketPage] = useState(0);
+  const ticketsPerPage = 5;
 
   useEffect(() => {
     if (!loading && !user) {
@@ -52,20 +53,34 @@ export default function Profile() {
     enabled: !!user,
   });
 
-  const { data: tickets, isLoading: isLoadingTickets } = useQuery({
-    queryKey: ['user-tickets', user?.id],
+  const { data: ticketsData, isLoading: isLoadingTickets } = useQuery({
+    queryKey: ['user-tickets', user?.id, ticketPage],
     queryFn: async () => {
-      if (!user) return [];
+      if (!user) return { tickets: [], total: 0 };
+      
+      // Get total count
+      const { count } = await supabase
+        .from('support_tickets')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id);
+      
+      // Get paginated data
       const { data, error } = await supabase
         .from('support_tickets')
         .select('*')
         .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .range(ticketPage * ticketsPerPage, (ticketPage + 1) * ticketsPerPage - 1);
+      
       if (error) throw error;
-      return data;
+      return { tickets: data || [], total: count || 0 };
     },
     enabled: !!user,
   });
+
+  const tickets = ticketsData?.tickets || [];
+  const totalTickets = ticketsData?.total || 0;
+  const totalPages = Math.ceil(totalTickets / ticketsPerPage);
 
   useEffect(() => {
     if (profile) {
@@ -363,6 +378,33 @@ export default function Profile() {
                         </div>
                       </motion.div>
                     ))}
+                    
+                    {/* Pagination */}
+                    {totalPages > 1 && (
+                      <div className="flex items-center justify-between pt-4 border-t border-border mt-4">
+                        <p className="text-sm text-muted-foreground">
+                          Página {ticketPage + 1} de {totalPages}
+                        </p>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setTicketPage((p) => Math.max(0, p - 1))}
+                            disabled={ticketPage === 0}
+                          >
+                            <ChevronLeft className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setTicketPage((p) => Math.min(totalPages - 1, p + 1))}
+                            disabled={ticketPage >= totalPages - 1}
+                          >
+                            <ChevronRight className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="text-center py-8 text-muted-foreground">

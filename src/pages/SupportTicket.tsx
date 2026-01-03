@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Send, Loader2, User, Headphones, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Send, Loader2, User, Headphones, CheckCircle, Bell, BellOff } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { usePushNotifications } from '@/hooks/usePushNotifications';
 
 interface Message {
   id: string;
@@ -32,6 +33,7 @@ export default function SupportTicket() {
   const queryClient = useQueryClient();
   const [input, setInput] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
+  const { isSupported, isSubscribed, isLoading: notifLoading, requestPermission, unsubscribe } = usePushNotifications();
 
   useEffect(() => {
     if (!loading && !user) {
@@ -202,14 +204,36 @@ export default function SupportTicket() {
 
             <div className="bg-card border border-border rounded-xl overflow-hidden">
               {/* Header */}
-              <div className="p-4 border-b border-border flex items-center justify-between">
-                <div>
-                  <h1 className="text-lg font-semibold">{ticket.subject}</h1>
+              <div className="p-4 border-b border-border flex items-center justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <h1 className="text-lg font-semibold truncate">{ticket.subject}</h1>
                   <p className="text-sm text-muted-foreground">
                     Criado em {format(new Date(ticket.created_at), "dd 'de' MMMM 'às' HH:mm", { locale: ptBR })}
                   </p>
                 </div>
-                {getStatusBadge(ticket.status)}
+                <div className="flex items-center gap-2">
+                  {isSupported && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={isSubscribed ? unsubscribe : requestPermission}
+                      disabled={notifLoading}
+                    >
+                      {isSubscribed ? (
+                        <>
+                          <BellOff className="h-4 w-4 mr-2" />
+                          Desativar
+                        </>
+                      ) : (
+                        <>
+                          <Bell className="h-4 w-4 mr-2" />
+                          Notificar
+                        </>
+                      )}
+                    </Button>
+                  )}
+                  {getStatusBadge(ticket.status)}
+                </div>
               </div>
 
               {/* Messages */}

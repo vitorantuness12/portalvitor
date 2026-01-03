@@ -151,6 +151,9 @@ export default function SupportTickets() {
     mutationFn: async (content: string) => {
       if (!user || !selectedTicket) throw new Error('Não autorizado');
 
+      const ticket = tickets?.find((t) => t.id === selectedTicket);
+      if (!ticket) throw new Error('Ticket não encontrado');
+
       const { error } = await supabase.from('support_messages').insert({
         ticket_id: selectedTicket,
         user_id: user.id,
@@ -159,6 +162,21 @@ export default function SupportTickets() {
       });
 
       if (error) throw error;
+
+      // Send push notification to user
+      try {
+        await supabase.functions.invoke('send-push-notification', {
+          body: {
+            userId: ticket.user_id,
+            title: 'Nova resposta do suporte',
+            body: content.length > 100 ? content.substring(0, 100) + '...' : content,
+            url: `/suporte/${selectedTicket}`,
+          },
+        });
+      } catch (pushError) {
+        console.error('Error sending push notification:', pushError);
+        // Don't fail the mutation if push notification fails
+      }
     },
     onSuccess: () => {
       setInput('');

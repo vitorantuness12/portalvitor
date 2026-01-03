@@ -14,7 +14,7 @@ import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MessageSquare, Phone, ExternalLink, Users, AlertCircle } from 'lucide-react';
+import { MessageSquare, Phone, ExternalLink, Users, AlertCircle, FileText } from 'lucide-react';
 import { formatPhoneBR } from '@/lib/masks';
 
 interface WhatsAppBulkModalProps {
@@ -32,6 +32,39 @@ interface EnrolledStudent {
     whatsapp: string | null;
   } | null;
 }
+
+const MESSAGE_TEMPLATES = [
+  {
+    id: 'welcome',
+    name: 'Boas-vindas',
+    template: 'Olá! 👋 Seja bem-vindo(a) ao curso "{courseTitle}"! Estamos muito felizes em ter você conosco. Qualquer dúvida, estamos à disposição!',
+  },
+  {
+    id: 'reminder',
+    name: 'Lembrete de Estudo',
+    template: 'Olá! 📚 Não esqueça de continuar seus estudos no curso "{courseTitle}". Falta pouco para você concluir! Bons estudos!',
+  },
+  {
+    id: 'new-content',
+    name: 'Novo Conteúdo',
+    template: 'Olá! 🎉 Temos novidades no curso "{courseTitle}"! Acesse a plataforma para conferir o novo conteúdo disponível.',
+  },
+  {
+    id: 'exam-reminder',
+    name: 'Lembrete de Prova',
+    template: 'Olá! 📝 Lembre-se de realizar a prova final do curso "{courseTitle}" para obter seu certificado. Boa sorte!',
+  },
+  {
+    id: 'certificate',
+    name: 'Certificado Disponível',
+    template: 'Parabéns! 🎓 Seu certificado do curso "{courseTitle}" está disponível! Acesse a plataforma para baixar.',
+  },
+  {
+    id: 'support',
+    name: 'Suporte',
+    template: 'Olá! 💬 Notamos que você pode ter dúvidas sobre o curso "{courseTitle}". Estamos aqui para ajudar! Entre em contato conosco.',
+  },
+];
 
 export function WhatsAppBulkModal({ open, onOpenChange, courseId, courseTitle }: WhatsAppBulkModalProps) {
   const [message, setMessage] = useState('');
@@ -86,6 +119,10 @@ export function WhatsAppBulkModal({ open, onOpenChange, courseId, courseTitle }:
     });
   };
 
+  const applyTemplate = (template: string) => {
+    setMessage(template.replace('{courseTitle}', courseTitle));
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
@@ -100,12 +137,33 @@ export function WhatsAppBulkModal({ open, onOpenChange, courseId, courseTitle }:
         </DialogHeader>
 
         <div className="space-y-4 flex-1 overflow-hidden flex flex-col">
+          {/* Templates */}
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              Templates
+            </Label>
+            <div className="flex flex-wrap gap-2">
+              {MESSAGE_TEMPLATES.map((template) => (
+                <Button
+                  key={template.id}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => applyTemplate(template.template)}
+                  className="text-xs"
+                >
+                  {template.name}
+                </Button>
+              ))}
+            </div>
+          </div>
+
           {/* Message Input */}
           <div className="space-y-2">
             <Label htmlFor="message">Mensagem</Label>
             <Textarea
               id="message"
-              placeholder="Digite a mensagem que será enviada para todos os alunos..."
+              placeholder="Digite a mensagem ou selecione um template acima..."
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               rows={4}

@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { GraduationCap, Menu, X, User, LogOut, LayoutDashboard } from 'lucide-react';
+import { GraduationCap, Menu, X, User, LogOut, LayoutDashboard, TrendingUp } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
@@ -83,6 +83,12 @@ export function Header() {
                   </div>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
+                    <Link to="/meu-progresso" className="cursor-pointer">
+                      <TrendingUp className="mr-2 h-4 w-4" />
+                      Meu Progresso
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
                     <Link to="/meus-cursos" className="cursor-pointer">
                       <User className="mr-2 h-4 w-4" />
                       Meus Cursos
@@ -153,6 +159,13 @@ export function Header() {
               </Link>
               {user ? (
                 <>
+                  <Link
+                    to="/meu-progresso"
+                    className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Meu Progresso
+                  </Link>
                   <Link
                     to="/meus-cursos"
                     className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"

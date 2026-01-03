@@ -104,14 +104,28 @@ export default function AdminCourses() {
         body: JSON.stringify({ courseId }),
       });
 
-      const result = await response.json();
-      
+      const raw = await response.text();
+      let result: any = null;
+      try {
+        result = raw ? JSON.parse(raw) : null;
+      } catch {
+        result = null;
+      }
+
       if (!response.ok) {
-        throw new Error(result.error || 'Erro ao regenerar conteúdo');
+        const statusHint =
+          response.status === 402
+            ? 'Créditos de IA insuficientes. Adicione créditos para continuar.'
+            : response.status === 429
+              ? 'Limite de requisições de IA atingido. Tente novamente em alguns minutos.'
+              : 'Erro ao regenerar conteúdo';
+
+        throw new Error(result?.error || statusHint);
       }
 
       toast.success(`Conteúdo regenerado! ${result.modulesCount} módulos, ${result.exercisesCount} exercícios e ${result.examQuestionsCount} questões da prova.`);
       queryClient.invalidateQueries({ queryKey: ['admin-courses'] });
+
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Erro ao regenerar conteúdo');
     } finally {

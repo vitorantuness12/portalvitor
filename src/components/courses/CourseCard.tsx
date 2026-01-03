@@ -64,34 +64,34 @@ export function CourseCard({
         )}
       </div>
 
-      <div className="p-5 space-y-4">
-        <div className="space-y-2">
-          <h3 className="font-semibold text-lg line-clamp-2 group-hover:text-primary transition-colors">
+      <div className="p-4 sm:p-5 space-y-3 sm:space-y-4">
+        <div className="space-y-1.5 sm:space-y-2">
+          <h3 className="font-semibold text-base sm:text-lg line-clamp-2 group-hover:text-primary transition-colors">
             {title}
           </h3>
           {shortDescription && (
-            <p className="text-sm text-muted-foreground line-clamp-2">
+            <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2">
               {shortDescription}
             </p>
           )}
         </div>
 
-        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+        <div className="flex items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground flex-wrap">
           <span className="flex items-center gap-1">
-            <Clock className="h-4 w-4" />
+            <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             {durationHours}h
           </span>
-          <Badge variant="outline" className={levelColors[level] || ''}>
+          <Badge variant="outline" className={`text-xs ${levelColors[level] || ''}`}>
             {level.charAt(0).toUpperCase() + level.slice(1)}
           </Badge>
         </div>
 
-        <div className="flex items-center justify-between pt-2 border-t border-border">
-          <span className="text-xl font-bold text-primary">
+        <div className="flex items-center justify-between pt-2 border-t border-border gap-2">
+          <span className="text-lg sm:text-xl font-bold text-primary">
             {formatPrice(price)}
           </span>
           <Link to={`/curso/${id}`}>
-            <Button variant={isEnrolled ? 'secondary' : 'hero'} size="sm">
+            <Button variant={isEnrolled ? 'secondary' : 'hero'} size="sm" className="text-xs sm:text-sm">
               {isEnrolled ? 'Acessar' : 'Ver Curso'}
             </Button>
           </Link>

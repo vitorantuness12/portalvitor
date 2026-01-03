@@ -20,7 +20,7 @@ const courseContentTool = {
   type: "function",
   function: {
     name: "create_course_content",
-    description: "Create complete course content with title, subtitle, descriptions, and modules",
+    description: "Create complete educational course content with real teaching material, not descriptions of what will be taught",
     parameters: {
       type: "object",
       properties: {
@@ -33,11 +33,11 @@ const courseContentTool = {
             type: "object",
             properties: {
               title: { type: "string", description: "Module title" },
-              content: { type: "string", description: "Detailed module content with explanations and examples (min 300 words)" }
+              content: { type: "string", description: "ACTUAL educational content teaching the subject. Must include: concepts, definitions, step-by-step explanations, practical examples, case studies, tips and techniques. DO NOT write what will be taught, ACTUALLY TEACH IT. Minimum 500 words of real educational content." }
             },
             required: ["title", "content"]
           },
-          description: "Course modules (3-6 modules)"
+          description: "Course modules (3-8 modules depending on course duration)"
         }
       },
       required: ["title", "subtitle", "description", "modules"]
@@ -159,17 +159,48 @@ serve(async (req) => {
     console.log("Generating course:", { topic, level, duration, price });
 
     // Step 1: Generate course content using tool calling
-    const contentPrompt = `Crie um curso completo sobre "${topic}".
-Nível: ${level}
-Carga horária: ${duration} horas
-${additionalInstructions ? `Instruções adicionais: ${additionalInstructions}` : ""}
+    const moduleCount = duration <= 10 ? 3 : duration <= 20 ? 4 : duration <= 40 ? 5 : duration <= 60 ? 6 : 8;
+    
+    const contentPrompt = `Você é um professor especialista criando um curso online completo. O curso deve ensinar DE VERDADE, não apenas descrever o que será ensinado.
 
-IMPORTANTE:
-1. Crie um título profissional e atrativo
-2. Crie um subtítulo chamativo e impactante (máximo 150 caracteres) que complemente o título e desperte interesse do aluno. Exemplos de bons subtítulos: "Domine as técnicas essenciais para o sucesso", "Do zero ao profissional em semanas", "Aprenda na prática com exemplos reais"
-3. Crie entre 3 e 6 módulos dependendo da carga horária
-4. O conteúdo deve ser educativo, bem estruturado e adequado ao nível do aluno
-5. Cada módulo deve ter pelo menos 300 palavras de conteúdo`;
+CURSO: "${topic}"
+NÍVEL: ${level}
+CARGA HORÁRIA: ${duration} horas
+NÚMERO DE MÓDULOS: ${moduleCount}
+${additionalInstructions ? `INSTRUÇÕES ADICIONAIS: ${additionalInstructions}` : ""}
+
+REGRAS CRÍTICAS PARA O CONTEÚDO DOS MÓDULOS:
+1. NÃO ESCREVA "Neste módulo vamos abordar..." ou "Você aprenderá sobre..."
+2. ESCREVA O CONTEÚDO EDUCACIONAL REAL - ensine o assunto diretamente
+3. Cada módulo deve conter:
+   - Definições e conceitos explicados de forma clara
+   - Explicações passo a passo de técnicas e processos
+   - Exemplos práticos e casos reais
+   - Dicas e melhores práticas
+   - Exercícios mentais ou reflexões
+4. Use subtítulos em markdown (##, ###) para organizar o conteúdo
+5. Inclua listas, tabelas e formatação para facilitar a leitura
+6. Mínimo de 500 palavras de conteúdo REAL por módulo
+
+EXEMPLO DO QUE NÃO FAZER:
+"Neste módulo, mergulharemos profundamente na arte de estruturar um conteúdo. Exploraremos diversas técnicas..."
+
+EXEMPLO DO QUE FAZER:
+"## Estruturação de Conteúdo
+
+A estruturação eficaz de conteúdo segue três princípios fundamentais:
+
+### 1. Abertura com Gancho
+O gancho é a primeira frase ou parágrafo que captura a atenção. Existem 4 tipos principais:
+- **Pergunta provocativa**: 'Você sabia que 90% das apresentações são esquecidas em 24 horas?'
+- **Estatística impactante**: 'Empresas perdem R$37 bilhões por ano com reuniões improdutivas.'
+- **História pessoal**: Comece com uma situação real que o público pode se identificar.
+- **Declaração ousada**: 'A maioria das técnicas de apresentação que você conhece estão erradas.'
+
+### 2. Desenvolvimento em Pirâmide
+Organize suas ideias do mais importante para o menos importante..."
+
+Crie o curso seguindo este padrão de ENSINAR o conteúdo, não apenas descrevê-lo.`;
 
     const contentResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -180,7 +211,7 @@ IMPORTANTE:
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [
-          { role: "system", content: "Você é um especialista em educação e criação de cursos. Use a função fornecida para estruturar o curso." },
+          { role: "system", content: "Você é um professor universitário especialista em educação online. Você cria conteúdo educacional REAL e PRÁTICO que ensina de verdade. Nunca escreva apenas descrições do que será ensinado - escreva o conteúdo educacional completo. Use a função fornecida para estruturar o curso." },
           { role: "user", content: contentPrompt },
         ],
         tools: [courseContentTool],

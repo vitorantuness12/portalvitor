@@ -20,12 +20,12 @@ const courseContentTool = {
   type: "function",
   function: {
     name: "create_course_content",
-    description: "Create complete course content with title, descriptions, and modules",
+    description: "Create complete course content with title, subtitle, descriptions, and modules",
     parameters: {
       type: "object",
       properties: {
-        title: { type: "string", description: "Course title" },
-        shortDescription: { type: "string", description: "Short description (max 100 chars)" },
+        title: { type: "string", description: "Course title - clear and professional" },
+        subtitle: { type: "string", description: "Catchy subtitle that complements the title and sparks interest (max 150 chars). Examples: 'Domine as técnicas essenciais', 'Do básico ao avançado na prática', 'Transforme sua carreira'" },
         description: { type: "string", description: "Full course description (2-3 paragraphs)" },
         modules: {
           type: "array",
@@ -40,7 +40,7 @@ const courseContentTool = {
           description: "Course modules (3-6 modules)"
         }
       },
-      required: ["title", "shortDescription", "description", "modules"]
+      required: ["title", "subtitle", "description", "modules"]
     }
   }
 };
@@ -164,7 +164,12 @@ Nível: ${level}
 Carga horária: ${duration} horas
 ${additionalInstructions ? `Instruções adicionais: ${additionalInstructions}` : ""}
 
-Crie entre 3 e 6 módulos dependendo da carga horária. O conteúdo deve ser educativo, bem estruturado e adequado ao nível do aluno. Cada módulo deve ter pelo menos 300 palavras de conteúdo.`;
+IMPORTANTE:
+1. Crie um título profissional e atrativo
+2. Crie um subtítulo chamativo e impactante (máximo 150 caracteres) que complemente o título e desperte interesse do aluno. Exemplos de bons subtítulos: "Domine as técnicas essenciais para o sucesso", "Do zero ao profissional em semanas", "Aprenda na prática com exemplos reais"
+3. Crie entre 3 e 6 módulos dependendo da carga horária
+4. O conteúdo deve ser educativo, bem estruturado e adequado ao nível do aluno
+5. Cada módulo deve ter pelo menos 300 palavras de conteúdo`;
 
     const contentResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -306,7 +311,7 @@ A prova deve cobrir todos os módulos e ter questões de diferentes níveis de d
       .insert({
         title: courseContent.title,
         description: courseContent.description,
-        short_description: courseContent.shortDescription?.substring(0, 100),
+        short_description: (courseContent.subtitle || courseContent.shortDescription)?.substring(0, 150),
         category_id: categoryId || null,
         duration_hours: duration,
         level: level,
@@ -370,6 +375,7 @@ A prova deve cobrir todos os módulos e ter questões de diferentes níveis de d
         course: {
           id: course.id,
           title: course.title,
+          subtitle: courseContent.subtitle || courseContent.shortDescription,
           exercisesCount: exercises.exercises?.length || 0,
           examQuestionsCount: exam.examQuestions?.length || 0,
         },

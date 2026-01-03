@@ -11,6 +11,7 @@ interface CourseRequest {
   level: string;
   duration: number;
   categoryId?: string;
+  price?: number;
   additionalInstructions?: string;
 }
 
@@ -62,9 +63,9 @@ serve(async (req) => {
       });
     }
 
-    const { topic, level, duration, categoryId, additionalInstructions }: CourseRequest = await req.json();
+    const { topic, level, duration, categoryId, price, additionalInstructions }: CourseRequest = await req.json();
 
-    console.log("Generating course:", { topic, level, duration });
+    console.log("Generating course:", { topic, level, duration, price });
 
     // Step 1: Generate course content
     const contentPrompt = `Você é um especialista em criação de cursos educacionais. Crie o conteúdo completo para um curso sobre "${topic}".
@@ -232,7 +233,7 @@ O campo correctAnswer é o índice (0-3) da resposta correta. A prova deve cobri
         category_id: categoryId || null,
         duration_hours: duration,
         level: level,
-        price: 0,
+        price: price || 0,
         status: "active",
         content_pdf_url: JSON.stringify(courseContent.modules), // Store modules as JSON for now
       })

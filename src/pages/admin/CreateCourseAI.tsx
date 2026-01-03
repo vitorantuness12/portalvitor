@@ -23,6 +23,7 @@ export default function CreateCourseAI() {
     level: 'iniciante',
     duration: '10',
     categoryId: '',
+    price: '0',
     additionalInstructions: '',
   });
   const [isGenerating, setIsGenerating] = useState(false);
@@ -90,6 +91,7 @@ export default function CreateCourseAI() {
             level: formData.level,
             duration: parseInt(formData.duration),
             categoryId: formData.categoryId || null,
+            price: parseFloat(formData.price) || 0,
             additionalInstructions: formData.additionalInstructions,
           }),
         }
@@ -125,6 +127,7 @@ export default function CreateCourseAI() {
         level: 'iniciante',
         duration: '10',
         categoryId: '',
+        price: '0',
         additionalInstructions: '',
       });
     } catch (error: any) {
@@ -216,24 +219,43 @@ export default function CreateCourseAI() {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label>Categoria</Label>
-                  <Select
-                    value={formData.categoryId}
-                    onValueChange={(value) => setFormData({ ...formData, categoryId: value })}
-                    disabled={isGenerating}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione uma categoria" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories?.map((cat) => (
-                        <SelectItem key={cat.id} value={cat.id}>
-                          {cat.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Categoria</Label>
+                    <Select
+                      value={formData.categoryId}
+                      onValueChange={(value) => setFormData({ ...formData, categoryId: value })}
+                      disabled={isGenerating}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione uma categoria" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories?.map((cat) => (
+                          <SelectItem key={cat.id} value={cat.id}>
+                            {cat.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="price">Preço (R$)</Label>
+                    <Input
+                      id="price"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      placeholder="0.00"
+                      value={formData.price}
+                      onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                      disabled={isGenerating}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Deixe 0 para curso gratuito
+                    </p>
+                  </div>
                 </div>
 
                 <div className="space-y-2">

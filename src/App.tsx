@@ -11,6 +11,7 @@ import MyCourses from "./pages/MyCourses";
 import CourseDetail from "./pages/CourseDetail";
 import CourseStudy from "./pages/CourseStudy";
 import CourseCertificate from "./pages/CourseCertificate";
+import ValidateCertificate from "./pages/ValidateCertificate";
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminCourses from "./pages/admin/Courses";
@@ -37,6 +38,7 @@ const App = () => (
             <Route path="/curso/:id" element={<CourseDetail />} />
             <Route path="/curso/:id/estudar" element={<CourseStudy />} />
             <Route path="/curso/:id/certificado" element={<CourseCertificate />} />
+            <Route path="/validar-certificado" element={<ValidateCertificate />} />
             
             {/* Admin Routes */}
             <Route path="/admin" element={<AdminLayout />}>

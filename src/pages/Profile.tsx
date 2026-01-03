@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Camera, Save, Loader2, User } from 'lucide-react';
+import { Camera, Save, Loader2, User, MessageSquare, Clock, CheckCircle, ExternalLink } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -9,11 +9,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 const profileSchema = z.object({
   full_name: z.string().trim().min(2, 'Nome deve ter pelo menos 2 caracteres').max(100, 'Nome muito longo'),
@@ -43,6 +46,21 @@ export default function Profile() {
         .select('*')
         .eq('user_id', user.id)
         .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
+
+  const { data: tickets, isLoading: isLoadingTickets } = useQuery({
+    queryKey: ['user-tickets', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await supabase
+        .from('support_tickets')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
       if (error) throw error;
       return data;
     },
@@ -144,6 +162,19 @@ export default function Profile() {
       .join('')
       .toUpperCase()
       .slice(0, 2);
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'open':
+        return <Badge variant="secondary" className="flex items-center gap-1"><Clock className="h-3 w-3" /> Aberto</Badge>;
+      case 'in_progress':
+        return <Badge className="bg-warning text-warning-foreground flex items-center gap-1"><MessageSquare className="h-3 w-3" /> Em Atendimento</Badge>;
+      case 'closed':
+        return <Badge className="bg-success text-success-foreground flex items-center gap-1"><CheckCircle className="h-3 w-3" /> Fechado</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
   };
 
   if (loading || isLoadingProfile) {
@@ -279,6 +310,67 @@ export default function Profile() {
                     )}
                   </Button>
                 </form>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Support Tickets History */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="mt-6"
+          >
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MessageSquare className="h-5 w-5" />
+                  Histórico de Suporte
+                </CardTitle>
+                <CardDescription>
+                  Seus tickets de atendimento
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {isLoadingTickets ? (
+                  <div className="flex justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                  </div>
+                ) : tickets && tickets.length > 0 ? (
+                  <div className="space-y-3">
+                    {tickets.map((ticket) => (
+                      <motion.div
+                        key={ticket.id}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="flex items-center justify-between p-4 rounded-lg border border-border hover:bg-muted/50 transition-colors"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">{ticket.subject}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {format(new Date(ticket.created_at), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          {getStatusBadge(ticket.status)}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => navigate(`/suporte/${ticket.id}`)}
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <MessageSquare className="h-10 w-10 mx-auto mb-2 opacity-50" />
+                    <p>Nenhum ticket de suporte</p>
+                    <p className="text-sm">Seus tickets aparecerão aqui</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </motion.div>

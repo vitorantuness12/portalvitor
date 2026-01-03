@@ -185,20 +185,26 @@ export function Header() {
               </Link>
               {user ? (
                 <>
-                  <Link
-                    to="/meu-progresso"
-                    className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                    onClick={() => setMobileMenuOpen(false)}
+                  <button
+                    type="button"
+                    className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors text-left"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      navigate('/meu-progresso');
+                    }}
                   >
                     Meu Progresso
-                  </Link>
-                  <Link
-                    to="/meus-cursos"
-                    className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                    onClick={() => setMobileMenuOpen(false)}
+                  </button>
+                  <button
+                    type="button"
+                    className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors text-left"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      navigate('/meus-cursos');
+                    }}
                   >
                     Meus Cursos
-                  </Link>
+                  </button>
                   <Link
                     to="/perfil"
                     className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"

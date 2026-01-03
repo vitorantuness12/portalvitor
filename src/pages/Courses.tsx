@@ -70,12 +70,12 @@ export default function CoursesPage() {
       <Header />
       <main className="flex-1">
         {/* Hero */}
-        <section className="hero-gradient py-16">
+        <section className="hero-gradient py-10 md:py-16">
           <div className="container mx-auto px-4 text-center">
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-3xl md:text-4xl font-display font-bold text-primary-foreground mb-4"
+              className="text-2xl sm:text-3xl md:text-4xl font-display font-bold text-primary-foreground mb-3 md:mb-4"
             >
               Explore Nossos Cursos
             </motion.h1>
@@ -83,7 +83,7 @@ export default function CoursesPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="text-lg text-primary-foreground/80 mb-8 max-w-2xl mx-auto"
+              className="text-sm sm:text-base md:text-lg text-primary-foreground/80 mb-6 md:mb-8 max-w-2xl mx-auto px-2"
             >
               Encontre o curso perfeito para impulsionar sua carreira
             </motion.p>
@@ -95,81 +95,89 @@ export default function CoursesPage() {
               transition={{ delay: 0.2 }}
               className="max-w-xl mx-auto relative"
             >
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+              <Search className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
               <Input
                 type="search"
                 placeholder="Buscar cursos..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-12 h-12 bg-background/95 border-0"
+                className="pl-10 sm:pl-12 h-10 sm:h-12 bg-background/95 border-0 text-sm sm:text-base"
               />
             </motion.div>
           </div>
         </section>
 
         {/* Filters & Content */}
-        <section className="py-12">
+        <section className="py-8 md:py-12">
           <div className="container mx-auto px-4">
             {/* Filters */}
-            <div className="mb-8 space-y-4">
-              <div className="flex items-center gap-2 flex-wrap">
-                <Filter className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium">Categorias:</span>
-                <Badge
-                  variant={selectedCategory === null ? 'default' : 'outline'}
-                  className="cursor-pointer"
-                  onClick={() => setSelectedCategory(null)}
-                >
-                  Todas
-                </Badge>
-                {categories?.map((cat) => (
+            <div className="mb-6 md:mb-8 space-y-3 md:space-y-4">
+              <div className="flex items-start gap-2 flex-wrap">
+                <div className="flex items-center gap-2 w-full sm:w-auto mb-1 sm:mb-0">
+                  <Filter className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <span className="text-xs sm:text-sm font-medium">Categorias:</span>
+                </div>
+                <div className="flex flex-wrap gap-1.5 sm:gap-2">
                   <Badge
-                    key={cat.id}
-                    variant={selectedCategory === cat.id ? 'default' : 'outline'}
-                    className="cursor-pointer"
-                    onClick={() => setSelectedCategory(cat.id)}
+                    variant={selectedCategory === null ? 'default' : 'outline'}
+                    className="cursor-pointer text-xs"
+                    onClick={() => setSelectedCategory(null)}
                   >
-                    {cat.name}
+                    Todas
                   </Badge>
-                ))}
+                  {categories?.map((cat) => (
+                    <Badge
+                      key={cat.id}
+                      variant={selectedCategory === cat.id ? 'default' : 'outline'}
+                      className="cursor-pointer text-xs"
+                      onClick={() => setSelectedCategory(cat.id)}
+                    >
+                      {cat.name}
+                    </Badge>
+                  ))}
+                </div>
               </div>
 
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-sm font-medium ml-6">Nível:</span>
-                <Badge
-                  variant={selectedLevel === null ? 'default' : 'outline'}
-                  className="cursor-pointer"
-                  onClick={() => setSelectedLevel(null)}
-                >
-                  Todos
-                </Badge>
-                {levels.map((level) => (
+              <div className="flex items-start gap-2 flex-wrap">
+                <div className="flex items-center gap-2 w-full sm:w-auto mb-1 sm:mb-0">
+                  <span className="text-xs sm:text-sm font-medium sm:ml-6">Nível:</span>
+                </div>
+                <div className="flex flex-wrap gap-1.5 sm:gap-2 sm:ml-0">
                   <Badge
-                    key={level.value}
-                    variant={selectedLevel === level.value ? 'default' : 'outline'}
-                    className="cursor-pointer"
-                    onClick={() => setSelectedLevel(level.value)}
+                    variant={selectedLevel === null ? 'default' : 'outline'}
+                    className="cursor-pointer text-xs"
+                    onClick={() => setSelectedLevel(null)}
                   >
-                    {level.label}
+                    Todos
                   </Badge>
-                ))}
+                  {levels.map((level) => (
+                    <Badge
+                      key={level.value}
+                      variant={selectedLevel === level.value ? 'default' : 'outline'}
+                      className="cursor-pointer text-xs"
+                      onClick={() => setSelectedLevel(level.value)}
+                    >
+                      {level.label}
+                    </Badge>
+                  ))}
+                </div>
               </div>
             </div>
 
             {/* Courses Grid */}
             {isLoading ? (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {[...Array(6)].map((_, i) => (
-                  <div key={i} className="space-y-4">
+                  <div key={i} className="space-y-3 sm:space-y-4">
                     <Skeleton className="aspect-video w-full" />
-                    <Skeleton className="h-6 w-3/4" />
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-10 w-1/3" />
+                    <Skeleton className="h-5 sm:h-6 w-3/4" />
+                    <Skeleton className="h-3 sm:h-4 w-full" />
+                    <Skeleton className="h-8 sm:h-10 w-1/3" />
                   </div>
                 ))}
               </div>
             ) : courses && courses.length > 0 ? (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {courses.map((course, index) => (
                   <motion.div
                     key={course.id}

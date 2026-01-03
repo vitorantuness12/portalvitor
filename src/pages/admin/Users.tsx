@@ -30,6 +30,7 @@ import { Search, Eye, BookOpen, GraduationCap, Plus, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
+import { formatPhoneBR } from '@/lib/masks';
 
 interface UserWithEnrollments {
   id: string;
@@ -279,7 +280,7 @@ export default function AdminUsers() {
                     <p className="font-medium">{user.full_name}</p>
                     <p className="text-sm text-muted-foreground">{user.email}</p>
                     {user.whatsapp && (
-                      <p className="text-xs text-muted-foreground">📱 {user.whatsapp}</p>
+                      <p className="text-xs text-muted-foreground">📱 {formatPhoneBR(user.whatsapp)}</p>
                     )}
                   </div>
                   <div className="flex gap-1">
@@ -374,18 +375,12 @@ export default function AdminUsers() {
                           rel="noopener noreferrer"
                           className="text-primary hover:underline"
                         >
-                          {user.whatsapp}
+                          {formatPhoneBR(user.whatsapp)}
                         </a>
                       ) : '-'}
                     </TableCell>
                     <TableCell>
                       <Badge variant="secondary">{user.enrollments.length} curso(s)</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2 w-32">
-                        <Progress value={avgProgress} className="h-2" />
-                        <span className="text-sm text-muted-foreground">{avgProgress}%</span>
-                      </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2 w-32">
@@ -445,7 +440,7 @@ export default function AdminUsers() {
                     rel="noopener noreferrer"
                     className="text-sm text-primary hover:underline"
                   >
-                    📱 WhatsApp: {selectedUser.whatsapp}
+                    📱 WhatsApp: {formatPhoneBR(selectedUser.whatsapp)}
                   </a>
                 )}
               </div>

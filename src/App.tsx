@@ -13,6 +13,7 @@ import CourseStudy from "./pages/CourseStudy";
 import CourseCertificate from "./pages/CourseCertificate";
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/Dashboard";
+import AdminCourses from "./pages/admin/Courses";
 import CreateCourseAI from "./pages/admin/CreateCourseAI";
 import NotFound from "./pages/NotFound";
 
@@ -37,6 +38,7 @@ const App = () => (
             {/* Admin Routes */}
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<AdminDashboard />} />
+              <Route path="cursos" element={<AdminCourses />} />
               <Route path="criar-curso" element={<CreateCourseAI />} />
             </Route>
             

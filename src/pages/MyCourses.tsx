@@ -97,20 +97,39 @@ export default function MyCourses() {
       <main className="flex-1 py-8">
         <div className="container mx-auto px-4">
           {/* Mobile Quick Access Buttons */}
-          <div className="flex gap-2 mb-4 md:hidden">
-            <Link to="/cursos" className="flex-1">
-              <Button variant="outline" className="w-full">
-                <BookOpen className="h-4 w-4 mr-2" />
-                Cursos
-              </Button>
-            </Link>
-            <Link to="/dashboard" className="flex-1">
-              <Button variant="outline" className="w-full">
-                <Award className="h-4 w-4 mr-2" />
-                Meu Progresso
-              </Button>
-            </Link>
-          </div>
+          <motion.div 
+            className="flex gap-2 mb-4 md:hidden"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <motion.div
+              className="flex-1"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.1, duration: 0.3 }}
+            >
+              <Link to="/cursos" className="block">
+                <Button variant="outline" className="w-full">
+                  <BookOpen className="h-4 w-4 mr-2" />
+                  Cursos
+                </Button>
+              </Link>
+            </motion.div>
+            <motion.div
+              className="flex-1"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2, duration: 0.3 }}
+            >
+              <Link to="/dashboard" className="block">
+                <Button variant="outline" className="w-full">
+                  <Award className="h-4 w-4 mr-2" />
+                  Meu Progresso
+                </Button>
+              </Link>
+            </motion.div>
+          </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}

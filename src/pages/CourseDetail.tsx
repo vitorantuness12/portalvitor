@@ -151,38 +151,38 @@ export default function CourseDetail() {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      <main className="flex-1 py-8">
+      <main className="flex-1 py-4 sm:py-8">
         <div className="container mx-auto px-4">
           <Link
             to="/cursos"
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-8"
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-4 sm:mb-8"
           >
             <ArrowLeft className="h-4 w-4" />
             Voltar para cursos
           </Link>
 
-          <div className="grid lg:grid-cols-3 gap-8">
+          <div className="grid lg:grid-cols-3 gap-6 lg:gap-8">
             {/* Main Content */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="lg:col-span-2 space-y-6"
+              className="lg:col-span-2 space-y-4 sm:space-y-6"
             >
               {/* Thumbnail */}
-              <div className="relative aspect-video rounded-xl overflow-hidden">
+              <div className="relative aspect-video rounded-lg sm:rounded-xl overflow-hidden">
                 <img
                   src={course.thumbnail_url || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1200&h=675&fit=crop'}
                   alt={course.title}
                   className="w-full h-full object-cover"
                 />
                 {enrollment && (
-                  <div className="absolute inset-0 bg-background/80 flex items-center justify-center">
+                  <div className="absolute inset-0 bg-background/80 flex items-center justify-center p-4">
                     <div className="text-center">
-                      <CheckCircle className="h-16 w-16 mx-auto text-success mb-4" />
-                      <p className="text-xl font-semibold">Você está matriculado</p>
+                      <CheckCircle className="h-10 w-10 sm:h-16 sm:w-16 mx-auto text-success mb-2 sm:mb-4" />
+                      <p className="text-lg sm:text-xl font-semibold">Você está matriculado</p>
                       <Link to={`/curso/${id}/estudar`}>
-                        <Button variant="hero" size="lg" className="mt-4">
-                          <Play className="h-5 w-5" />
+                        <Button variant="hero" size="default" className="mt-3 sm:mt-4">
+                          <Play className="h-4 w-4 sm:h-5 sm:w-5" />
                           Continuar Estudando
                         </Button>
                       </Link>
@@ -193,59 +193,85 @@ export default function CourseDetail() {
 
               {/* Title & Meta */}
               <div>
-                <div className="flex items-center gap-2 mb-3">
+                <div className="flex flex-wrap items-center gap-2 mb-2 sm:mb-3">
                   {course.categories && (
-                    <Badge>{course.categories.name}</Badge>
+                    <Badge className="text-xs">{course.categories.name}</Badge>
                   )}
-                  <Badge variant="outline" className={levelColors[course.level] || ''}>
+                  <Badge variant="outline" className={`text-xs ${levelColors[course.level] || ''}`}>
                     {course.level.charAt(0).toUpperCase() + course.level.slice(1)}
                   </Badge>
                 </div>
-                <h1 className="text-3xl font-display font-bold mb-4">{course.title}</h1>
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-display font-bold mb-3 sm:mb-4">{course.title}</h1>
                 
-                <div className="flex flex-wrap items-center gap-6 text-sm text-muted-foreground">
-                  <span className="flex items-center gap-2">
-                    <Clock className="h-4 w-4" />
-                    {course.duration_hours} horas
+                <div className="flex flex-wrap items-center gap-3 sm:gap-6 text-xs sm:text-sm text-muted-foreground">
+                  <span className="flex items-center gap-1 sm:gap-2">
+                    <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    {course.duration_hours}h
                   </span>
-                  <span className="flex items-center gap-2">
-                    <BookOpen className="h-4 w-4" />
+                  <span className="flex items-center gap-1 sm:gap-2">
+                    <BookOpen className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     Curso completo
                   </span>
-                  <span className="flex items-center gap-2">
-                    <Award className="h-4 w-4" />
-                    Certificado incluso
+                  <span className="flex items-center gap-1 sm:gap-2">
+                    <Award className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    Certificado
                   </span>
                 </div>
               </div>
 
+              {/* Mobile CTA - Only show on mobile when not enrolled */}
+              {!enrollment && (
+                <div className="lg:hidden bg-card rounded-lg border border-border p-4">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className="text-2xl font-bold text-primary">
+                        {formatPrice(Number(course.price))}
+                      </p>
+                      {Number(course.price) > 0 && (
+                        <p className="text-xs text-muted-foreground">
+                          Pagamento único
+                        </p>
+                      )}
+                    </div>
+                    <Button
+                      variant="hero"
+                      onClick={handleEnroll}
+                      disabled={enrollMutation.isPending}
+                    >
+                      {enrollMutation.isPending ? 'Processando...' : Number(course.price) === 0 ? 'Matricular Grátis' : 'Comprar'}
+                    </Button>
+                  </div>
+                </div>
+              )}
+
               {/* Description */}
               <div className="prose max-w-none">
-                <h3 className="text-xl font-semibold mb-4">Sobre o curso</h3>
-                <p className="text-muted-foreground whitespace-pre-line">
+                <h3 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-4">Sobre o curso</h3>
+                <p className="text-sm sm:text-base text-muted-foreground whitespace-pre-line">
                   {course.description}
                 </p>
               </div>
 
               {/* What you'll learn */}
-              <div className="bg-card rounded-xl border border-border p-6">
-                <h3 className="text-xl font-semibold mb-4">O que você vai aprender</h3>
-                <div className="grid sm:grid-cols-2 gap-3">
+              <div className="bg-card rounded-lg sm:rounded-xl border border-border p-4 sm:p-6">
+                <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">O que você vai aprender</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                   {['Conteúdo teórico completo', 'Exercícios práticos', 'Prova final avaliativa', 'Certificado de conclusão'].map((item, i) => (
                     <div key={i} className="flex items-center gap-2">
-                      <CheckCircle className="h-5 w-5 text-success flex-shrink-0" />
-                      <span>{item}</span>
+                      <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-success flex-shrink-0" />
+                      <span className="text-sm sm:text-base">{item}</span>
                     </div>
                   ))}
                 </div>
               </div>
             </motion.div>
 
-            {/* Sidebar */}
+            {/* Sidebar - Hidden on mobile */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
+              className="hidden lg:block"
             >
               <div className="sticky top-24 bg-card rounded-xl border border-border p-6 space-y-6">
                 <div className="text-center">
@@ -301,6 +327,29 @@ export default function CourseDetail() {
                 </div>
               </div>
             </motion.div>
+          </div>
+
+          {/* Mobile footer info */}
+          <div className="lg:hidden mt-6 bg-card rounded-lg border border-border p-4">
+            <h4 className="font-semibold mb-3 text-sm">Este curso inclui:</h4>
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="flex items-center gap-2">
+                <BookOpen className="h-3.5 w-3.5 text-primary" />
+                Conteúdo em PDF
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-3.5 w-3.5 text-primary" />
+                Exercícios práticos
+              </div>
+              <div className="flex items-center gap-2">
+                <Star className="h-3.5 w-3.5 text-primary" />
+                Prova final
+              </div>
+              <div className="flex items-center gap-2">
+                <Award className="h-3.5 w-3.5 text-primary" />
+                Certificado
+              </div>
+            </div>
           </div>
         </div>
       </main>

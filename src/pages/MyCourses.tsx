@@ -122,7 +122,7 @@ export default function MyCourses() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2, duration: 0.3 }}
             >
-              <Link to="/dashboard" className="block">
+              <Link to="/meu-progresso" className="block">
                 <Button variant="outline" className="w-full">
                   <Award className="h-4 w-4 mr-2" />
                   Meu Progresso

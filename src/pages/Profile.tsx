@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Camera, Save, Loader2, User, MessageSquare, Clock, CheckCircle, ExternalLink, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Camera, Save, Loader2, User, MessageSquare, Clock, CheckCircle, ExternalLink, ChevronLeft, ChevronRight, Phone } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -18,9 +18,13 @@ import { toast } from 'sonner';
 import { z } from 'zod';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { formatPhoneBR, unformatPhone, isValidPhoneBR } from '@/lib/masks';
 
 const profileSchema = z.object({
   full_name: z.string().trim().min(2, 'Nome deve ter pelo menos 2 caracteres').max(100, 'Nome muito longo'),
+  whatsapp: z.string().refine((val) => val === '' || isValidPhoneBR(val), {
+    message: 'WhatsApp inválido. Use o formato (99) 99999-9999',
+  }),
 });
 
 export default function Profile() {
@@ -29,6 +33,7 @@ export default function Profile() {
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [fullName, setFullName] = useState('');
+  const [whatsapp, setWhatsapp] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [ticketPage, setTicketPage] = useState(0);
   const [ticketStatusFilter, setTicketStatusFilter] = useState<string>('all');
@@ -99,11 +104,12 @@ export default function Profile() {
   useEffect(() => {
     if (profile) {
       setFullName(profile.full_name || '');
+      setWhatsapp(profile.whatsapp ? formatPhoneBR(profile.whatsapp) : '');
     }
   }, [profile]);
 
   const updateProfileMutation = useMutation({
-    mutationFn: async (data: { full_name: string }) => {
+    mutationFn: async (data: { full_name: string; whatsapp: string }) => {
       if (!user) throw new Error('Usuário não autenticado');
       
       const validation = profileSchema.safeParse(data);
@@ -113,7 +119,10 @@ export default function Profile() {
 
       const { error } = await supabase
         .from('profiles')
-        .update({ full_name: data.full_name })
+        .update({ 
+          full_name: data.full_name,
+          whatsapp: unformatPhone(data.whatsapp) || null,
+        })
         .eq('user_id', user.id);
       
       if (error) throw error;
@@ -181,7 +190,11 @@ export default function Profile() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    updateProfileMutation.mutate({ full_name: fullName });
+    updateProfileMutation.mutate({ full_name: fullName, whatsapp });
+  };
+
+  const handleWhatsappChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setWhatsapp(formatPhoneBR(e.target.value));
   };
 
   const getInitials = (name: string) => {
@@ -290,6 +303,21 @@ export default function Profile() {
                       onChange={(e) => setFullName(e.target.value)}
                       placeholder="Seu nome completo"
                       maxLength={100}
+                    />
+                  </div>
+
+                  {/* WhatsApp Field */}
+                  <div className="space-y-2">
+                    <Label htmlFor="whatsapp" className="flex items-center gap-2">
+                      <Phone className="h-4 w-4" />
+                      WhatsApp
+                    </Label>
+                    <Input
+                      id="whatsapp"
+                      type="tel"
+                      value={whatsapp}
+                      onChange={handleWhatsappChange}
+                      placeholder="(99) 99999-9999"
                     />
                   </div>
 

@@ -129,7 +129,7 @@ export default function CourseStudy() {
     mutationFn: async (score: number) => {
       if (!enrollment) throw new Error('Matrícula não encontrada');
       
-      const status = score >= 8 ? 'passed' : 'failed';
+      const status = score >= 7 ? 'passed' : 'failed';
       
       const { error } = await supabase
         .from('enrollments')
@@ -156,7 +156,7 @@ export default function CourseStudy() {
       } else {
         toast({
           title: 'Não foi dessa vez...',
-          description: `Sua nota: ${data.score.toFixed(1)}. É necessário nota mínima 8,0 para aprovação.`,
+          description: `Sua nota: ${data.score.toFixed(1)}. É necessário nota mínima 7,0 para aprovação.`,
           variant: 'destructive',
         });
       }
@@ -555,7 +555,7 @@ export default function CourseStudy() {
                           Sua nota: <span className="font-bold text-destructive">{enrollment.exam_score?.toFixed(1)}</span>
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          É necessário nota mínima 8,0 para aprovação.
+                          É necessário nota mínima 7,0 para aprovação.
                         </p>
                       </>
                     )}
@@ -568,7 +568,7 @@ export default function CourseStudy() {
                       <p className="text-sm flex items-center gap-2">
                         <Trophy className="h-5 w-5 text-warning" />
                         <span>
-                          <strong>Prova Final:</strong> Você precisa de nota mínima <strong>8,0</strong> para ser aprovado e receber o certificado.
+                          <strong>Prova Final:</strong> Você precisa de nota mínima <strong>7,0</strong> para ser aprovado e receber o certificado.
                         </span>
                       </p>
                     </CardContent>

@@ -113,9 +113,9 @@ serve(async (req) => {
   }
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+    const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
+    if (!OPENAI_API_KEY) {
+      throw new Error("OPENAI_API_KEY is not configured");
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -156,7 +156,7 @@ serve(async (req) => {
 
     const { topic, level, duration, categoryId, price, additionalInstructions }: CourseRequest = await req.json();
 
-    console.log("Generating course:", { topic, level, duration, price });
+    console.log("Generating course with OpenAI:", { topic, level, duration, price });
 
     // Step 1: Generate course content using tool calling
     const moduleCount = duration <= 10 ? 3 : duration <= 20 ? 4 : duration <= 40 ? 5 : duration <= 60 ? 6 : 8;
@@ -202,26 +202,27 @@ Organize suas ideias do mais importante para o menos importante..."
 
 Crie o curso seguindo este padrão de ENSINAR o conteúdo, não apenas descrevê-lo.`;
 
-    const contentResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const contentResponse = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "gpt-4o-mini",
         messages: [
           { role: "system", content: "Você é um professor universitário especialista em educação online. Você cria conteúdo educacional REAL e PRÁTICO que ensina de verdade. Nunca escreva apenas descrições do que será ensinado - escreva o conteúdo educacional completo. Use a função fornecida para estruturar o curso." },
           { role: "user", content: contentPrompt },
         ],
         tools: [courseContentTool],
         tool_choice: { type: "function", function: { name: "create_course_content" } },
+        max_tokens: 16000,
       }),
     });
 
     if (!contentResponse.ok) {
       const errorText = await contentResponse.text();
-      console.error("AI content generation error:", errorText);
+      console.error("OpenAI content generation error:", contentResponse.status, errorText);
       throw new Error("Failed to generate course content");
     }
 
@@ -250,25 +251,26 @@ Crie o curso seguindo este padrão de ENSINAR o conteúdo, não apenas descrevê
     const exercisesPrompt = `Crie 10 exercícios de múltipla escolha para o curso "${courseContent.title}" sobre "${topic}". 
 As questões devem testar a compreensão do conteúdo e ter níveis variados de dificuldade.`;
 
-    const exercisesResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const exercisesResponse = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "gpt-4o-mini",
         messages: [
           { role: "system", content: "Você é um especialista em avaliação educacional. Use a função fornecida para criar exercícios." },
           { role: "user", content: exercisesPrompt },
         ],
         tools: [exercisesTool],
         tool_choice: { type: "function", function: { name: "create_exercises" } },
+        max_tokens: 4000,
       }),
     });
 
     if (!exercisesResponse.ok) {
-      console.error("AI exercises generation error");
+      console.error("OpenAI exercises generation error:", exercisesResponse.status);
       throw new Error("Failed to generate exercises");
     }
 
@@ -295,25 +297,26 @@ As questões devem testar a compreensão do conteúdo e ter níveis variados de 
     const examPrompt = `Crie uma prova final com 15 questões de múltipla escolha para o curso "${courseContent.title}" sobre "${topic}".
 A prova deve cobrir todos os módulos e ter questões de diferentes níveis de dificuldade.`;
 
-    const examResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const examResponse = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "gpt-4o-mini",
         messages: [
           { role: "system", content: "Você é um especialista em avaliação educacional. Use a função fornecida para criar a prova." },
           { role: "user", content: examPrompt },
         ],
         tools: [examTool],
         tool_choice: { type: "function", function: { name: "create_exam" } },
+        max_tokens: 6000,
       }),
     });
 
     if (!examResponse.ok) {
-      console.error("AI exam generation error");
+      console.error("OpenAI exam generation error:", examResponse.status);
       throw new Error("Failed to generate exam");
     }
 

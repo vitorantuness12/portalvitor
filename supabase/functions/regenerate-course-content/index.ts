@@ -6,42 +6,6 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-async function buildAiGatewayErrorResponse(
-  aiResp: Response,
-  fallbackError: string,
-) {
-  const raw = await aiResp.text();
-  console.error("AI gateway error:", aiResp.status, raw);
-
-  let message = fallbackError;
-  try {
-    const parsed = JSON.parse(raw);
-    const type = parsed?.type as string | undefined;
-
-    if (aiResp.status === 402 || type === "payment_required") {
-      message = "Créditos de IA insuficientes. Adicione créditos para continuar.";
-    } else if (
-      aiResp.status === 429 ||
-      type === "rate_limit" ||
-      type === "rate_limit_exceeded"
-    ) {
-      message = "Limite de requisições de IA atingido. Tente novamente em alguns minutos.";
-    } else if (typeof parsed?.message === "string" && parsed.message.trim()) {
-      message = parsed.message;
-    }
-  } catch {
-    // keep fallback
-  }
-
-  const status = aiResp.status === 402 || aiResp.status === 429 ? aiResp.status : 500;
-
-  return new Response(JSON.stringify({ error: message }), {
-    status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
-  });
-}
-
-
 // Tool schemas for structured output
 const courseContentTool = {
   type: "function",
@@ -137,9 +101,9 @@ serve(async (req) => {
   }
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+    const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
+    if (!OPENAI_API_KEY) {
+      throw new Error("OPENAI_API_KEY is not configured");
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -194,7 +158,7 @@ serve(async (req) => {
       });
     }
 
-    console.log("Regenerating content for course:", course.title);
+    console.log("Regenerating content for course with OpenAI:", course.title);
 
     // Calculate module count based on duration
     const moduleCount = course.duration_hours <= 10 ? 3 : course.duration_hours <= 20 ? 4 : course.duration_hours <= 40 ? 5 : course.duration_hours <= 60 ? 6 : 8;
@@ -242,30 +206,29 @@ O fluxo lógico segue uma progressão natural:
 
 Crie ${moduleCount} módulos seguindo este padrão de ENSINAR o conteúdo diretamente.`;
 
-    const contentResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const contentResponse = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "gpt-4o-mini",
         messages: [
           { role: "system", content: "Você é um professor universitário especialista em educação online. Você cria conteúdo educacional REAL e PRÁTICO que ensina de verdade, como um livro didático de alta qualidade. Nunca escreva apenas descrições do que será ensinado - escreva o conteúdo educacional completo." },
           { role: "user", content: contentPrompt },
         ],
         tools: [courseContentTool],
         tool_choice: { type: "function", function: { name: "create_course_content" } },
+        max_tokens: 16000,
       }),
     });
 
     if (!contentResponse.ok) {
-      return await buildAiGatewayErrorResponse(
-        contentResponse,
-        "Falha ao gerar o conteúdo do curso",
-      );
+      const errorText = await contentResponse.text();
+      console.error("OpenAI content generation error:", contentResponse.status, errorText);
+      throw new Error("Falha ao gerar o conteúdo do curso");
     }
-
 
     const contentData = await contentResponse.json();
     let courseContent;
@@ -299,30 +262,28 @@ As questões devem:
 - Ser claras e objetivas
 - Ter 4 opções de resposta cada`;
 
-    const exercisesResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const exercisesResponse = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "gpt-4o-mini",
         messages: [
           { role: "system", content: "Você é um especialista em avaliação educacional. Crie questões que testem conhecimento prático e aplicado." },
           { role: "user", content: exercisesPrompt },
         ],
         tools: [exercisesTool],
         tool_choice: { type: "function", function: { name: "create_exercises" } },
+        max_tokens: 4000,
       }),
     });
 
     if (!exercisesResponse.ok) {
-      return await buildAiGatewayErrorResponse(
-        exercisesResponse,
-        "Falha ao gerar os exercícios",
-      );
+      console.error("OpenAI exercises generation error:", exercisesResponse.status);
+      throw new Error("Falha ao gerar os exercícios");
     }
-
 
     const exercisesData = await exercisesResponse.json();
     let exercises;
@@ -355,30 +316,28 @@ A prova deve:
 - Ser abrangente e justa
 - Ter 4 opções de resposta cada`;
 
-    const examResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const examResponse = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "gpt-4o-mini",
         messages: [
           { role: "system", content: "Você é um especialista em avaliação educacional. Crie uma prova final abrangente e justa." },
           { role: "user", content: examPrompt },
         ],
         tools: [examTool],
         tool_choice: { type: "function", function: { name: "create_exam" } },
+        max_tokens: 6000,
       }),
     });
 
     if (!examResponse.ok) {
-      return await buildAiGatewayErrorResponse(
-        examResponse,
-        "Falha ao gerar a prova final",
-      );
+      console.error("OpenAI exam generation error:", examResponse.status);
+      throw new Error("Falha ao gerar a prova final");
     }
-
 
     const examData = await examResponse.json();
     let exam;

@@ -6,6 +6,42 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+async function buildAiGatewayErrorResponse(
+  aiResp: Response,
+  fallbackError: string,
+) {
+  const raw = await aiResp.text();
+  console.error("AI gateway error:", aiResp.status, raw);
+
+  let message = fallbackError;
+  try {
+    const parsed = JSON.parse(raw);
+    const type = parsed?.type as string | undefined;
+
+    if (aiResp.status === 402 || type === "payment_required") {
+      message = "Créditos de IA insuficientes. Adicione créditos para continuar.";
+    } else if (
+      aiResp.status === 429 ||
+      type === "rate_limit" ||
+      type === "rate_limit_exceeded"
+    ) {
+      message = "Limite de requisições de IA atingido. Tente novamente em alguns minutos.";
+    } else if (typeof parsed?.message === "string" && parsed.message.trim()) {
+      message = parsed.message;
+    }
+  } catch {
+    // keep fallback
+  }
+
+  const status = aiResp.status === 402 || aiResp.status === 429 ? aiResp.status : 500;
+
+  return new Response(JSON.stringify({ error: message }), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
+
 // Tool schemas for structured output
 const courseContentTool = {
   type: "function",
@@ -224,10 +260,12 @@ Crie ${moduleCount} módulos seguindo este padrão de ENSINAR o conteúdo direta
     });
 
     if (!contentResponse.ok) {
-      const errorText = await contentResponse.text();
-      console.error("AI content generation error:", errorText);
-      throw new Error("Failed to generate course content");
+      return await buildAiGatewayErrorResponse(
+        contentResponse,
+        "Falha ao gerar o conteúdo do curso",
+      );
     }
+
 
     const contentData = await contentResponse.json();
     let courseContent;
@@ -279,9 +317,12 @@ As questões devem:
     });
 
     if (!exercisesResponse.ok) {
-      console.error("AI exercises generation error");
-      throw new Error("Failed to generate exercises");
+      return await buildAiGatewayErrorResponse(
+        exercisesResponse,
+        "Falha ao gerar os exercícios",
+      );
     }
+
 
     const exercisesData = await exercisesResponse.json();
     let exercises;
@@ -332,9 +373,12 @@ A prova deve:
     });
 
     if (!examResponse.ok) {
-      console.error("AI exam generation error");
-      throw new Error("Failed to generate exam");
+      return await buildAiGatewayErrorResponse(
+        examResponse,
+        "Falha ao gerar a prova final",
+      );
     }
+
 
     const examData = await examResponse.json();
     let exam;

@@ -6,8 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
-import { format } from 'date-fns';
+import { format, subMonths, startOfMonth, endOfMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 
 export default function AdminDashboard() {
   const { data: stats } = useQuery({
@@ -58,6 +60,39 @@ export default function AdminDashboard() {
         .limit(5);
       if (error) throw error;
       return data;
+    },
+  });
+
+  const { data: monthlyData } = useQuery({
+    queryKey: ['admin-monthly-stats'],
+    queryFn: async () => {
+      const months = [];
+      for (let i = 5; i >= 0; i--) {
+        const date = subMonths(new Date(), i);
+        const start = startOfMonth(date);
+        const end = endOfMonth(date);
+        
+        const [enrollmentsRes, certificatesRes] = await Promise.all([
+          supabase
+            .from('enrollments')
+            .select('id', { count: 'exact', head: true })
+            .gte('created_at', start.toISOString())
+            .lte('created_at', end.toISOString()),
+          supabase
+            .from('certificates')
+            .select('id', { count: 'exact', head: true })
+            .gte('issued_at', start.toISOString())
+            .lte('issued_at', end.toISOString()),
+        ]);
+
+        months.push({
+          month: format(date, 'MMM', { locale: ptBR }),
+          fullMonth: format(date, "MMMM 'de' yyyy", { locale: ptBR }),
+          enrollments: enrollmentsRes.count || 0,
+          certificates: certificatesRes.count || 0,
+        });
+      }
+      return months;
     },
   });
 
@@ -192,6 +227,104 @@ export default function AdminDashboard() {
                 ))}
               </div>
             )}
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Evolução de Matrículas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer
+              config={{
+                enrollments: {
+                  label: 'Matrículas',
+                  color: 'hsl(var(--primary))',
+                },
+              }}
+              className="h-[250px]"
+            >
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={monthlyData || []}>
+                  <defs>
+                    <linearGradient id="enrollmentGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis 
+                    dataKey="month" 
+                    className="text-xs fill-muted-foreground"
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <YAxis 
+                    className="text-xs fill-muted-foreground"
+                    tickLine={false}
+                    axisLine={false}
+                    allowDecimals={false}
+                  />
+                  <ChartTooltip 
+                    content={<ChartTooltipContent />}
+                    labelFormatter={(_, payload) => payload?.[0]?.payload?.fullMonth || ''}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="enrollments"
+                    stroke="hsl(var(--primary))"
+                    strokeWidth={2}
+                    fill="url(#enrollmentGradient)"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Certificados Emitidos</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer
+              config={{
+                certificates: {
+                  label: 'Certificados',
+                  color: 'hsl(var(--chart-2))',
+                },
+              }}
+              className="h-[250px]"
+            >
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={monthlyData || []}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis 
+                    dataKey="month" 
+                    className="text-xs fill-muted-foreground"
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <YAxis 
+                    className="text-xs fill-muted-foreground"
+                    tickLine={false}
+                    axisLine={false}
+                    allowDecimals={false}
+                  />
+                  <ChartTooltip 
+                    content={<ChartTooltipContent />}
+                    labelFormatter={(_, payload) => payload?.[0]?.payload?.fullMonth || ''}
+                  />
+                  <Bar
+                    dataKey="certificates"
+                    fill="hsl(var(--chart-2))"
+                    radius={[4, 4, 0, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartContainer>
           </CardContent>
         </Card>
       </div>

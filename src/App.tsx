@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Courses from "./pages/Courses";
 import MyCourses from "./pages/MyCourses";
+import StudentDashboard from "./pages/StudentDashboard";
 import CourseDetail from "./pages/CourseDetail";
 import CourseStudy from "./pages/CourseStudy";
 import CourseCertificate from "./pages/CourseCertificate";
@@ -37,6 +38,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/cursos" element={<Courses />} />
             <Route path="/meus-cursos" element={<MyCourses />} />
+            <Route path="/meu-progresso" element={<StudentDashboard />} />
             <Route path="/curso/:id" element={<CourseDetail />} />
             <Route path="/curso/:id/estudar" element={<CourseStudy />} />
             <Route path="/curso/:id/certificado" element={<CourseCertificate />} />

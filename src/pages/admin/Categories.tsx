@@ -178,7 +178,66 @@ export default function AdminCategories() {
         </div>
       </div>
 
-      <div className="border rounded-lg">
+      {/* Mobile Cards */}
+      <div className="lg:hidden space-y-4">
+        {isLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-primary"></div>
+          </div>
+        ) : filteredCategories?.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            Nenhuma categoria encontrada
+          </div>
+        ) : (
+          filteredCategories?.map((category) => (
+            <div key={category.id} className="border rounded-lg p-4 space-y-3">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-primary/10 rounded-lg flex-shrink-0">
+                  <FolderOpen className="h-4 w-4 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium">{category.name}</p>
+                  <p className="text-sm text-muted-foreground line-clamp-2">
+                    {category.description || 'Sem descrição'}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">
+                    {courseCounts?.[category.id] || 0} curso(s)
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {category.created_at
+                      ? format(new Date(category.created_at), "dd/MM/yyyy", { locale: ptBR })
+                      : '-'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleOpenDialog(category)}
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setDeleteId(category.id)}
+                    disabled={(courseCounts?.[category.id] || 0) > 0}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Desktop Table */}
+      <div className="hidden lg:block border rounded-lg overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>

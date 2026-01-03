@@ -94,7 +94,7 @@ export default function ValidateCertificate() {
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleValidate} className="space-y-4">
-                  <div className="flex gap-2">
+                  <div className="flex flex-col sm:flex-row gap-2">
                     <div className="relative flex-1">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
@@ -105,7 +105,7 @@ export default function ValidateCertificate() {
                         maxLength={20}
                       />
                     </div>
-                    <Button type="submit" disabled={isValidating || !code.trim()}>
+                    <Button type="submit" disabled={isValidating || !code.trim()} className="w-full sm:w-auto">
                       {isValidating ? 'Validando...' : 'Validar'}
                     </Button>
                   </div>
@@ -150,12 +150,12 @@ export default function ValidateCertificate() {
                             </div>
                           </div>
 
-                          <div className="grid grid-cols-2 gap-4">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="flex items-start gap-3">
-                              <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
+                              <Calendar className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
                               <div>
                                 <p className="text-sm text-muted-foreground">Emitido em</p>
-                                <p className="font-medium">
+                                <p className="font-medium text-sm sm:text-base">
                                   {format(
                                     new Date(result.certificate.issued_at),
                                     "dd 'de' MMMM 'de' yyyy",
@@ -166,10 +166,10 @@ export default function ValidateCertificate() {
                             </div>
 
                             <div className="flex items-start gap-3">
-                              <Clock className="h-5 w-5 text-muted-foreground mt-0.5" />
+                              <Clock className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
                               <div>
                                 <p className="text-sm text-muted-foreground">Carga horária</p>
-                                <p className="font-medium">
+                                <p className="font-medium text-sm sm:text-base">
                                   {result.certificate.courses.duration_hours} horas
                                 </p>
                               </div>

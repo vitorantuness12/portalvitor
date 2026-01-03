@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   BookOpen, FileText, CheckCircle, ArrowLeft, ArrowRight, 
-  Trophy, Play, Lock, ChevronDown, ChevronUp, Award
+  Trophy, Play, Lock, ChevronDown, ChevronUp, Award, StickyNote
 } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
@@ -18,6 +18,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
+import { CourseNotes } from '@/components/courses/CourseNotes';
 
 interface Module {
   title: string;
@@ -322,10 +323,14 @@ export default function CourseStudy() {
 
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:inline-flex">
+            <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-flex">
               <TabsTrigger value="conteudo" className="gap-2">
                 <BookOpen className="h-4 w-4" />
                 <span className="hidden sm:inline">Conteúdo</span>
+              </TabsTrigger>
+              <TabsTrigger value="notas" className="gap-2">
+                <StickyNote className="h-4 w-4" />
+                <span className="hidden sm:inline">Notas</span>
               </TabsTrigger>
               <TabsTrigger value="exercicios" className="gap-2">
                 <FileText className="h-4 w-4" />
@@ -426,7 +431,16 @@ export default function CourseStudy() {
               )}
             </TabsContent>
 
-            {/* Exercises Tab */}
+            {/* Notes Tab */}
+            <TabsContent value="notas" className="space-y-4">
+              {user && enrollment && (
+                <CourseNotes 
+                  courseId={id!}
+                  enrollmentId={enrollment.id}
+                  userId={user.id}
+                />
+              )}
+            </TabsContent>
             <TabsContent value="exercicios" className="space-y-6">
               {!exercises || exercises.length === 0 ? (
                 <Card>

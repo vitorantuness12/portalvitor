@@ -29,7 +29,8 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
-import { Search, MoreHorizontal, Eye, Edit, Trash2, Plus, Sparkles } from 'lucide-react';
+import { Search, MoreHorizontal, Eye, Edit, Trash2, Plus, Sparkles, MessageSquare } from 'lucide-react';
+import { WhatsAppBulkModal } from '@/components/admin/WhatsAppBulkModal';
 import { Link, useNavigate } from 'react-router-dom';
 import type { Tables } from '@/integrations/supabase/types';
 
@@ -38,6 +39,7 @@ type Course = Tables<'courses'>;
 export default function AdminCourses() {
   const [search, setSearch] = useState('');
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [whatsAppCourse, setWhatsAppCourse] = useState<{ id: string; title: string } | null>(null);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -189,6 +191,13 @@ export default function AdminCourses() {
                 <Button
                   variant="outline"
                   size="sm"
+                  onClick={() => setWhatsAppCourse({ id: course.id, title: course.title })}
+                >
+                  <MessageSquare className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
                   className="text-destructive"
                   onClick={() => setDeleteId(course.id)}
                 >
@@ -298,6 +307,12 @@ export default function AdminCourses() {
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem
+                          onClick={() => setWhatsAppCourse({ id: course.id, title: course.title })}
+                        >
+                          <MessageSquare className="h-4 w-4 mr-2" />
+                          Enviar WhatsApp
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
                           className="text-destructive"
                           onClick={() => setDeleteId(course.id)}
                         >
@@ -334,6 +349,15 @@ export default function AdminCourses() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {whatsAppCourse && (
+        <WhatsAppBulkModal
+          open={!!whatsAppCourse}
+          onOpenChange={(open) => !open && setWhatsAppCourse(null)}
+          courseId={whatsAppCourse.id}
+          courseTitle={whatsAppCourse.title}
+        />
+      )}
     </div>
   );
 }

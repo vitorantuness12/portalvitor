@@ -3,7 +3,8 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   BookOpen, FileText, CheckCircle, ArrowLeft, ArrowRight, 
-  Trophy, Play, Lock, ChevronDown, ChevronUp, Award, StickyNote
+  Trophy, Lock, ChevronDown, ChevronUp, Award, StickyNote,
+  Sparkles, Target
 } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
@@ -20,6 +21,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CourseNotes } from '@/components/courses/CourseNotes';
 import { FormattedContent } from '@/components/courses/FormattedContent';
+import { QuestionCard } from '@/components/courses/QuestionCard';
+import { cn } from '@/lib/utils';
 
 interface Module {
   title: string;
@@ -448,100 +451,91 @@ export default function CourseStudy() {
             </TabsContent>
             <TabsContent value="exercicios" className="space-y-4 sm:space-y-6">
               {!exercises || exercises.length === 0 ? (
-                <Card>
-                  <CardContent className="py-8 sm:py-12 text-center text-muted-foreground">
-                    <FileText className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-3 sm:mb-4 opacity-50" />
-                    <p className="text-sm sm:text-base">Exercícios em breve.</p>
-                  </CardContent>
-                </Card>
+                <div className="flex flex-col items-center justify-center py-12 sm:py-16">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mb-4">
+                    <FileText className="h-8 w-8 sm:h-10 sm:w-10 text-primary/50" />
+                  </div>
+                  <p className="text-muted-foreground text-sm sm:text-base">Exercícios em breve.</p>
+                </div>
               ) : (
                 <>
-                  {exercises.map((exercise, index) => (
-                    <motion.div
-                      key={exercise.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                    >
-                      <Card className={
-                        exerciseResults 
-                          ? exerciseResults[exercise.id] 
-                            ? 'border-success bg-success/5' 
-                            : 'border-destructive bg-destructive/5'
-                          : ''
-                      }>
-                        <CardHeader className="p-3 sm:p-6">
-                          <CardTitle className="text-sm sm:text-base flex items-start gap-2 sm:gap-3">
-                            <span className="bg-primary/10 text-primary px-1.5 py-0.5 sm:px-2 sm:py-1 rounded text-xs sm:text-sm flex-shrink-0">
-                              {index + 1}
-                            </span>
-                            <span className="leading-snug">{exercise.question}</span>
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="px-3 pb-3 pt-0 sm:px-6 sm:pb-6">
-                          <RadioGroup
-                            value={exerciseAnswers[exercise.id]?.toString()}
-                            onValueChange={(value) => 
-                              setExerciseAnswers(prev => ({ ...prev, [exercise.id]: parseInt(value) }))
-                            }
-                            disabled={!!exerciseResults}
-                            className="space-y-2"
-                          >
-                            {(exercise.options as string[]).map((option, optIndex) => (
-                              <div 
-                                key={optIndex} 
-                                className={`flex items-center space-x-2 sm:space-x-3 p-2 sm:p-3 rounded-lg border transition-colors ${
-                                  exerciseResults
-                                    ? optIndex === exercise.correct_answer
-                                      ? 'bg-success/10 border-success'
-                                      : exerciseAnswers[exercise.id] === optIndex
-                                        ? 'bg-destructive/10 border-destructive'
-                                        : 'border-border'
-                                    : exerciseAnswers[exercise.id] === optIndex
-                                      ? 'border-primary bg-primary/5'
-                                      : 'border-border hover:border-muted-foreground'
-                                }`}
-                              >
-                                <RadioGroupItem value={optIndex.toString()} id={`${exercise.id}-${optIndex}`} />
-                                <Label 
-                                  htmlFor={`${exercise.id}-${optIndex}`} 
-                                  className="flex-1 cursor-pointer text-xs sm:text-sm"
-                                >
-                                  {option}
-                                </Label>
-                                {exerciseResults && optIndex === exercise.correct_answer && (
-                                  <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-success flex-shrink-0" />
-                                )}
-                              </div>
-                            ))}
-                          </RadioGroup>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  ))}
+                  {/* Progress header */}
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex items-center justify-between p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/20"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/20 flex items-center justify-center">
+                        <Target className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-sm sm:text-base">Exercícios de Fixação</p>
+                        <p className="text-xs sm:text-sm text-muted-foreground">
+                          {Object.keys(exerciseAnswers).length} de {exercises.length} respondidas
+                        </p>
+                      </div>
+                    </div>
+                    {exerciseResults && (
+                      <div className="text-right">
+                        <p className="text-lg sm:text-xl font-bold text-primary">
+                          {Object.values(exerciseResults).filter(Boolean).length}/{exercises.length}
+                        </p>
+                        <p className="text-xs text-muted-foreground">acertos</p>
+                      </div>
+                    )}
+                  </motion.div>
+
+                  {/* Questions */}
+                  <div className="space-y-4 sm:space-y-5">
+                    {exercises.map((exercise, index) => (
+                      <QuestionCard
+                        key={exercise.id}
+                        index={index}
+                        question={exercise.question}
+                        options={exercise.options as string[]}
+                        selectedAnswer={exerciseAnswers[exercise.id]}
+                        correctAnswer={exercise.correct_answer}
+                        showResult={!!exerciseResults}
+                        disabled={!!exerciseResults}
+                        onAnswerChange={(answer) => 
+                          setExerciseAnswers(prev => ({ ...prev, [exercise.id]: answer }))
+                        }
+                        variant="exercise"
+                      />
+                    ))}
+                  </div>
                   
-                  <div className="flex justify-center pt-2 sm:pt-4">
+                  {/* Action button */}
+                  <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.3 }}
+                    className="flex justify-center pt-4 sm:pt-6"
+                  >
                     {!exerciseResults ? (
                       <Button 
                         variant="hero" 
+                        size="lg"
                         onClick={handleExerciseSubmit}
                         disabled={Object.keys(exerciseAnswers).length < exercises.length}
-                        className="w-full sm:w-auto"
+                        className="w-full sm:w-auto px-8 gap-2"
                       >
-                        <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5" />
+                        <Sparkles className="h-5 w-5" />
                         Verificar Respostas
                       </Button>
                     ) : (
                       <Button 
                         variant="hero" 
+                        size="lg"
                         onClick={() => setActiveTab('prova')}
-                        className="w-full sm:w-auto"
+                        className="w-full sm:w-auto px-8 gap-2"
                       >
-                        <Trophy className="h-4 w-4 sm:h-5 sm:w-5" />
+                        <Trophy className="h-5 w-5" />
                         Ir para Prova Final
                       </Button>
                     )}
-                  </div>
+                  </motion.div>
                 </>
               )}
             </TabsContent>
@@ -549,128 +543,147 @@ export default function CourseStudy() {
             {/* Exam Tab */}
             <TabsContent value="prova" className="space-y-4 sm:space-y-6">
               {enrollment.exam_completed_at ? (
-                <Card className={enrollment.status === 'passed' ? 'border-success' : 'border-destructive'}>
-                  <CardContent className="py-8 sm:py-12 text-center">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className={cn(
+                    'relative overflow-hidden rounded-3xl border-2 p-8 sm:p-12 text-center',
+                    enrollment.status === 'passed'
+                      ? 'border-emerald-500/50 bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent'
+                      : 'border-rose-500/50 bg-gradient-to-br from-rose-500/10 via-rose-500/5 to-transparent'
+                  )}
+                >
+                  {/* Decorative elements */}
+                  <div className="absolute inset-0 overflow-hidden">
+                    <div className={cn(
+                      'absolute -top-24 -right-24 w-48 h-48 rounded-full blur-3xl',
+                      enrollment.status === 'passed' ? 'bg-emerald-500/20' : 'bg-rose-500/20'
+                    )} />
+                    <div className={cn(
+                      'absolute -bottom-24 -left-24 w-48 h-48 rounded-full blur-3xl',
+                      enrollment.status === 'passed' ? 'bg-emerald-500/10' : 'bg-rose-500/10'
+                    )} />
+                  </div>
+
+                  <div className="relative">
                     {enrollment.status === 'passed' ? (
                       <>
-                        <Trophy className="h-12 w-12 sm:h-16 sm:w-16 mx-auto mb-3 sm:mb-4 text-success" />
-                        <h2 className="text-xl sm:text-2xl font-bold mb-2">Parabéns! Aprovado!</h2>
-                        <p className="text-muted-foreground mb-4 sm:mb-6 text-sm sm:text-base">
-                          Sua nota: <span className="font-bold text-success">{enrollment.exam_score?.toFixed(1)}</span>
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.2 }}
+                          className="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-xl shadow-emerald-500/30"
+                        >
+                          <Trophy className="w-10 h-10 sm:w-12 sm:h-12 text-white" />
+                        </motion.div>
+                        <h2 className="text-2xl sm:text-3xl font-bold mb-3 bg-gradient-to-r from-emerald-600 to-emerald-500 bg-clip-text text-transparent">
+                          Parabéns! Aprovado!
+                        </h2>
+                        <p className="text-muted-foreground mb-6 text-base sm:text-lg">
+                          Sua nota: <span className="font-bold text-emerald-500 text-xl">{enrollment.exam_score?.toFixed(1)}</span>
                         </p>
                         <Link to={`/curso/${id}/certificado`}>
-                          <Button variant="hero" className="w-full sm:w-auto">
-                            <Award className="h-4 w-4 sm:h-5 sm:w-5" />
+                          <Button variant="hero" size="lg" className="gap-2 px-8">
+                            <Award className="h-5 w-5" />
                             Gerar Certificado
                           </Button>
                         </Link>
                       </>
                     ) : (
                       <>
-                        <div className="h-12 w-12 sm:h-16 sm:w-16 mx-auto mb-3 sm:mb-4 rounded-full bg-destructive/10 flex items-center justify-center">
-                          <span className="text-2xl sm:text-3xl">😔</span>
-                        </div>
-                        <h2 className="text-xl sm:text-2xl font-bold mb-2">Não foi dessa vez...</h2>
-                        <p className="text-muted-foreground mb-2 text-sm sm:text-base">
-                          Sua nota: <span className="font-bold text-destructive">{enrollment.exam_score?.toFixed(1)}</span>
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.2 }}
+                          className="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-rose-500 to-rose-600 flex items-center justify-center shadow-xl shadow-rose-500/30"
+                        >
+                          <span className="text-4xl sm:text-5xl">😔</span>
+                        </motion.div>
+                        <h2 className="text-2xl sm:text-3xl font-bold mb-3 text-rose-500">
+                          Não foi dessa vez...
+                        </h2>
+                        <p className="text-muted-foreground mb-2 text-base sm:text-lg">
+                          Sua nota: <span className="font-bold text-rose-500 text-xl">{enrollment.exam_score?.toFixed(1)}</span>
                         </p>
-                        <p className="text-xs sm:text-sm text-muted-foreground">
+                        <p className="text-sm text-muted-foreground">
                           É necessário nota mínima 7,0 para aprovação.
                         </p>
                       </>
                     )}
-                  </CardContent>
-                </Card>
+                  </div>
+                </motion.div>
               ) : (
                 <>
-                  <Card className="bg-warning/5 border-warning">
-                    <CardContent className="py-3 sm:py-4">
-                      <p className="text-xs sm:text-sm flex items-start sm:items-center gap-2">
-                        <Trophy className="h-4 w-4 sm:h-5 sm:w-5 text-warning flex-shrink-0 mt-0.5 sm:mt-0" />
-                        <span>
-                          <strong>Prova Final:</strong> Nota mínima <strong>7,0</strong> para aprovação e certificado.
-                        </span>
+                  {/* Exam info banner */}
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex items-center gap-4 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-transparent border-2 border-amber-500/30"
+                  >
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/25">
+                      <Trophy className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-semibold text-sm sm:text-base">Prova Final</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground">
+                        Nota mínima <span className="font-bold text-amber-600">7,0</span> para aprovação e certificado
                       </p>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </motion.div>
 
                   {!examQuestions || examQuestions.length === 0 ? (
-                    <Card>
-                      <CardContent className="py-8 sm:py-12 text-center text-muted-foreground">
-                        <Trophy className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-3 sm:mb-4 opacity-50" />
-                        <p className="text-sm sm:text-base">Prova em breve.</p>
-                      </CardContent>
-                    </Card>
+                    <div className="flex flex-col items-center justify-center py-12 sm:py-16">
+                      <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-amber-500/20 to-amber-500/5 flex items-center justify-center mb-4">
+                        <Trophy className="h-8 w-8 sm:h-10 sm:w-10 text-amber-500/50" />
+                      </div>
+                      <p className="text-muted-foreground text-sm sm:text-base">Prova em breve.</p>
+                    </div>
                   ) : (
                     <>
-                      {examQuestions.map((question, index) => (
-                        <motion.div
-                          key={question.id}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: index * 0.05 }}
-                        >
-                          <Card>
-                            <CardHeader className="p-3 sm:p-6">
-                              <CardTitle className="text-sm sm:text-base flex items-start gap-2 sm:gap-3">
-                                <span className="bg-primary/10 text-primary px-1.5 py-0.5 sm:px-2 sm:py-1 rounded text-xs sm:text-sm flex-shrink-0">
-                                  {index + 1}
-                                </span>
-                                <span className="leading-snug">{question.question}</span>
-                              </CardTitle>
-                            </CardHeader>
-                            <CardContent className="px-3 pb-3 pt-0 sm:px-6 sm:pb-6">
-                              <RadioGroup
-                                value={examAnswers[question.id]?.toString()}
-                                onValueChange={(value) => 
-                                  setExamAnswers(prev => ({ ...prev, [question.id]: parseInt(value) }))
-                                }
-                                className="space-y-2"
-                              >
-                                {(question.options as string[]).map((option, optIndex) => (
-                                  <div 
-                                    key={optIndex} 
-                                    className={`flex items-center space-x-2 sm:space-x-3 p-2 sm:p-3 rounded-lg border transition-colors ${
-                                      examAnswers[question.id] === optIndex
-                                        ? 'border-primary bg-primary/5'
-                                        : 'border-border hover:border-muted-foreground'
-                                    }`}
-                                  >
-                                    <RadioGroupItem value={optIndex.toString()} id={`exam-${question.id}-${optIndex}`} />
-                                    <Label 
-                                      htmlFor={`exam-${question.id}-${optIndex}`} 
-                                      className="flex-1 cursor-pointer text-xs sm:text-sm"
-                                    >
-                                      {option}
-                                    </Label>
-                                  </div>
-                                ))}
-                              </RadioGroup>
-                            </CardContent>
-                          </Card>
-                        </motion.div>
-                      ))}
+                      {/* Questions */}
+                      <div className="space-y-4 sm:space-y-5">
+                        {examQuestions.map((question, index) => (
+                          <QuestionCard
+                            key={question.id}
+                            index={index}
+                            question={question.question}
+                            options={question.options as string[]}
+                            selectedAnswer={examAnswers[question.id]}
+                            onAnswerChange={(answer) => 
+                              setExamAnswers(prev => ({ ...prev, [question.id]: answer }))
+                            }
+                            variant="exam"
+                          />
+                        ))}
+                      </div>
                       
-                      <div className="flex justify-center pt-2 sm:pt-4">
+                      {/* Submit button */}
+                      <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.3 }}
+                        className="flex justify-center pt-4 sm:pt-6"
+                      >
                         <Button 
                           variant="hero" 
+                          size="lg"
                           onClick={handleExamSubmit}
                           disabled={submitExamMutation.isPending}
-                          className="w-full sm:w-auto"
+                          className="w-full sm:w-auto px-8 gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
                         >
                           {submitExamMutation.isPending ? (
                             <>
-                              <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-t-2 border-b-2 border-primary-foreground" />
+                              <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white" />
                               Enviando...
                             </>
                           ) : (
                             <>
-                              <Trophy className="h-4 w-4 sm:h-5 sm:w-5" />
+                              <Trophy className="h-5 w-5" />
                               Enviar Prova
                             </>
                           )}
                         </Button>
-                      </div>
+                      </motion.div>
                     </>
                   )}
                 </>

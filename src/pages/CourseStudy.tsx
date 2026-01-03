@@ -283,37 +283,37 @@ export default function CourseStudy() {
   return (
     <div className="min-h-screen flex flex-col bg-muted/30">
       <Header />
-      <main className="flex-1 py-8">
+      <main className="flex-1 py-4 sm:py-8">
         <div className="container mx-auto px-4">
           {/* Header */}
-          <div className="mb-8">
+          <div className="mb-4 sm:mb-8">
             <Link
               to={`/curso/${id}`}
-              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-4"
+              className="inline-flex items-center gap-2 text-xs sm:text-sm text-muted-foreground hover:text-foreground mb-3 sm:mb-4"
             >
-              <ArrowLeft className="h-4 w-4" />
-              Voltar para detalhes do curso
+              <ArrowLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              Voltar para detalhes
             </Link>
             
-            <h1 className="text-2xl md:text-3xl font-display font-bold mb-2">
+            <h1 className="text-lg sm:text-2xl md:text-3xl font-display font-bold mb-2 line-clamp-2">
               {course.title}
             </h1>
             
-            <div className="flex items-center gap-4 mb-4">
-              <Progress value={currentProgress} className="flex-1 h-2" />
-              <span className="text-sm font-medium">{currentProgress}%</span>
+            <div className="flex items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
+              <Progress value={currentProgress} className="flex-1 h-1.5 sm:h-2" />
+              <span className="text-xs sm:text-sm font-medium whitespace-nowrap">{currentProgress}%</span>
             </div>
             
             {enrollment.status === 'passed' && (
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex items-center gap-3 p-4 bg-success/10 border border-success/20 rounded-lg"
+                className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-success/10 border border-success/20 rounded-lg"
               >
-                <Trophy className="h-6 w-6 text-success" />
-                <div>
-                  <p className="font-semibold text-success">Curso concluído com sucesso!</p>
-                  <p className="text-sm text-muted-foreground">
+                <Trophy className="h-5 w-5 sm:h-6 sm:w-6 text-success flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="font-semibold text-success text-sm sm:text-base">Curso concluído!</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground truncate">
                     Nota: {enrollment.exam_score?.toFixed(1)} • 
                     <Link to={`/curso/${id}/certificado`} className="text-primary hover:underline ml-1">
                       Gerar certificado
@@ -325,38 +325,38 @@ export default function CourseStudy() {
           </div>
 
           {/* Tabs */}
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-flex">
-              <TabsTrigger value="conteudo" className="gap-2">
-                <BookOpen className="h-4 w-4" />
-                <span className="hidden sm:inline">Conteúdo</span>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
+            <TabsList className="grid w-full grid-cols-4 h-auto p-1">
+              <TabsTrigger value="conteudo" className="gap-1 sm:gap-2 px-2 py-2 text-xs sm:text-sm">
+                <BookOpen className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <span className="hidden xs:inline sm:inline">Conteúdo</span>
               </TabsTrigger>
-              <TabsTrigger value="notas" className="gap-2">
-                <StickyNote className="h-4 w-4" />
-                <span className="hidden sm:inline">Notas</span>
+              <TabsTrigger value="notas" className="gap-1 sm:gap-2 px-2 py-2 text-xs sm:text-sm">
+                <StickyNote className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <span className="hidden xs:inline sm:inline">Notas</span>
               </TabsTrigger>
-              <TabsTrigger value="exercicios" className="gap-2">
-                <FileText className="h-4 w-4" />
-                <span className="hidden sm:inline">Exercícios</span>
+              <TabsTrigger value="exercicios" className="gap-1 sm:gap-2 px-2 py-2 text-xs sm:text-sm">
+                <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <span className="hidden xs:inline sm:inline">Exercícios</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="prova" 
-                className="gap-2"
+                className="gap-1 sm:gap-2 px-2 py-2 text-xs sm:text-sm"
                 disabled={currentProgress < 66}
               >
-                <Trophy className="h-4 w-4" />
-                <span className="hidden sm:inline">Prova Final</span>
-                {currentProgress < 66 && <Lock className="h-3 w-3" />}
+                <Trophy className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <span className="hidden xs:inline sm:inline">Prova</span>
+                {currentProgress < 66 && <Lock className="h-2.5 w-2.5 sm:h-3 sm:w-3" />}
               </TabsTrigger>
             </TabsList>
 
             {/* Content Tab */}
-            <TabsContent value="conteudo" className="space-y-4">
+            <TabsContent value="conteudo" className="space-y-3 sm:space-y-4">
               {modules.length === 0 ? (
                 <Card>
-                  <CardContent className="py-12 text-center text-muted-foreground">
-                    <BookOpen className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>Conteúdo do curso em breve.</p>
+                  <CardContent className="py-8 sm:py-12 text-center text-muted-foreground">
+                    <BookOpen className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-3 sm:mb-4 opacity-50" />
+                    <p className="text-sm sm:text-base">Conteúdo do curso em breve.</p>
                   </CardContent>
                 </Card>
               ) : (
@@ -369,24 +369,24 @@ export default function CourseStudy() {
                   >
                     <Card className={expandedModules.includes(index) ? 'border-primary' : ''}>
                       <CardHeader 
-                        className="cursor-pointer"
+                        className="cursor-pointer p-3 sm:p-6"
                         onClick={() => toggleModule(index)}
                       >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                            <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold flex-shrink-0 ${
                               index <= currentModuleIndex 
                                 ? 'bg-primary text-primary-foreground' 
                                 : 'bg-muted text-muted-foreground'
                             }`}>
                               {index + 1}
                             </div>
-                            <CardTitle className="text-lg">{module.title}</CardTitle>
+                            <CardTitle className="text-sm sm:text-lg line-clamp-2">{module.title}</CardTitle>
                           </div>
                           {expandedModules.includes(index) ? (
-                            <ChevronUp className="h-5 w-5" />
+                            <ChevronUp className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
                           ) : (
-                            <ChevronDown className="h-5 w-5" />
+                            <ChevronDown className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
                           )}
                         </div>
                       </CardHeader>
@@ -399,27 +399,29 @@ export default function CourseStudy() {
                             exit={{ height: 0, opacity: 0 }}
                             transition={{ duration: 0.2 }}
                           >
-                            <CardContent className="pt-0">
+                            <CardContent className="pt-0 px-3 pb-3 sm:px-6 sm:pb-6">
                               <div className="prose max-w-none">
-                                <p className="text-muted-foreground whitespace-pre-line">
+                                <p className="text-sm sm:text-base text-muted-foreground whitespace-pre-line">
                                   {module.content}
                                 </p>
                               </div>
                               
-                              <div className="flex justify-end mt-6">
+                              <div className="flex justify-end mt-4 sm:mt-6">
                                 <Button 
                                   onClick={() => handleModuleComplete(index)}
                                   variant={index < modules.length - 1 ? 'default' : 'hero'}
+                                  size="sm"
+                                  className="text-xs sm:text-sm"
                                 >
                                   {index < modules.length - 1 ? (
                                     <>
-                                      Próximo módulo
-                                      <ArrowRight className="h-4 w-4" />
+                                      Próximo
+                                      <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                                     </>
                                   ) : (
                                     <>
-                                      Ir para exercícios
-                                      <CheckCircle className="h-4 w-4" />
+                                      Exercícios
+                                      <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                                     </>
                                   )}
                                 </Button>
@@ -444,12 +446,12 @@ export default function CourseStudy() {
                 />
               )}
             </TabsContent>
-            <TabsContent value="exercicios" className="space-y-6">
+            <TabsContent value="exercicios" className="space-y-4 sm:space-y-6">
               {!exercises || exercises.length === 0 ? (
                 <Card>
-                  <CardContent className="py-12 text-center text-muted-foreground">
-                    <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>Exercícios em breve.</p>
+                  <CardContent className="py-8 sm:py-12 text-center text-muted-foreground">
+                    <FileText className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-3 sm:mb-4 opacity-50" />
+                    <p className="text-sm sm:text-base">Exercícios em breve.</p>
                   </CardContent>
                 </Card>
               ) : (
@@ -468,26 +470,27 @@ export default function CourseStudy() {
                             : 'border-destructive bg-destructive/5'
                           : ''
                       }>
-                        <CardHeader>
-                          <CardTitle className="text-base flex items-start gap-3">
-                            <span className="bg-primary/10 text-primary px-2 py-1 rounded text-sm">
+                        <CardHeader className="p-3 sm:p-6">
+                          <CardTitle className="text-sm sm:text-base flex items-start gap-2 sm:gap-3">
+                            <span className="bg-primary/10 text-primary px-1.5 py-0.5 sm:px-2 sm:py-1 rounded text-xs sm:text-sm flex-shrink-0">
                               {index + 1}
                             </span>
-                            <span>{exercise.question}</span>
+                            <span className="leading-snug">{exercise.question}</span>
                           </CardTitle>
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="px-3 pb-3 pt-0 sm:px-6 sm:pb-6">
                           <RadioGroup
                             value={exerciseAnswers[exercise.id]?.toString()}
                             onValueChange={(value) => 
                               setExerciseAnswers(prev => ({ ...prev, [exercise.id]: parseInt(value) }))
                             }
                             disabled={!!exerciseResults}
+                            className="space-y-2"
                           >
                             {(exercise.options as string[]).map((option, optIndex) => (
                               <div 
                                 key={optIndex} 
-                                className={`flex items-center space-x-3 p-3 rounded-lg border transition-colors ${
+                                className={`flex items-center space-x-2 sm:space-x-3 p-2 sm:p-3 rounded-lg border transition-colors ${
                                   exerciseResults
                                     ? optIndex === exercise.correct_answer
                                       ? 'bg-success/10 border-success'
@@ -502,12 +505,12 @@ export default function CourseStudy() {
                                 <RadioGroupItem value={optIndex.toString()} id={`${exercise.id}-${optIndex}`} />
                                 <Label 
                                   htmlFor={`${exercise.id}-${optIndex}`} 
-                                  className="flex-1 cursor-pointer"
+                                  className="flex-1 cursor-pointer text-xs sm:text-sm"
                                 >
                                   {option}
                                 </Label>
                                 {exerciseResults && optIndex === exercise.correct_answer && (
-                                  <CheckCircle className="h-5 w-5 text-success" />
+                                  <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-success flex-shrink-0" />
                                 )}
                               </div>
                             ))}
@@ -517,24 +520,24 @@ export default function CourseStudy() {
                     </motion.div>
                   ))}
                   
-                  <div className="flex justify-center pt-4">
+                  <div className="flex justify-center pt-2 sm:pt-4">
                     {!exerciseResults ? (
                       <Button 
                         variant="hero" 
-                        size="lg"
                         onClick={handleExerciseSubmit}
                         disabled={Object.keys(exerciseAnswers).length < exercises.length}
+                        className="w-full sm:w-auto"
                       >
-                        <CheckCircle className="h-5 w-5" />
+                        <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5" />
                         Verificar Respostas
                       </Button>
                     ) : (
                       <Button 
                         variant="hero" 
-                        size="lg"
                         onClick={() => setActiveTab('prova')}
+                        className="w-full sm:w-auto"
                       >
-                        <Trophy className="h-5 w-5" />
+                        <Trophy className="h-4 w-4 sm:h-5 sm:w-5" />
                         Ir para Prova Final
                       </Button>
                     )}
@@ -544,34 +547,34 @@ export default function CourseStudy() {
             </TabsContent>
 
             {/* Exam Tab */}
-            <TabsContent value="prova" className="space-y-6">
+            <TabsContent value="prova" className="space-y-4 sm:space-y-6">
               {enrollment.exam_completed_at ? (
                 <Card className={enrollment.status === 'passed' ? 'border-success' : 'border-destructive'}>
-                  <CardContent className="py-12 text-center">
+                  <CardContent className="py-8 sm:py-12 text-center">
                     {enrollment.status === 'passed' ? (
                       <>
-                        <Trophy className="h-16 w-16 mx-auto mb-4 text-success" />
-                        <h2 className="text-2xl font-bold mb-2">Parabéns! Você foi aprovado!</h2>
-                        <p className="text-muted-foreground mb-6">
+                        <Trophy className="h-12 w-12 sm:h-16 sm:w-16 mx-auto mb-3 sm:mb-4 text-success" />
+                        <h2 className="text-xl sm:text-2xl font-bold mb-2">Parabéns! Aprovado!</h2>
+                        <p className="text-muted-foreground mb-4 sm:mb-6 text-sm sm:text-base">
                           Sua nota: <span className="font-bold text-success">{enrollment.exam_score?.toFixed(1)}</span>
                         </p>
                         <Link to={`/curso/${id}/certificado`}>
-                          <Button variant="hero" size="lg">
-                            <Award className="h-5 w-5" />
+                          <Button variant="hero" className="w-full sm:w-auto">
+                            <Award className="h-4 w-4 sm:h-5 sm:w-5" />
                             Gerar Certificado
                           </Button>
                         </Link>
                       </>
                     ) : (
                       <>
-                        <div className="h-16 w-16 mx-auto mb-4 rounded-full bg-destructive/10 flex items-center justify-center">
-                          <span className="text-3xl">😔</span>
+                        <div className="h-12 w-12 sm:h-16 sm:w-16 mx-auto mb-3 sm:mb-4 rounded-full bg-destructive/10 flex items-center justify-center">
+                          <span className="text-2xl sm:text-3xl">😔</span>
                         </div>
-                        <h2 className="text-2xl font-bold mb-2">Não foi dessa vez...</h2>
-                        <p className="text-muted-foreground mb-2">
+                        <h2 className="text-xl sm:text-2xl font-bold mb-2">Não foi dessa vez...</h2>
+                        <p className="text-muted-foreground mb-2 text-sm sm:text-base">
                           Sua nota: <span className="font-bold text-destructive">{enrollment.exam_score?.toFixed(1)}</span>
                         </p>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-xs sm:text-sm text-muted-foreground">
                           É necessário nota mínima 7,0 para aprovação.
                         </p>
                       </>
@@ -581,11 +584,11 @@ export default function CourseStudy() {
               ) : (
                 <>
                   <Card className="bg-warning/5 border-warning">
-                    <CardContent className="py-4">
-                      <p className="text-sm flex items-center gap-2">
-                        <Trophy className="h-5 w-5 text-warning" />
+                    <CardContent className="py-3 sm:py-4">
+                      <p className="text-xs sm:text-sm flex items-start sm:items-center gap-2">
+                        <Trophy className="h-4 w-4 sm:h-5 sm:w-5 text-warning flex-shrink-0 mt-0.5 sm:mt-0" />
                         <span>
-                          <strong>Prova Final:</strong> Você precisa de nota mínima <strong>7,0</strong> para ser aprovado e receber o certificado.
+                          <strong>Prova Final:</strong> Nota mínima <strong>7,0</strong> para aprovação e certificado.
                         </span>
                       </p>
                     </CardContent>
@@ -593,9 +596,9 @@ export default function CourseStudy() {
 
                   {!examQuestions || examQuestions.length === 0 ? (
                     <Card>
-                      <CardContent className="py-12 text-center text-muted-foreground">
-                        <Trophy className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                        <p>Prova em breve.</p>
+                      <CardContent className="py-8 sm:py-12 text-center text-muted-foreground">
+                        <Trophy className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-3 sm:mb-4 opacity-50" />
+                        <p className="text-sm sm:text-base">Prova em breve.</p>
                       </CardContent>
                     </Card>
                   ) : (
@@ -608,25 +611,26 @@ export default function CourseStudy() {
                           transition={{ delay: index * 0.05 }}
                         >
                           <Card>
-                            <CardHeader>
-                              <CardTitle className="text-base flex items-start gap-3">
-                                <span className="bg-primary/10 text-primary px-2 py-1 rounded text-sm">
+                            <CardHeader className="p-3 sm:p-6">
+                              <CardTitle className="text-sm sm:text-base flex items-start gap-2 sm:gap-3">
+                                <span className="bg-primary/10 text-primary px-1.5 py-0.5 sm:px-2 sm:py-1 rounded text-xs sm:text-sm flex-shrink-0">
                                   {index + 1}
                                 </span>
-                                <span>{question.question}</span>
+                                <span className="leading-snug">{question.question}</span>
                               </CardTitle>
                             </CardHeader>
-                            <CardContent>
+                            <CardContent className="px-3 pb-3 pt-0 sm:px-6 sm:pb-6">
                               <RadioGroup
                                 value={examAnswers[question.id]?.toString()}
                                 onValueChange={(value) => 
                                   setExamAnswers(prev => ({ ...prev, [question.id]: parseInt(value) }))
                                 }
+                                className="space-y-2"
                               >
                                 {(question.options as string[]).map((option, optIndex) => (
                                   <div 
                                     key={optIndex} 
-                                    className={`flex items-center space-x-3 p-3 rounded-lg border transition-colors ${
+                                    className={`flex items-center space-x-2 sm:space-x-3 p-2 sm:p-3 rounded-lg border transition-colors ${
                                       examAnswers[question.id] === optIndex
                                         ? 'border-primary bg-primary/5'
                                         : 'border-border hover:border-muted-foreground'
@@ -635,7 +639,7 @@ export default function CourseStudy() {
                                     <RadioGroupItem value={optIndex.toString()} id={`exam-${question.id}-${optIndex}`} />
                                     <Label 
                                       htmlFor={`exam-${question.id}-${optIndex}`} 
-                                      className="flex-1 cursor-pointer"
+                                      className="flex-1 cursor-pointer text-xs sm:text-sm"
                                     >
                                       {option}
                                     </Label>
@@ -647,21 +651,21 @@ export default function CourseStudy() {
                         </motion.div>
                       ))}
                       
-                      <div className="flex justify-center pt-4">
+                      <div className="flex justify-center pt-2 sm:pt-4">
                         <Button 
                           variant="hero" 
-                          size="lg"
                           onClick={handleExamSubmit}
                           disabled={submitExamMutation.isPending}
+                          className="w-full sm:w-auto"
                         >
                           {submitExamMutation.isPending ? (
                             <>
-                              <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-primary-foreground" />
+                              <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-t-2 border-b-2 border-primary-foreground" />
                               Enviando...
                             </>
                           ) : (
                             <>
-                              <Trophy className="h-5 w-5" />
+                              <Trophy className="h-4 w-4 sm:h-5 sm:w-5" />
                               Enviar Prova
                             </>
                           )}

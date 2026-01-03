@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Input } from '@/components/ui/input';
 import {
@@ -19,9 +19,17 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Search, Eye, BookOpen, GraduationCap } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Search, Eye, BookOpen, GraduationCap, Plus, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { toast } from 'sonner';
 
 interface UserWithEnrollments {
   id: string;
@@ -42,14 +50,21 @@ interface UserWithEnrollments {
   }[];
 }
 
+interface Course {
+  id: string;
+  title: string;
+}
+
 export default function AdminUsers() {
   const [search, setSearch] = useState('');
   const [selectedUser, setSelectedUser] = useState<UserWithEnrollments | null>(null);
+  const [enrollUserModal, setEnrollUserModal] = useState<UserWithEnrollments | null>(null);
+  const [selectedCourseId, setSelectedCourseId] = useState<string>('');
+  const queryClient = useQueryClient();
 
   const { data: users, isLoading } = useQuery({
     queryKey: ['admin-users'],
     queryFn: async () => {
-      // Fetch profiles
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select('*')
@@ -57,14 +72,12 @@ export default function AdminUsers() {
 
       if (profilesError) throw profilesError;
 
-      // Fetch enrollments with courses
       const { data: enrollments, error: enrollmentsError } = await supabase
         .from('enrollments')
         .select('*, courses(title)');
 
       if (enrollmentsError) throw enrollmentsError;
 
-      // Map enrollments to users
       const usersWithEnrollments: UserWithEnrollments[] = profiles.map((profile) => ({
         ...profile,
         enrollments: enrollments
@@ -86,6 +99,66 @@ export default function AdminUsers() {
     },
   });
 
+  const { data: courses } = useQuery({
+    queryKey: ['admin-courses-list'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('courses')
+        .select('id, title')
+        .eq('status', 'active')
+        .order('title');
+
+      if (error) throw error;
+      return data as Course[];
+    },
+  });
+
+  const enrollMutation = useMutation({
+    mutationFn: async ({ userId, courseId }: { userId: string; courseId: string }) => {
+      const { error } = await supabase
+        .from('enrollments')
+        .insert({
+          user_id: userId,
+          course_id: courseId,
+          status: 'in_progress',
+          progress: 0,
+        });
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      toast.success('Curso adicionado com sucesso!');
+      setEnrollUserModal(null);
+      setSelectedCourseId('');
+    },
+    onError: (error: any) => {
+      if (error.code === '23505') {
+        toast.error('Usuário já está matriculado neste curso');
+      } else {
+        toast.error('Erro ao adicionar curso');
+      }
+    },
+  });
+
+  const removeEnrollmentMutation = useMutation({
+    mutationFn: async (enrollmentId: string) => {
+      const { error } = await supabase
+        .from('enrollments')
+        .delete()
+        .eq('id', enrollmentId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      toast.success('Matrícula removida com sucesso!');
+    },
+    onError: () => {
+      toast.error('Erro ao remover matrícula');
+    },
+  });
+
   const filteredUsers = users?.filter(
     (user) =>
       user.full_name.toLowerCase().includes(search.toLowerCase()) ||
@@ -101,6 +174,19 @@ export default function AdminUsers() {
     };
     const config = variants[status] || { label: status, variant: 'secondary' };
     return <Badge variant={config.variant}>{config.label}</Badge>;
+  };
+
+  const getAvailableCourses = (user: UserWithEnrollments) => {
+    const enrolledCourseIds = user.enrollments.map((e) => e.course_id);
+    return courses?.filter((c) => !enrolledCourseIds.includes(c.id)) || [];
+  };
+
+  const handleEnroll = () => {
+    if (!enrollUserModal || !selectedCourseId) return;
+    enrollMutation.mutate({
+      userId: enrollUserModal.user_id,
+      courseId: selectedCourseId,
+    });
   };
 
   return (
@@ -192,14 +278,25 @@ export default function AdminUsers() {
                     <p className="font-medium">{user.full_name}</p>
                     <p className="text-sm text-muted-foreground">{user.email}</p>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setSelectedUser(user)}
-                    disabled={user.enrollments.length === 0}
-                  >
-                    <Eye className="h-4 w-4" />
-                  </Button>
+                  <div className="flex gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setEnrollUserModal(user)}
+                      title="Adicionar curso"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setSelectedUser(user)}
+                      disabled={user.enrollments.length === 0}
+                      title="Ver detalhes"
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge variant="secondary">{user.enrollments.length} curso(s)</Badge>
@@ -228,7 +325,7 @@ export default function AdminUsers() {
               <TableHead>Cursos Matriculados</TableHead>
               <TableHead>Progresso Médio</TableHead>
               <TableHead>Cadastrado em</TableHead>
-              <TableHead className="w-[50px]"></TableHead>
+              <TableHead className="w-[100px]">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -279,14 +376,25 @@ export default function AdminUsers() {
                         : '-'}
                     </TableCell>
                     <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setSelectedUser(user)}
-                        disabled={user.enrollments.length === 0}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
+                      <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setEnrollUserModal(user)}
+                          title="Adicionar curso"
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setSelectedUser(user)}
+                          disabled={user.enrollments.length === 0}
+                          title="Ver detalhes"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 );
@@ -296,8 +404,9 @@ export default function AdminUsers() {
         </Table>
       </div>
 
+      {/* Modal de Detalhes do Aluno */}
       <Dialog open={!!selectedUser} onOpenChange={() => setSelectedUser(null)}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Detalhes do Aluno</DialogTitle>
           </DialogHeader>
@@ -309,7 +418,20 @@ export default function AdminUsers() {
               </div>
 
               <div>
-                <h4 className="font-medium mb-3">Cursos Matriculados</h4>
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-medium">Cursos Matriculados</h4>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedUser(null);
+                      setEnrollUserModal(selectedUser);
+                    }}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Adicionar Curso
+                  </Button>
+                </div>
                 <div className="space-y-3">
                   {selectedUser.enrollments.map((enrollment) => (
                     <div
@@ -317,7 +439,7 @@ export default function AdminUsers() {
                       className="border rounded-lg p-4 space-y-2"
                     >
                       <div className="flex items-start justify-between">
-                        <div>
+                        <div className="flex-1">
                           <p className="font-medium">{enrollment.course.title}</p>
                           <p className="text-xs text-muted-foreground">
                             Matriculado em{' '}
@@ -326,7 +448,19 @@ export default function AdminUsers() {
                             })}
                           </p>
                         </div>
-                        {getStatusBadge(enrollment.status)}
+                        <div className="flex items-center gap-2">
+                          {getStatusBadge(enrollment.status)}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-destructive hover:text-destructive"
+                            onClick={() => removeEnrollmentMutation.mutate(enrollment.id)}
+                            disabled={removeEnrollmentMutation.isPending}
+                            title="Remover matrícula"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <Progress value={enrollment.progress} className="h-2 flex-1" />
@@ -351,6 +485,66 @@ export default function AdminUsers() {
                     </div>
                   ))}
                 </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Adicionar Curso */}
+      <Dialog open={!!enrollUserModal} onOpenChange={() => {
+        setEnrollUserModal(null);
+        setSelectedCourseId('');
+      }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Adicionar Curso ao Usuário</DialogTitle>
+          </DialogHeader>
+          {enrollUserModal && (
+            <div className="space-y-4">
+              <div className="bg-muted/50 rounded-lg p-4">
+                <p className="font-medium">{enrollUserModal.full_name}</p>
+                <p className="text-sm text-muted-foreground">{enrollUserModal.email}</p>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Selecione o curso</label>
+                {getAvailableCourses(enrollUserModal).length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    Este usuário já está matriculado em todos os cursos disponíveis.
+                  </p>
+                ) : (
+                  <Select value={selectedCourseId} onValueChange={setSelectedCourseId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione um curso" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {getAvailableCourses(enrollUserModal).map((course) => (
+                        <SelectItem key={course.id} value={course.id}>
+                          {course.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
+
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setEnrollUserModal(null);
+                    setSelectedCourseId('');
+                  }}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={handleEnroll}
+                  disabled={!selectedCourseId || enrollMutation.isPending}
+                >
+                  {enrollMutation.isPending ? 'Adicionando...' : 'Adicionar Curso'}
+                </Button>
               </div>
             </div>
           )}

@@ -201,9 +201,14 @@ export default function CourseDetail() {
                     {course.level.charAt(0).toUpperCase() + course.level.slice(1)}
                   </Badge>
                 </div>
-                <h1 className="text-xl sm:text-2xl lg:text-3xl font-display font-bold mb-3 sm:mb-4">{course.title}</h1>
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-display font-bold">{course.title}</h1>
+                {course.short_description && (
+                  <p className="text-base sm:text-lg text-muted-foreground mt-2">
+                    {course.short_description}
+                  </p>
+                )}
                 
-                <div className="flex flex-wrap items-center gap-3 sm:gap-6 text-xs sm:text-sm text-muted-foreground">
+                <div className="flex flex-wrap items-center gap-3 sm:gap-6 text-xs sm:text-sm text-muted-foreground mt-3 sm:mt-4">
                   <span className="flex items-center gap-1 sm:gap-2">
                     <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     {course.duration_hours}h

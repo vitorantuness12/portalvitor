@@ -1,11 +1,11 @@
 import { motion } from 'framer-motion';
-import { Brain, Clock, Award, Shield, Zap, HeartHandshake } from 'lucide-react';
+import { GraduationCap, Clock, Award, Shield, Zap, HeartHandshake } from 'lucide-react';
 
 const features = [
   {
-    icon: <Brain className="h-6 w-6" />,
-    title: 'Conteúdo com IA',
-    description: 'Cursos criados e atualizados com inteligência artificial para garantir qualidade.',
+    icon: <GraduationCap className="h-6 w-6" />,
+    title: 'Conteúdo de Qualidade',
+    description: 'Cursos desenvolvidos por especialistas com anos de experiência no mercado.',
   },
   {
     icon: <Clock className="h-6 w-6" />,
@@ -36,7 +36,7 @@ const features = [
 
 export function WhyChooseUs() {
   return (
-    <section className="py-20 bg-card">
+    <section className="py-12 sm:py-16 lg:py-20 bg-card">
       <div className="container mx-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -44,12 +44,12 @@ export function WhyChooseUs() {
           viewport={{ once: true }}
           className="text-center mb-12"
         >
-          <h2 className="text-3xl md:text-4xl font-display font-bold mb-4">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold mb-4">
             Por que escolher a{' '}
             <span className="hero-gradient-text">EduPlataforma</span>?
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Oferecemos a melhor experiência de aprendizado online com tecnologia de ponta.
+          <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
+            Oferecemos a melhor experiência de aprendizado online com qualidade comprovada.
           </p>
         </motion.div>
 

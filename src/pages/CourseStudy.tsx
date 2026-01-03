@@ -254,6 +254,9 @@ export default function CourseStudy() {
     if (index < modules.length - 1) {
       setCurrentModuleIndex(index + 1);
       setExpandedModules([index + 1]);
+    } else {
+      // Last module - go to exercises tab
+      setActiveTab('exercicios');
     }
   };
 

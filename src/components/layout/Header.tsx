@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { GraduationCap, Menu, X, User, LogOut, LayoutDashboard, TrendingUp } from 'lucide-react';
+import { GraduationCap, Menu, X, User, LogOut, LayoutDashboard, TrendingUp, Settings, BookOpen } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
@@ -11,8 +11,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -24,9 +26,26 @@ export function Header() {
     navigate('/');
   };
 
-  const getInitials = (email: string) => {
-    return email.slice(0, 2).toUpperCase();
+  const getInitials = (name?: string | null, email?: string | null) => {
+    if (name) {
+      return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    }
+    return email?.slice(0, 2).toUpperCase() || 'U';
   };
+
+  const { data: profile } = useQuery({
+    queryKey: ['header-profile', user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data } = await supabase
+        .from('profiles')
+        .select('full_name, avatar_url')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!user,
+  });
 
   return (
     <motion.header
@@ -66,8 +85,9 @@ export function Header() {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                     <Avatar className="h-10 w-10">
+                      <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.full_name || 'Avatar'} />
                       <AvatarFallback className="bg-primary text-primary-foreground">
-                        {getInitials(user.email || 'U')}
+                        {getInitials(profile?.full_name, user.email)}
                       </AvatarFallback>
                     </Avatar>
                   </Button>
@@ -75,7 +95,7 @@ export function Header() {
                 <DropdownMenuContent className="w-56" align="end" forceMount>
                   <div className="flex items-center justify-start gap-2 p-2">
                     <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium">{user.email}</p>
+                      <p className="text-sm font-medium">{profile?.full_name || user.email}</p>
                       <p className="text-xs text-muted-foreground">
                         {isAdmin ? 'Administrador' : 'Aluno'}
                       </p>
@@ -90,8 +110,14 @@ export function Header() {
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link to="/meus-cursos" className="cursor-pointer">
-                      <User className="mr-2 h-4 w-4" />
+                      <BookOpen className="mr-2 h-4 w-4" />
                       Meus Cursos
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/perfil" className="cursor-pointer">
+                      <Settings className="mr-2 h-4 w-4" />
+                      Editar Perfil
                     </Link>
                   </DropdownMenuItem>
                   {isAdmin && (
@@ -172,6 +198,13 @@ export function Header() {
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Meus Cursos
+                  </Link>
+                  <Link
+                    to="/perfil"
+                    className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Editar Perfil
                   </Link>
                   {isAdmin && (
                     <Link

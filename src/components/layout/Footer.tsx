@@ -35,7 +35,7 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link to="/certificado" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                <Link to="/validar-certificado" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                   Validar Certificado
                 </Link>
               </li>

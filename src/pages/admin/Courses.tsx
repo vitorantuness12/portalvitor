@@ -110,7 +110,7 @@ export default function AdminCourses() {
         throw new Error(result.error || 'Erro ao regenerar conteúdo');
       }
 
-      toast.success(`Conteúdo regenerado com sucesso! ${result.modulesCount} módulos atualizados.`);
+      toast.success(`Conteúdo regenerado! ${result.modulesCount} módulos, ${result.exercisesCount} exercícios e ${result.examQuestionsCount} questões da prova.`);
       queryClient.invalidateQueries({ queryKey: ['admin-courses'] });
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Erro ao regenerar conteúdo');

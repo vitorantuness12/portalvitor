@@ -176,7 +176,7 @@ export function EditCourseModal({ open, onOpenChange, course }: EditCourseModalP
                   </Button>
                 </div>
               ) : (
-                <div
+              <div
                   onClick={() => fileInputRef.current?.click()}
                   className="w-full max-w-xs aspect-video border-2 border-dashed rounded-lg flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-primary transition-colors"
                 >
@@ -184,8 +184,14 @@ export function EditCourseModal({ open, onOpenChange, course }: EditCourseModalP
                   <span className="text-sm text-muted-foreground">
                     Clique para adicionar imagem
                   </span>
+                  <span className="text-xs text-muted-foreground">
+                    Tamanho ideal: 1280x720px (16:9)
+                  </span>
                 </div>
               )}
+              <p className="text-xs text-muted-foreground">
+                Formato recomendado: JPG ou PNG. Tamanho ideal: 1280x720px (proporção 16:9). Máximo: 5MB.
+              </p>
               <input
                 ref={fileInputRef}
                 type="file"

@@ -7,6 +7,7 @@ import { Footer } from '@/components/layout/Footer';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -30,6 +31,7 @@ export default function Profile() {
   const [fullName, setFullName] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [ticketPage, setTicketPage] = useState(0);
+  const [ticketStatusFilter, setTicketStatusFilter] = useState<string>('all');
   const ticketsPerPage = 5;
 
   useEffect(() => {
@@ -54,23 +56,35 @@ export default function Profile() {
   });
 
   const { data: ticketsData, isLoading: isLoadingTickets } = useQuery({
-    queryKey: ['user-tickets', user?.id, ticketPage],
+    queryKey: ['user-tickets', user?.id, ticketPage, ticketStatusFilter],
     queryFn: async () => {
       if (!user) return { tickets: [], total: 0 };
       
-      // Get total count
-      const { count } = await supabase
+      // Build base query for count
+      let countQuery = supabase
         .from('support_tickets')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', user.id);
       
-      // Get paginated data
-      const { data, error } = await supabase
+      if (ticketStatusFilter !== 'all') {
+        countQuery = countQuery.eq('status', ticketStatusFilter);
+      }
+      
+      const { count } = await countQuery;
+      
+      // Build paginated query
+      let dataQuery = supabase
         .from('support_tickets')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .range(ticketPage * ticketsPerPage, (ticketPage + 1) * ticketsPerPage - 1);
+      
+      if (ticketStatusFilter !== 'all') {
+        dataQuery = dataQuery.eq('status', ticketStatusFilter);
+      }
+      
+      const { data, error } = await dataQuery;
       
       if (error) throw error;
       return { tickets: data || [], total: count || 0 };
@@ -337,14 +351,33 @@ export default function Profile() {
             className="mt-6"
           >
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MessageSquare className="h-5 w-5" />
-                  Histórico de Suporte
-                </CardTitle>
-                <CardDescription>
-                  Seus tickets de atendimento
-                </CardDescription>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <MessageSquare className="h-5 w-5" />
+                    Histórico de Suporte
+                  </CardTitle>
+                  <CardDescription>
+                    Seus tickets de atendimento
+                  </CardDescription>
+                </div>
+                <Select 
+                  value={ticketStatusFilter} 
+                  onValueChange={(value) => {
+                    setTicketStatusFilter(value);
+                    setTicketPage(0);
+                  }}
+                >
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue placeholder="Filtrar" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="open">Abertos</SelectItem>
+                    <SelectItem value="in_progress">Em Atendimento</SelectItem>
+                    <SelectItem value="closed">Fechados</SelectItem>
+                  </SelectContent>
+                </Select>
               </CardHeader>
               <CardContent>
                 {isLoadingTickets ? (

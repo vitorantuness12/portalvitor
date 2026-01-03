@@ -245,18 +245,19 @@ export function WhatsAppBulkModal({ open, onOpenChange, courseId, courseTitle }:
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
-        <DialogHeader>
+      <DialogContent className="max-w-2xl max-h-[90vh] sm:max-h-[85vh] flex flex-col p-0">
+        <DialogHeader className="px-4 sm:px-6 pt-4 sm:pt-6 pb-2">
           <DialogTitle className="flex items-center gap-2">
             <MessageSquare className="h-5 w-5" />
             Enviar Mensagem em Massa
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-sm">
             Envie uma mensagem via WhatsApp para todos os alunos do curso "{courseTitle}"
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 flex-1 overflow-hidden flex flex-col">
+        <ScrollArea className="flex-1 px-4 sm:px-6">
+          <div className="space-y-4 pb-4">
           {/* Templates */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
@@ -431,8 +432,8 @@ export function WhatsAppBulkModal({ open, onOpenChange, courseId, courseTitle }:
           )}
 
           {/* Students List */}
-          <div className="flex-1 overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between mb-2">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
               <Label className="flex items-center gap-2">
                 <Users className="h-4 w-4" />
                 Alunos Matriculados
@@ -451,7 +452,7 @@ export function WhatsAppBulkModal({ open, onOpenChange, courseId, courseTitle }:
               )}
             </div>
 
-            <ScrollArea className="flex-1 border rounded-lg">
+            <div className="border rounded-lg max-h-[200px] overflow-y-auto">
               <div className="p-3 space-y-2">
                 {isLoading ? (
                   <>
@@ -538,11 +539,14 @@ export function WhatsAppBulkModal({ open, onOpenChange, courseId, courseTitle }:
                   </>
                 )}
               </div>
-            </ScrollArea>
+            </div>
           </div>
+          </div>
+        </ScrollArea>
 
-          {/* Actions */}
-          <div className="flex flex-col sm:flex-row gap-2 pt-2 border-t">
+        {/* Actions - Fixed at bottom */}
+        <div className="px-4 sm:px-6 pb-4 sm:pb-6 pt-2 border-t space-y-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <Button
               variant="outline"
               className="flex-1"

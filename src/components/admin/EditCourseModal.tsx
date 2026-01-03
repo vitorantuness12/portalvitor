@@ -225,15 +225,19 @@ export function EditCourseModal({ open, onOpenChange, course }: EditCourseModalP
             />
           </div>
 
-          {/* Short Description */}
+          {/* Subtitle */}
           <div className="space-y-2">
-            <Label htmlFor="short_description">Descrição Curta</Label>
+            <Label htmlFor="short_description">Subtítulo</Label>
             <Input
               id="short_description"
               value={formData.short_description}
               onChange={(e) => setFormData({ ...formData, short_description: e.target.value })}
-              placeholder="Uma breve descrição do curso"
+              placeholder="Frase chamativa que complementa o título (ex: 'Do básico ao avançado')"
+              maxLength={150}
             />
+            <p className="text-xs text-muted-foreground">
+              Máximo 150 caracteres. Aparece abaixo do título nos cards.
+            </p>
           </div>
 
           {/* Description */}

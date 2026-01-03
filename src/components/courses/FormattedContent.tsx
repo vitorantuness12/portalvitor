@@ -1,4 +1,78 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
+import hljs from 'highlight.js/lib/core';
+import javascript from 'highlight.js/lib/languages/javascript';
+import typescript from 'highlight.js/lib/languages/typescript';
+import python from 'highlight.js/lib/languages/python';
+import java from 'highlight.js/lib/languages/java';
+import csharp from 'highlight.js/lib/languages/csharp';
+import php from 'highlight.js/lib/languages/php';
+import ruby from 'highlight.js/lib/languages/ruby';
+import go from 'highlight.js/lib/languages/go';
+import rust from 'highlight.js/lib/languages/rust';
+import sql from 'highlight.js/lib/languages/sql';
+import bash from 'highlight.js/lib/languages/bash';
+import json from 'highlight.js/lib/languages/json';
+import xml from 'highlight.js/lib/languages/xml';
+import css from 'highlight.js/lib/languages/css';
+import 'highlight.js/styles/github-dark.css';
+
+// Register languages
+hljs.registerLanguage('javascript', javascript);
+hljs.registerLanguage('js', javascript);
+hljs.registerLanguage('typescript', typescript);
+hljs.registerLanguage('ts', typescript);
+hljs.registerLanguage('python', python);
+hljs.registerLanguage('py', python);
+hljs.registerLanguage('java', java);
+hljs.registerLanguage('csharp', csharp);
+hljs.registerLanguage('cs', csharp);
+hljs.registerLanguage('php', php);
+hljs.registerLanguage('ruby', ruby);
+hljs.registerLanguage('rb', ruby);
+hljs.registerLanguage('go', go);
+hljs.registerLanguage('rust', rust);
+hljs.registerLanguage('rs', rust);
+hljs.registerLanguage('sql', sql);
+hljs.registerLanguage('bash', bash);
+hljs.registerLanguage('sh', bash);
+hljs.registerLanguage('shell', bash);
+hljs.registerLanguage('json', json);
+hljs.registerLanguage('xml', xml);
+hljs.registerLanguage('html', xml);
+hljs.registerLanguage('css', css);
+
+interface CodeBlockProps {
+  code: string;
+  language?: string;
+}
+
+function CodeBlock({ code, language }: CodeBlockProps) {
+  const codeRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (codeRef.current) {
+      hljs.highlightElement(codeRef.current);
+    }
+  }, [code, language]);
+
+  return (
+    <div className="relative my-4 rounded-lg overflow-hidden">
+      {language && (
+        <div className="bg-muted/80 px-4 py-1.5 text-xs font-mono text-muted-foreground border-b border-border">
+          {language}
+        </div>
+      )}
+      <pre className="!m-0 !rounded-t-none overflow-x-auto">
+        <code
+          ref={codeRef}
+          className={`hljs ${language ? `language-${language}` : ''} !bg-[#0d1117] !p-4 block text-sm`}
+        >
+          {code}
+        </code>
+      </pre>
+    </div>
+  );
+}
 
 interface FormattedContentProps {
   content: string;
@@ -7,20 +81,22 @@ interface FormattedContentProps {
 
 export function FormattedContent({ content, className = '' }: FormattedContentProps) {
   const formatContent = (text: string): React.ReactNode[] => {
-    const lines = text.split('\n');
     const elements: React.ReactNode[] = [];
     let listItems: string[] = [];
     let listType: 'ordered' | 'unordered' | null = null;
     let blockquoteLines: string[] = [];
+    let codeBlockLines: string[] = [];
+    let codeBlockLanguage: string | undefined;
+    let inCodeBlock = false;
+
+    const lines = text.split('\n');
 
     const processInlineFormatting = (line: string): React.ReactNode[] => {
-      // Process in order: links, code, bold, italic
       const tokens: React.ReactNode[] = [];
       let remaining = line;
       let keyCounter = 0;
 
       while (remaining.length > 0) {
-        // Find the earliest match
         const linkMatch = remaining.match(/\[([^\]]+)\]\(([^)]+)\)/);
         const codeMatch = remaining.match(/`([^`]+)`/);
         const boldMatch = remaining.match(/\*\*([^*]+)\*\*/);
@@ -40,7 +116,6 @@ export function FormattedContent({ content, className = '' }: FormattedContentPr
 
         const earliest = matches.reduce((a, b) => (a.index < b.index ? a : b));
         
-        // Add text before the match
         if (earliest.index > 0) {
           tokens.push(remaining.slice(0, earliest.index));
         }
@@ -95,6 +170,20 @@ export function FormattedContent({ content, className = '' }: FormattedContentPr
       return tokens;
     };
 
+    const flushCodeBlock = () => {
+      if (codeBlockLines.length > 0) {
+        elements.push(
+          <CodeBlock
+            key={`codeblock-${elements.length}`}
+            code={codeBlockLines.join('\n')}
+            language={codeBlockLanguage}
+          />
+        );
+        codeBlockLines = [];
+        codeBlockLanguage = undefined;
+      }
+    };
+
     const flushBlockquote = () => {
       if (blockquoteLines.length > 0) {
         elements.push(
@@ -146,6 +235,29 @@ export function FormattedContent({ content, className = '' }: FormattedContentPr
     };
 
     lines.forEach((line, index) => {
+      // Check for code block start/end
+      if (line.trim().startsWith('```')) {
+        if (inCodeBlock) {
+          // End code block
+          inCodeBlock = false;
+          flushCodeBlock();
+        } else {
+          // Start code block
+          flushList();
+          flushBlockquote();
+          inCodeBlock = true;
+          const langMatch = line.trim().match(/^```(\w+)?/);
+          codeBlockLanguage = langMatch?.[1]?.toLowerCase();
+        }
+        return;
+      }
+
+      // If inside code block, collect lines
+      if (inCodeBlock) {
+        codeBlockLines.push(line);
+        return;
+      }
+
       const trimmedLine = line.trim();
 
       // Blockquote (> text)
@@ -158,7 +270,7 @@ export function FormattedContent({ content, className = '' }: FormattedContentPr
         flushBlockquote();
       }
 
-      // Headers (### or ##)
+      // Headers
       if (trimmedLine.startsWith('###')) {
         flushList();
         const headerText = trimmedLine.replace(/^###\s*/, '');
@@ -201,7 +313,7 @@ export function FormattedContent({ content, className = '' }: FormattedContentPr
         return;
       }
 
-      // Ordered list (1. 2. 3.)
+      // Ordered list
       const orderedMatch = trimmedLine.match(/^\d+\.\s+(.*)$/);
       if (orderedMatch) {
         if (listType !== 'ordered') {
@@ -212,7 +324,7 @@ export function FormattedContent({ content, className = '' }: FormattedContentPr
         return;
       }
 
-      // Unordered list (- or *)
+      // Unordered list
       const unorderedMatch = trimmedLine.match(/^[-*]\s+(.*)$/);
       if (unorderedMatch) {
         if (listType !== 'unordered') {
@@ -240,6 +352,7 @@ export function FormattedContent({ content, className = '' }: FormattedContentPr
 
     flushList();
     flushBlockquote();
+    flushCodeBlock();
     return elements;
   };
 

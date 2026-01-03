@@ -96,6 +96,22 @@ export default function MyCourses() {
       <Header />
       <main className="flex-1 py-8">
         <div className="container mx-auto px-4">
+          {/* Mobile Quick Access Buttons */}
+          <div className="flex gap-2 mb-4 md:hidden">
+            <Link to="/cursos" className="flex-1">
+              <Button variant="outline" className="w-full">
+                <BookOpen className="h-4 w-4 mr-2" />
+                Cursos
+              </Button>
+            </Link>
+            <Link to="/dashboard" className="flex-1">
+              <Button variant="outline" className="w-full">
+                <Award className="h-4 w-4 mr-2" />
+                Meu Progresso
+              </Button>
+            </Link>
+          </div>
+
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

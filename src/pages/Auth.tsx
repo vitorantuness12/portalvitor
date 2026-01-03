@@ -16,6 +16,7 @@ const loginSchema = z.object({
 
 const signupSchema = loginSchema.extend({
   fullName: z.string().min(3, 'Nome deve ter pelo menos 3 caracteres'),
+  whatsapp: z.string().min(10, 'WhatsApp deve ter pelo menos 10 dígitos').max(15, 'WhatsApp inválido').regex(/^[0-9]+$/, 'Apenas números'),
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: 'As senhas não coincidem',
@@ -32,6 +33,7 @@ export default function AuthPage() {
     password: '',
     confirmPassword: '',
     fullName: '',
+    whatsapp: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -71,7 +73,7 @@ export default function AuthPage() {
           return;
         }
 
-        const { error } = await signUp(formData.email, formData.password, formData.fullName);
+        const { error } = await signUp(formData.email, formData.password, formData.fullName, formData.whatsapp);
         if (error) {
           if (error.message.includes('already registered')) {
             toast({
@@ -192,6 +194,25 @@ export default function AuthPage() {
                   {errors.fullName && (
                     <p className="text-sm text-destructive">{errors.fullName}</p>
                   )}
+                </div>
+              )}
+
+              {isSignup && (
+                <div className="space-y-2">
+                  <Label htmlFor="whatsapp">WhatsApp</Label>
+                  <Input
+                    id="whatsapp"
+                    name="whatsapp"
+                    type="tel"
+                    placeholder="11999999999"
+                    value={formData.whatsapp}
+                    onChange={handleInputChange}
+                    className={errors.whatsapp ? 'border-destructive' : ''}
+                  />
+                  {errors.whatsapp && (
+                    <p className="text-sm text-destructive">{errors.whatsapp}</p>
+                  )}
+                  <p className="text-xs text-muted-foreground">Apenas números com DDD</p>
                 </div>
               )}
 

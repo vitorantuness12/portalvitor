@@ -165,7 +165,62 @@ export default function AdminUsers() {
         </div>
       </div>
 
-      <div className="border rounded-lg">
+      {/* Mobile Cards */}
+      <div className="lg:hidden space-y-4">
+        {isLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-primary"></div>
+          </div>
+        ) : filteredUsers?.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            Nenhum usuário encontrado
+          </div>
+        ) : (
+          filteredUsers?.map((user) => {
+            const avgProgress =
+              user.enrollments.length > 0
+                ? Math.round(
+                    user.enrollments.reduce((acc, e) => acc + e.progress, 0) /
+                      user.enrollments.length
+                  )
+                : 0;
+
+            return (
+              <div key={user.id} className="border rounded-lg p-4 space-y-3">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="font-medium">{user.full_name}</p>
+                    <p className="text-sm text-muted-foreground">{user.email}</p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setSelectedUser(user)}
+                    disabled={user.enrollments.length === 0}
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="secondary">{user.enrollments.length} curso(s)</Badge>
+                  <span className="text-xs text-muted-foreground">
+                    {user.created_at
+                      ? format(new Date(user.created_at), "dd/MM/yyyy", { locale: ptBR })
+                      : '-'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Progress value={avgProgress} className="h-2 flex-1" />
+                  <span className="text-sm text-muted-foreground">{avgProgress}%</span>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* Desktop Table */}
+      <div className="hidden lg:block border rounded-lg overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>

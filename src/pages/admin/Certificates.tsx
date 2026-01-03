@@ -233,7 +233,49 @@ export default function AdminCertificates() {
         </div>
       </div>
 
-      <div className="border rounded-lg">
+      {/* Mobile Cards */}
+      <div className="lg:hidden space-y-4">
+        {isLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-primary"></div>
+          </div>
+        ) : filteredCertificates?.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            Nenhum certificado encontrado
+          </div>
+        ) : (
+          filteredCertificates?.map((cert) => (
+            <div key={cert.id} className="border rounded-lg p-4 space-y-3">
+              <div className="flex items-start justify-between gap-2">
+                <Badge variant="outline" className="font-mono text-xs">
+                  {cert.certificate_code}
+                </Badge>
+                <span className="text-xs text-muted-foreground">
+                  {cert.issued_at
+                    ? format(new Date(cert.issued_at), "dd/MM/yyyy", {
+                        locale: ptBR,
+                      })
+                    : '-'}
+                </span>
+              </div>
+              <div>
+                <p className="font-medium text-sm">
+                  {(cert.profiles as any)?.full_name || 'N/A'}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {(cert.profiles as any)?.email || 'N/A'}
+                </p>
+              </div>
+              <p className="text-sm text-muted-foreground line-clamp-1">
+                {(cert.courses as any)?.title || 'N/A'}
+              </p>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Desktop Table */}
+      <div className="hidden lg:block border rounded-lg overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>

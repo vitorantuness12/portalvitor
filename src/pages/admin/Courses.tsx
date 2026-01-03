@@ -126,7 +126,82 @@ export default function AdminCourses() {
         </div>
       </div>
 
-      <div className="border rounded-lg">
+      {/* Mobile Cards */}
+      <div className="lg:hidden space-y-4">
+        {isLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-primary"></div>
+          </div>
+        ) : filteredCourses?.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            Nenhum curso encontrado
+          </div>
+        ) : (
+          filteredCourses?.map((course) => (
+            <div key={course.id} className="border rounded-lg p-4 space-y-3">
+              <div className="flex items-start gap-3">
+                {course.thumbnail_url ? (
+                  <img
+                    src={course.thumbnail_url}
+                    alt={course.title}
+                    className="h-16 w-24 object-cover rounded flex-shrink-0"
+                  />
+                ) : (
+                  <div className="h-16 w-24 bg-muted rounded flex items-center justify-center flex-shrink-0">
+                    <span className="text-xs text-muted-foreground">Sem img</span>
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium line-clamp-2">{course.title}</p>
+                  <p className="text-xs text-muted-foreground line-clamp-1 mt-1">
+                    {(course as any).categories?.name || 'Sem categoria'}
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="secondary">{getLevelLabel(course.level)}</Badge>
+                <span className="text-sm text-muted-foreground">{course.duration_hours}h</span>
+                {course.price === 0 ? (
+                  <Badge variant="outline" className="text-green-600">Grátis</Badge>
+                ) : (
+                  <span className="text-sm">R$ {course.price.toFixed(2)}</span>
+                )}
+                <Badge
+                  variant={course.status === 'active' ? 'default' : 'secondary'}
+                  className="cursor-pointer"
+                  onClick={() =>
+                    toggleStatusMutation.mutate({
+                      id: course.id,
+                      status: course.status === 'active' ? 'inactive' : 'active',
+                    })
+                  }
+                >
+                  {course.status === 'active' ? 'Ativo' : 'Inativo'}
+                </Badge>
+              </div>
+              <div className="flex gap-2 pt-2 border-t">
+                <Link to={`/curso/${course.id}`} className="flex-1">
+                  <Button variant="outline" size="sm" className="w-full">
+                    <Eye className="h-4 w-4 mr-2" />
+                    Visualizar
+                  </Button>
+                </Link>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-destructive"
+                  onClick={() => setDeleteId(course.id)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Desktop Table */}
+      <div className="hidden lg:block border rounded-lg overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>

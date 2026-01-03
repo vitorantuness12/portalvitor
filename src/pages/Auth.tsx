@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { formatPhoneBR, unformatPhone, isValidPhoneBR } from '@/lib/masks';
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -16,7 +17,9 @@ const loginSchema = z.object({
 
 const signupSchema = loginSchema.extend({
   fullName: z.string().min(3, 'Nome deve ter pelo menos 3 caracteres'),
-  whatsapp: z.string().min(10, 'WhatsApp deve ter pelo menos 10 dígitos').max(15, 'WhatsApp inválido').regex(/^[0-9]+$/, 'Apenas números'),
+  whatsapp: z.string().refine((val) => isValidPhoneBR(val), {
+    message: 'WhatsApp inválido. Use o formato (99) 99999-9999',
+  }),
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: 'As senhas não coincidem',
@@ -49,7 +52,13 @@ export default function AuthPage() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    
+    // Apply mask for WhatsApp field
+    if (name === 'whatsapp') {
+      setFormData((prev) => ({ ...prev, [name]: formatPhoneBR(value) }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
     setErrors((prev) => ({ ...prev, [name]: '' }));
   };
 
@@ -73,7 +82,7 @@ export default function AuthPage() {
           return;
         }
 
-        const { error } = await signUp(formData.email, formData.password, formData.fullName, formData.whatsapp);
+        const { error } = await signUp(formData.email, formData.password, formData.fullName, unformatPhone(formData.whatsapp));
         if (error) {
           if (error.message.includes('already registered')) {
             toast({
@@ -204,7 +213,7 @@ export default function AuthPage() {
                     id="whatsapp"
                     name="whatsapp"
                     type="tel"
-                    placeholder="11999999999"
+                    placeholder="(99) 99999-9999"
                     value={formData.whatsapp}
                     onChange={handleInputChange}
                     className={errors.whatsapp ? 'border-destructive' : ''}
@@ -212,7 +221,6 @@ export default function AuthPage() {
                   {errors.whatsapp && (
                     <p className="text-sm text-destructive">{errors.whatsapp}</p>
                   )}
-                  <p className="text-xs text-muted-foreground">Apenas números com DDD</p>
                 </div>
               )}
 

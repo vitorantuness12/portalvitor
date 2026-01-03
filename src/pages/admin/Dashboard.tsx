@@ -178,7 +178,7 @@ export default function AdminDashboard() {
         ))}
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-6">
+      <div className="grid gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-lg">Taxa de Aprovação</CardTitle>
@@ -186,7 +186,7 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="text-center">
-              <div className="text-5xl font-bold text-primary">{stats?.passRate || 0}%</div>
+              <div className="text-4xl sm:text-5xl font-bold text-primary">{stats?.passRate || 0}%</div>
               <p className="text-sm text-muted-foreground mt-1">
                 {stats?.passedCount || 0} de {stats?.enrollments || 0} alunos aprovados
               </p>
@@ -195,7 +195,7 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="lg:col-span-2">
+        <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-lg">Cursos Recentes</CardTitle>
             <Link to="/admin/cursos" className="text-sm text-primary hover:underline flex items-center gap-1">
@@ -208,19 +208,19 @@ export default function AdminDashboard() {
             ) : (
               <div className="space-y-3">
                 {recentCourses?.map((course) => (
-                  <div key={course.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-primary/10 rounded-lg">
+                  <div key={course.id} className="flex items-center justify-between gap-2 p-3 bg-muted/50 rounded-lg">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <div className="p-2 bg-primary/10 rounded-lg shrink-0">
                         <BookOpen className="h-4 w-4 text-primary" />
                       </div>
-                      <div>
+                      <div className="min-w-0">
                         <p className="font-medium text-sm line-clamp-1">{course.title}</p>
                         <p className="text-xs text-muted-foreground">
                           {course.created_at && format(new Date(course.created_at), "dd 'de' MMM", { locale: ptBR })}
                         </p>
                       </div>
                     </div>
-                    <Badge variant={course.status === 'active' ? 'default' : 'secondary'}>
+                    <Badge variant={course.status === 'active' ? 'default' : 'secondary'} className="shrink-0">
                       {course.status === 'active' ? 'Ativo' : 'Inativo'}
                     </Badge>
                   </div>
@@ -231,12 +231,12 @@ export default function AdminDashboard() {
         </Card>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6">
+      <div className="grid gap-6">
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Evolução de Matrículas</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-2 sm:px-6">
             <ChartContainer
               config={{
                 enrollments: {
@@ -244,7 +244,7 @@ export default function AdminDashboard() {
                   color: 'hsl(var(--primary))',
                 },
               }}
-              className="h-[250px]"
+              className="h-[200px] sm:h-[250px] w-full"
             >
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={monthlyData || []}>
@@ -288,7 +288,7 @@ export default function AdminDashboard() {
           <CardHeader>
             <CardTitle className="text-lg">Certificados Emitidos</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-2 sm:px-6">
             <ChartContainer
               config={{
                 certificates: {
@@ -296,7 +296,7 @@ export default function AdminDashboard() {
                   color: 'hsl(var(--chart-2))',
                 },
               }}
-              className="h-[250px]"
+              className="h-[200px] sm:h-[250px] w-full"
             >
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={monthlyData || []}>
@@ -329,7 +329,7 @@ export default function AdminDashboard() {
         </Card>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6">
+      <div className="grid gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-lg">Matrículas Recentes</CardTitle>
@@ -343,7 +343,7 @@ export default function AdminDashboard() {
             ) : (
               <div className="space-y-3">
                 {recentEnrollments?.map((enrollment) => (
-                  <div key={enrollment.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                  <div key={enrollment.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-muted/50 rounded-lg">
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-sm truncate">
                         {(enrollment.profiles as any)?.full_name || 'Aluno'}
@@ -352,7 +352,7 @@ export default function AdminDashboard() {
                         {(enrollment.courses as any)?.title || 'Curso'}
                       </p>
                     </div>
-                    <div className="flex items-center gap-2 ml-2">
+                    <div className="flex items-center gap-2">
                       <div className="flex items-center gap-1 text-xs text-muted-foreground">
                         <Clock className="h-3 w-3" />
                         {enrollment.progress}%

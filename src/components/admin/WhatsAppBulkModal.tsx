@@ -16,7 +16,14 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { MessageSquare, Phone, ExternalLink, Users, AlertCircle, FileText, Plus, Trash2, Save, Info } from 'lucide-react';
+import { MessageSquare, Phone, ExternalLink, Users, AlertCircle, FileText, Plus, Trash2, Save, Info, Eye } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { formatPhoneBR } from '@/lib/masks';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
@@ -93,6 +100,7 @@ export function WhatsAppBulkModal({ open, onOpenChange, courseId, courseTitle }:
   const [showNewTemplate, setShowNewTemplate] = useState(false);
   const [newTemplateName, setNewTemplateName] = useState('');
   const [newTemplateContent, setNewTemplateContent] = useState('');
+  const [previewStudentId, setPreviewStudentId] = useState<string | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -375,6 +383,52 @@ export function WhatsAppBulkModal({ open, onOpenChange, courseId, courseTitle }:
               {message.length}/1000 caracteres
             </p>
           </div>
+
+          {/* Message Preview */}
+          {message.trim() && studentsWithWhatsApp.length > 0 && (
+            <div className="space-y-2 p-3 border rounded-lg bg-muted/30">
+              <div className="flex items-center justify-between gap-2">
+                <Label className="flex items-center gap-2 text-sm">
+                  <Eye className="h-4 w-4" />
+                  Preview da Mensagem
+                </Label>
+                <Select
+                  value={previewStudentId || studentsWithWhatsApp[0]?.user_id || ''}
+                  onValueChange={setPreviewStudentId}
+                >
+                  <SelectTrigger className="w-[200px] h-8 text-xs">
+                    <SelectValue placeholder="Selecione um aluno" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {studentsWithWhatsApp.map((student) => (
+                      <SelectItem key={student.user_id} value={student.user_id} className="text-xs">
+                        {student.profiles?.full_name || 'Aluno'}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="p-3 bg-background rounded-lg border text-sm whitespace-pre-wrap">
+                {(() => {
+                  const selectedStudent = studentsWithWhatsApp.find(
+                    s => s.user_id === (previewStudentId || studentsWithWhatsApp[0]?.user_id)
+                  );
+                  if (selectedStudent) {
+                    return replaceVariables(message, selectedStudent);
+                  }
+                  return message;
+                })()}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Visualização de como a mensagem ficará para{' '}
+                <span className="font-medium">
+                  {studentsWithWhatsApp.find(
+                    s => s.user_id === (previewStudentId || studentsWithWhatsApp[0]?.user_id)
+                  )?.profiles?.full_name || 'o aluno selecionado'}
+                </span>
+              </p>
+            </div>
+          )}
 
           {/* Students List */}
           <div className="flex-1 overflow-hidden flex flex-col">

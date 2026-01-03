@@ -121,14 +121,14 @@ export function EditCourseModal({ open, onOpenChange, course }: EditCourseModalP
         const filePath = `course-thumbnails/${fileName}`;
 
         const { error: uploadError } = await supabase.storage
-          .from('avatars')
-          .upload(filePath, thumbnailFile, { upsert: true });
+          .from('course-thumbnails')
+          .upload(fileName, thumbnailFile, { upsert: true });
 
         if (uploadError) throw uploadError;
 
         const { data: urlData } = supabase.storage
-          .from('avatars')
-          .getPublicUrl(filePath);
+          .from('course-thumbnails')
+          .getPublicUrl(fileName);
 
         thumbnail_url = urlData.publicUrl;
       } catch (error) {

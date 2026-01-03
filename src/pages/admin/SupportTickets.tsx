@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Headphones, Send, Loader2, User, CheckCircle, Clock, MessageSquare } from 'lucide-react';
+import { Headphones, Send, Loader2, User, CheckCircle, Clock, MessageSquare, Phone } from 'lucide-react';
+import { formatPhoneBR } from '@/lib/masks';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -25,6 +26,7 @@ interface Ticket {
   profiles?: {
     full_name: string;
     email: string;
+    whatsapp: string | null;
   };
 }
 
@@ -65,7 +67,7 @@ export default function SupportTickets() {
       const userIds = [...new Set(ticketsData.map(t => t.user_id))];
       const { data: profilesData } = await supabase
         .from('profiles')
-        .select('user_id, full_name, email')
+        .select('user_id, full_name, email, whatsapp')
         .in('user_id', userIds);
 
       const profilesMap = new Map(profilesData?.map(p => [p.user_id, p]) || []);
@@ -319,6 +321,17 @@ export default function SupportTickets() {
                   <p className="text-xs text-muted-foreground">
                     {selectedTicketData.profiles?.full_name} • {selectedTicketData.profiles?.email}
                   </p>
+                  {selectedTicketData.profiles?.whatsapp && (
+                    <a
+                      href={`https://wa.me/55${selectedTicketData.profiles.whatsapp}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-primary hover:underline flex items-center gap-1 mt-1"
+                    >
+                      <Phone className="h-3 w-3" />
+                      {formatPhoneBR(selectedTicketData.profiles.whatsapp)}
+                    </a>
+                  )}
                 </div>
                 <Select
                   value={selectedTicketData.status}

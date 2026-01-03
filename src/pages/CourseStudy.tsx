@@ -19,6 +19,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CourseNotes } from '@/components/courses/CourseNotes';
+import { FormattedContent } from '@/components/courses/FormattedContent';
 
 interface Module {
   title: string;
@@ -399,12 +400,11 @@ export default function CourseStudy() {
                             exit={{ height: 0, opacity: 0 }}
                             transition={{ duration: 0.2 }}
                           >
-                            <CardContent className="pt-0 px-3 pb-3 sm:px-6 sm:pb-6">
-                              <div className="prose max-w-none">
-                                <p className="text-sm sm:text-base text-muted-foreground whitespace-pre-line">
-                                  {module.content}
-                                </p>
-                              </div>
+                                            <CardContent className="pt-0 px-3 pb-3 sm:px-6 sm:pb-6">
+                                              <FormattedContent 
+                                                content={module.content} 
+                                                className="text-sm sm:text-base"
+                                              />
                               
                               <div className="flex justify-end mt-4 sm:mt-6">
                                 <Button 

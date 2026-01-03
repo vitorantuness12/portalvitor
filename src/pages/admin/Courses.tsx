@@ -29,8 +29,9 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
-import { Search, MoreHorizontal, Eye, Edit, Trash2, Plus, Sparkles, MessageSquare } from 'lucide-react';
+import { Search, MoreHorizontal, Eye, Edit, Trash2, Sparkles, MessageSquare } from 'lucide-react';
 import { WhatsAppBulkModal } from '@/components/admin/WhatsAppBulkModal';
+import { EditCourseModal } from '@/components/admin/EditCourseModal';
 import { Link, useNavigate } from 'react-router-dom';
 import type { Tables } from '@/integrations/supabase/types';
 
@@ -40,6 +41,7 @@ export default function AdminCourses() {
   const [search, setSearch] = useState('');
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [whatsAppCourse, setWhatsAppCourse] = useState<{ id: string; title: string } | null>(null);
+  const [editCourse, setEditCourse] = useState<Course | null>(null);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -182,10 +184,18 @@ export default function AdminCourses() {
                 </Badge>
               </div>
               <div className="flex gap-2 pt-2 border-t">
-                <Link to={`/curso/${course.id}`} className="flex-1">
-                  <Button variant="outline" size="sm" className="w-full">
-                    <Eye className="h-4 w-4 mr-2" />
-                    Visualizar
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => setEditCourse(course)}
+                >
+                  <Edit className="h-4 w-4 mr-2" />
+                  Editar
+                </Button>
+                <Link to={`/curso/${course.id}`}>
+                  <Button variant="outline" size="sm">
+                    <Eye className="h-4 w-4" />
                   </Button>
                 </Link>
                 <Button
@@ -300,6 +310,10 @@ export default function AdminCourses() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => setEditCourse(course)}>
+                          <Edit className="h-4 w-4 mr-2" />
+                          Editar
+                        </DropdownMenuItem>
                         <DropdownMenuItem asChild>
                           <Link to={`/curso/${course.id}`}>
                             <Eye className="h-4 w-4 mr-2" />
@@ -356,6 +370,14 @@ export default function AdminCourses() {
           onOpenChange={(open) => !open && setWhatsAppCourse(null)}
           courseId={whatsAppCourse.id}
           courseTitle={whatsAppCourse.title}
+        />
+      )}
+
+      {editCourse && (
+        <EditCourseModal
+          open={!!editCourse}
+          onOpenChange={(open) => !open && setEditCourse(null)}
+          course={editCourse}
         />
       )}
     </div>

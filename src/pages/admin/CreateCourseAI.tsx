@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, BookOpen, FileText, CheckCircle } from 'lucide-react';
+import { Sparkles, BookOpen, FileText, CheckCircle, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -27,6 +27,7 @@ export default function CreateCourseAI() {
   });
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
+  const [generatedCourse, setGeneratedCourse] = useState<any>(null);
   const { toast } = useToast();
 
   const { data: categories } = useQuery({
@@ -42,10 +43,10 @@ export default function CreateCourseAI() {
   });
 
   const steps = [
-    'Gerando conteúdo do curso...',
-    'Criando exercícios práticos...',
-    'Elaborando prova final...',
-    'Finalizando curso...',
+    { label: 'Gerando conteúdo do curso...', icon: FileText },
+    { label: 'Criando exercícios práticos...', icon: BookOpen },
+    { label: 'Elaborando prova final...', icon: CheckCircle },
+    { label: 'Finalizando curso...', icon: Sparkles },
   ];
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -62,31 +63,61 @@ export default function CreateCourseAI() {
 
     setIsGenerating(true);
     setCurrentStep(0);
+    setGeneratedCourse(null);
 
-    // Simulate AI generation steps
-    for (let i = 0; i < steps.length; i++) {
-      setCurrentStep(i);
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-    }
+    // Simulate progress through steps while AI generates
+    const stepInterval = setInterval(() => {
+      setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
+    }, 8000);
 
-    // For now, create a basic course (AI generation will be implemented with Edge Function)
     try {
-      const { error } = await supabase.from('courses').insert({
-        title: formData.topic,
-        description: `Curso completo sobre ${formData.topic}. Este curso foi gerado com inteligência artificial e oferece conteúdo de qualidade para o nível ${formData.level}.`,
-        short_description: `Aprenda ${formData.topic} do zero ao avançado.`,
-        category_id: formData.categoryId || null,
-        duration_hours: parseInt(formData.duration),
-        level: formData.level,
-        price: 0,
-        status: 'active',
-      });
+      const { data: session } = await supabase.auth.getSession();
+      
+      if (!session.session) {
+        throw new Error('Você precisa estar logado para criar cursos');
+      }
 
-      if (error) throw error;
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-course`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.session.access_token}`,
+          },
+          body: JSON.stringify({
+            topic: formData.topic,
+            level: formData.level,
+            duration: parseInt(formData.duration),
+            categoryId: formData.categoryId || null,
+            additionalInstructions: formData.additionalInstructions,
+          }),
+        }
+      );
+
+      clearInterval(stepInterval);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        
+        if (response.status === 429) {
+          throw new Error('Limite de requisições excedido. Tente novamente em alguns minutos.');
+        }
+        if (response.status === 402) {
+          throw new Error('Créditos de IA esgotados. Adicione mais créditos para continuar.');
+        }
+        
+        throw new Error(errorData.error || 'Erro ao gerar curso');
+      }
+
+      const result = await response.json();
+      
+      setCurrentStep(steps.length - 1);
+      setGeneratedCourse(result.course);
 
       toast({
         title: 'Curso criado com sucesso!',
-        description: 'O curso foi gerado e está disponível na vitrine.',
+        description: `"${result.course.title}" foi gerado com ${result.course.exercisesCount} exercícios e ${result.course.examQuestionsCount} questões de prova.`,
       });
 
       setFormData({
@@ -97,6 +128,8 @@ export default function CreateCourseAI() {
         additionalInstructions: '',
       });
     } catch (error: any) {
+      clearInterval(stepInterval);
+      console.error('Error generating course:', error);
       toast({
         title: 'Erro ao criar curso',
         description: error.message,
@@ -104,7 +137,6 @@ export default function CreateCourseAI() {
       });
     } finally {
       setIsGenerating(false);
-      setCurrentStep(0);
     }
   };
 
@@ -226,7 +258,7 @@ export default function CreateCourseAI() {
                   {isGenerating ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-primary-foreground mr-2" />
-                      Gerando...
+                      Gerando com IA...
                     </>
                   ) : (
                     <>
@@ -244,6 +276,7 @@ export default function CreateCourseAI() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
+          className="space-y-6"
         >
           <Card>
             <CardHeader>
@@ -254,41 +287,48 @@ export default function CreateCourseAI() {
             </CardHeader>
             <CardContent className="space-y-4">
               {[
-                { icon: FileText, title: 'Conteúdo em PDF', desc: 'Material teórico completo e organizado' },
-                { icon: BookOpen, title: 'Exercícios Práticos', desc: 'Questões para fixação do conteúdo' },
-                { icon: CheckCircle, title: 'Prova Final', desc: 'Avaliação com correção automática' },
-              ].map((item, i) => (
+                { icon: FileText, title: 'Conteúdo Teórico', desc: 'Material completo em módulos organizados', step: 0 },
+                { icon: BookOpen, title: 'Exercícios Práticos', desc: '10 questões para fixação do conteúdo', step: 1 },
+                { icon: CheckCircle, title: 'Prova Final', desc: '15 questões com correção automática', step: 2 },
+              ].map((item) => (
                 <div
                   key={item.title}
                   className={`flex items-start gap-4 p-4 rounded-lg border transition-all ${
-                    isGenerating && currentStep >= i
+                    isGenerating && currentStep >= item.step
                       ? 'border-primary bg-primary/5'
+                      : generatedCourse
+                      ? 'border-success bg-success/5'
                       : 'border-border'
                   }`}
                 >
                   <div
                     className={`p-2 rounded-lg ${
-                      isGenerating && currentStep >= i
+                      isGenerating && currentStep >= item.step
                         ? 'bg-primary text-primary-foreground'
+                        : generatedCourse
+                        ? 'bg-success text-white'
                         : 'bg-secondary'
                     }`}
                   >
                     <item.icon className="h-5 w-5" />
                   </div>
-                  <div>
+                  <div className="flex-1">
                     <p className="font-medium">{item.title}</p>
                     <p className="text-sm text-muted-foreground">{item.desc}</p>
                   </div>
-                  {isGenerating && currentStep >= i && (
-                    <CheckCircle className="h-5 w-5 text-success ml-auto" />
-                  )}
+                  {(isGenerating && currentStep > item.step) || generatedCourse ? (
+                    <CheckCircle className="h-5 w-5 text-success" />
+                  ) : isGenerating && currentStep === item.step ? (
+                    <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-primary" />
+                  ) : null}
                 </div>
               ))}
 
               {isGenerating && (
                 <div className="p-4 bg-primary/5 rounded-lg">
-                  <p className="text-sm font-medium text-primary">
-                    {steps[currentStep]}
+                  <p className="text-sm font-medium text-primary flex items-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-primary" />
+                    {steps[currentStep]?.label}
                   </p>
                   <div className="mt-2 h-2 bg-secondary rounded-full overflow-hidden">
                     <motion.div
@@ -298,8 +338,42 @@ export default function CreateCourseAI() {
                       transition={{ duration: 0.5 }}
                     />
                   </div>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Isso pode levar alguns segundos...
+                  </p>
                 </div>
               )}
+
+              {generatedCourse && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="p-4 bg-success/10 rounded-lg border border-success"
+                >
+                  <p className="font-medium text-success flex items-center gap-2">
+                    <CheckCircle className="h-5 w-5" />
+                    Curso gerado com sucesso!
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    "{generatedCourse.title}" está disponível na vitrine.
+                  </p>
+                </motion.div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="bg-muted/50">
+            <CardContent className="pt-6">
+              <div className="flex gap-3">
+                <AlertCircle className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
+                <div className="text-sm text-muted-foreground">
+                  <p className="font-medium text-foreground">Dica</p>
+                  <p>
+                    Seja específico no tema do curso para obter melhores resultados. 
+                    Por exemplo, ao invés de "Excel", use "Excel para Gestão Financeira de Pequenas Empresas".
+                  </p>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </motion.div>

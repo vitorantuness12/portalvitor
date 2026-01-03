@@ -102,6 +102,8 @@ export default function StudentDashboard() {
       ? (enrollments?.filter(e => e.exam_score !== null).reduce((acc, e) => acc + Number(e.exam_score), 0) || 0) / 
         (enrollments?.filter(e => e.exam_score !== null).length || 1)
       : 0,
+    perfectScores: enrollments?.filter(e => Number(e.exam_score) === 10).length || 0,
+    highScores: enrollments?.filter(e => Number(e.exam_score) >= 9).length || 0,
   };
 
   // Calculate streak (simplified - based on enrollment updates)
@@ -367,36 +369,143 @@ export default function StudentDashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap gap-2">
+                    {/* Curso badges */}
                     {stats.totalCourses >= 1 && (
                       <Badge variant="secondary" className="text-xs">
                         🎯 Primeiro Passo
                       </Badge>
                     )}
+                    {stats.totalCourses >= 3 && (
+                      <Badge variant="secondary" className="text-xs">
+                        📚 3 Cursos Iniciados
+                      </Badge>
+                    )}
+                    {stats.totalCourses >= 5 && (
+                      <Badge variant="secondary" className="text-xs">
+                        🎓 5 Cursos Iniciados
+                      </Badge>
+                    )}
+                    {stats.totalCourses >= 10 && (
+                      <Badge variant="secondary" className="text-xs">
+                        🌟 10 Cursos Iniciados
+                      </Badge>
+                    )}
+                    
+                    {/* Completion badges */}
                     {stats.completedCourses >= 1 && (
                       <Badge variant="secondary" className="text-xs">
-                        ✅ Concluiu 1º Curso
+                        ✅ 1º Curso Concluído
                       </Badge>
                     )}
+                    {stats.completedCourses >= 3 && (
+                      <Badge variant="secondary" className="text-xs">
+                        🏅 3 Cursos Concluídos
+                      </Badge>
+                    )}
+                    {stats.completedCourses >= 5 && (
+                      <Badge variant="secondary" className="text-xs">
+                        🥇 5 Cursos Concluídos
+                      </Badge>
+                    )}
+                    {stats.completedCourses >= 10 && (
+                      <Badge variant="secondary" className="text-xs">
+                        👑 10 Cursos Concluídos
+                      </Badge>
+                    )}
+                    
+                    {/* Certificate badges */}
                     {stats.certificates >= 1 && (
                       <Badge variant="secondary" className="text-xs">
-                        🏆 Certificado
+                        🏆 1º Certificado
                       </Badge>
                     )}
+                    {stats.certificates >= 5 && (
+                      <Badge variant="secondary" className="text-xs">
+                        📜 5 Certificados
+                      </Badge>
+                    )}
+                    {stats.certificates >= 10 && (
+                      <Badge variant="secondary" className="text-xs">
+                        🎖️ 10 Certificados
+                      </Badge>
+                    )}
+                    
+                    {/* Hours badges */}
+                    {stats.studiedHours >= 10 && (
+                      <Badge variant="secondary" className="text-xs">
+                        ⏰ 10h de Estudo
+                      </Badge>
+                    )}
+                    {stats.studiedHours >= 25 && (
+                      <Badge variant="secondary" className="text-xs">
+                        📖 25h de Estudo
+                      </Badge>
+                    )}
+                    {stats.studiedHours >= 50 && (
+                      <Badge variant="secondary" className="text-xs">
+                        🧠 50h de Estudo
+                      </Badge>
+                    )}
+                    {stats.studiedHours >= 100 && (
+                      <Badge variant="secondary" className="text-xs">
+                        💪 100h de Estudo
+                      </Badge>
+                    )}
+                    
+                    {/* Streak badges */}
                     {streak >= 3 && (
                       <Badge variant="secondary" className="text-xs">
-                        🔥 Streak de 3 dias
+                        🔥 Streak 3 dias
                       </Badge>
                     )}
                     {streak >= 7 && (
                       <Badge variant="secondary" className="text-xs">
-                        ⚡ Streak de 7 dias
+                        ⚡ Streak 7 dias
+                      </Badge>
+                    )}
+                    {streak >= 14 && (
+                      <Badge variant="secondary" className="text-xs">
+                        💫 Streak 14 dias
+                      </Badge>
+                    )}
+                    {streak >= 30 && (
+                      <Badge variant="secondary" className="text-xs">
+                        🌈 Streak 30 dias
+                      </Badge>
+                    )}
+                    
+                    {/* Score badges */}
+                    {stats.averageScore >= 8 && (
+                      <Badge variant="secondary" className="text-xs">
+                        📈 Média 8+
                       </Badge>
                     )}
                     {stats.averageScore >= 9 && (
                       <Badge variant="secondary" className="text-xs">
-                        ⭐ Excelência
+                        ⭐ Excelência (Média 9+)
                       </Badge>
                     )}
+                    {stats.perfectScores >= 1 && (
+                      <Badge variant="secondary" className="text-xs">
+                        💯 Nota 10
+                      </Badge>
+                    )}
+                    {stats.perfectScores >= 3 && (
+                      <Badge variant="secondary" className="text-xs">
+                        🎯 3x Nota 10
+                      </Badge>
+                    )}
+                    {stats.perfectScores >= 5 && (
+                      <Badge variant="secondary" className="text-xs">
+                        🌟 Mestre (5x Nota 10)
+                      </Badge>
+                    )}
+                    {stats.highScores >= 5 && (
+                      <Badge variant="secondary" className="text-xs">
+                        🔝 5x Nota 9+
+                      </Badge>
+                    )}
+                    
                     {stats.totalCourses === 0 && (
                       <p className="text-sm text-muted-foreground">
                         Comece a estudar para desbloquear conquistas!

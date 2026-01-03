@@ -214,6 +214,8 @@ export default function CreateCourseAI() {
                         <SelectItem value="10">10 horas</SelectItem>
                         <SelectItem value="20">20 horas</SelectItem>
                         <SelectItem value="40">40 horas</SelectItem>
+                        <SelectItem value="60">60 horas</SelectItem>
+                        <SelectItem value="80">80 horas</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

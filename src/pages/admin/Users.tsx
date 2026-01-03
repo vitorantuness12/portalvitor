@@ -36,6 +36,7 @@ interface UserWithEnrollments {
   user_id: string;
   full_name: string;
   email: string;
+  whatsapp: string | null;
   created_at: string;
   enrollments: {
     id: string;
@@ -277,6 +278,9 @@ export default function AdminUsers() {
                   <div>
                     <p className="font-medium">{user.full_name}</p>
                     <p className="text-sm text-muted-foreground">{user.email}</p>
+                    {user.whatsapp && (
+                      <p className="text-xs text-muted-foreground">📱 {user.whatsapp}</p>
+                    )}
                   </div>
                   <div className="flex gap-1">
                     <Button
@@ -322,6 +326,7 @@ export default function AdminUsers() {
           <TableHeader>
             <TableRow>
               <TableHead>Aluno</TableHead>
+              <TableHead>WhatsApp</TableHead>
               <TableHead>Cursos Matriculados</TableHead>
               <TableHead>Progresso Médio</TableHead>
               <TableHead>Cadastrado em</TableHead>
@@ -331,7 +336,7 @@ export default function AdminUsers() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-8">
+                <TableCell colSpan={6} className="text-center py-8">
                   <div className="flex items-center justify-center">
                     <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-primary"></div>
                   </div>
@@ -339,7 +344,7 @@ export default function AdminUsers() {
               </TableRow>
             ) : filteredUsers?.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                   Nenhum usuário encontrado
                 </TableCell>
               </TableRow>
@@ -361,8 +366,26 @@ export default function AdminUsers() {
                         <p className="text-sm text-muted-foreground">{user.email}</p>
                       </div>
                     </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {user.whatsapp ? (
+                        <a 
+                          href={`https://wa.me/55${user.whatsapp}`} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-primary hover:underline"
+                        >
+                          {user.whatsapp}
+                        </a>
+                      ) : '-'}
+                    </TableCell>
                     <TableCell>
                       <Badge variant="secondary">{user.enrollments.length} curso(s)</Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2 w-32">
+                        <Progress value={avgProgress} className="h-2" />
+                        <span className="text-sm text-muted-foreground">{avgProgress}%</span>
+                      </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2 w-32">
@@ -415,6 +438,16 @@ export default function AdminUsers() {
               <div className="bg-muted/50 rounded-lg p-4">
                 <p className="font-medium">{selectedUser.full_name}</p>
                 <p className="text-sm text-muted-foreground">{selectedUser.email}</p>
+                {selectedUser.whatsapp && (
+                  <a 
+                    href={`https://wa.me/55${selectedUser.whatsapp}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-sm text-primary hover:underline"
+                  >
+                    📱 WhatsApp: {selectedUser.whatsapp}
+                  </a>
+                )}
               </div>
 
               <div>

@@ -12,6 +12,7 @@ import {
   GraduationCap,
   Menu,
   Sparkles,
+  Headphones,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -25,6 +26,7 @@ const sidebarLinks = [
   { href: '/admin/usuarios', icon: Users, label: 'Usuários' },
   { href: '/admin/categorias', icon: FolderOpen, label: 'Categorias' },
   { href: '/admin/certificados', icon: Award, label: 'Certificados' },
+  { href: '/admin/suporte', icon: Headphones, label: 'Suporte' },
 ];
 
 function SidebarContent() {

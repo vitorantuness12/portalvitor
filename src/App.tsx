@@ -15,6 +15,7 @@ import CourseDetail from "./pages/CourseDetail";
 import CourseStudy from "./pages/CourseStudy";
 import CourseCertificate from "./pages/CourseCertificate";
 import ValidateCertificate from "./pages/ValidateCertificate";
+import SupportTicket from "./pages/SupportTicket";
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminCourses from "./pages/admin/Courses";
@@ -22,7 +23,9 @@ import AdminUsers from "./pages/admin/Users";
 import AdminCategories from "./pages/admin/Categories";
 import AdminCertificates from "./pages/admin/Certificates";
 import CreateCourseAI from "./pages/admin/CreateCourseAI";
+import AdminSupportTickets from "./pages/admin/SupportTickets";
 import NotFound from "./pages/NotFound";
+import { SupportChat } from "./components/support/SupportChat";
 
 const queryClient = new QueryClient();
 
@@ -45,6 +48,7 @@ const App = () => (
             <Route path="/curso/:id/estudar" element={<CourseStudy />} />
             <Route path="/curso/:id/certificado" element={<CourseCertificate />} />
             <Route path="/validar-certificado" element={<ValidateCertificate />} />
+            <Route path="/suporte/:id" element={<SupportTicket />} />
             
             {/* Admin Routes */}
             <Route path="/admin" element={<AdminLayout />}>
@@ -54,10 +58,12 @@ const App = () => (
               <Route path="categorias" element={<AdminCategories />} />
               <Route path="certificados" element={<AdminCertificates />} />
               <Route path="criar-curso" element={<CreateCourseAI />} />
+              <Route path="suporte" element={<AdminSupportTickets />} />
             </Route>
             
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <SupportChat />
           </BrowserRouter>
         </TooltipProvider>
       </AuthProvider>

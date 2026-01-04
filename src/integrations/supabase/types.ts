@@ -267,6 +267,7 @@ export type Database = {
         Row: {
           course_id: string
           created_at: string | null
+          exam_attempts: number
           exam_completed_at: string | null
           exam_score: number | null
           id: string
@@ -278,6 +279,7 @@ export type Database = {
         Insert: {
           course_id: string
           created_at?: string | null
+          exam_attempts?: number
           exam_completed_at?: string | null
           exam_score?: number | null
           id?: string
@@ -289,6 +291,7 @@ export type Database = {
         Update: {
           course_id?: string
           created_at?: string | null
+          exam_attempts?: number
           exam_completed_at?: string | null
           exam_score?: number | null
           id?: string

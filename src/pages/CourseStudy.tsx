@@ -23,6 +23,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { CourseNotes } from '@/components/courses/CourseNotes';
 import { FormattedContent } from '@/components/courses/FormattedContent';
 import { QuestionCard } from '@/components/courses/QuestionCard';
+import { MobileStudyNav } from '@/components/courses/MobileStudyNav';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 
 interface Module {
@@ -313,10 +315,26 @@ export default function CourseStudy() {
     return null;
   }
 
+  const isMobile = useIsMobile();
+
+  const handlePrevModule = useCallback(() => {
+    if (currentModuleIndex > 0) {
+      setCurrentModuleIndex(currentModuleIndex - 1);
+      setExpandedModules([currentModuleIndex - 1]);
+    }
+  }, [currentModuleIndex]);
+
+  const handleNextModule = useCallback(() => {
+    if (currentModuleIndex < modules.length - 1) {
+      setCurrentModuleIndex(currentModuleIndex + 1);
+      setExpandedModules([currentModuleIndex + 1]);
+    }
+  }, [currentModuleIndex, modules.length]);
+
   return (
     <div className="min-h-screen flex flex-col bg-muted/30">
       <Header />
-      <main className="flex-1 py-4 sm:py-8">
+      <main className="flex-1 py-4 sm:py-8 pb-32 md:pb-8">
         <div className="container mx-auto px-4">
           {/* Header */}
           <div className="mb-4 sm:mb-8">
@@ -359,29 +377,54 @@ export default function CourseStudy() {
 
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
-            <TabsList className="grid w-full grid-cols-4 h-auto p-1">
-              <TabsTrigger value="conteudo" className="gap-1 sm:gap-2 px-2 py-2 text-xs sm:text-sm">
-                <BookOpen className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                <span className="hidden xs:inline sm:inline">Conteúdo</span>
+            {/* Desktop tabs - hidden on mobile */}
+            <TabsList className="hidden md:grid w-full grid-cols-4 h-auto p-1">
+              <TabsTrigger value="conteudo" className="gap-2 px-2 py-2 text-sm">
+                <BookOpen className="h-4 w-4" />
+                Conteúdo
               </TabsTrigger>
-              <TabsTrigger value="notas" className="gap-1 sm:gap-2 px-2 py-2 text-xs sm:text-sm">
-                <StickyNote className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                <span className="hidden xs:inline sm:inline">Notas</span>
+              <TabsTrigger value="notas" className="gap-2 px-2 py-2 text-sm">
+                <StickyNote className="h-4 w-4" />
+                Notas
               </TabsTrigger>
-              <TabsTrigger value="exercicios" className="gap-1 sm:gap-2 px-2 py-2 text-xs sm:text-sm">
-                <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                <span className="hidden xs:inline sm:inline">Exercícios</span>
+              <TabsTrigger value="exercicios" className="gap-2 px-2 py-2 text-sm">
+                <FileText className="h-4 w-4" />
+                Exercícios
               </TabsTrigger>
               <TabsTrigger 
                 value="prova" 
-                className="gap-1 sm:gap-2 px-2 py-2 text-xs sm:text-sm"
+                className="gap-2 px-2 py-2 text-sm"
                 disabled={currentProgress < 66}
               >
-                <Trophy className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                <span className="hidden xs:inline sm:inline">Prova</span>
-                {currentProgress < 66 && <Lock className="h-2.5 w-2.5 sm:h-3 sm:w-3" />}
+                <Trophy className="h-4 w-4" />
+                Prova
+                {currentProgress < 66 && <Lock className="h-3 w-3" />}
               </TabsTrigger>
             </TabsList>
+
+            {/* Mobile current section indicator */}
+            <div className="md:hidden flex items-center gap-3 p-3 bg-card rounded-xl border border-border">
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                {activeTab === 'conteudo' && <BookOpen className="h-5 w-5 text-primary" />}
+                {activeTab === 'notas' && <StickyNote className="h-5 w-5 text-primary" />}
+                {activeTab === 'exercicios' && <FileText className="h-5 w-5 text-primary" />}
+                {activeTab === 'prova' && <Trophy className="h-5 w-5 text-primary" />}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-sm">
+                  {activeTab === 'conteudo' && 'Conteúdo do Curso'}
+                  {activeTab === 'notas' && 'Minhas Anotações'}
+                  {activeTab === 'exercicios' && 'Exercícios de Fixação'}
+                  {activeTab === 'prova' && 'Prova Final'}
+                </p>
+                <p className="text-xs text-muted-foreground truncate">
+                  {activeTab === 'conteudo' && `Módulo ${currentModuleIndex + 1} de ${modules.length}`}
+                  {activeTab === 'notas' && 'Faça anotações para revisar depois'}
+                  {activeTab === 'exercicios' && 'Teste seus conhecimentos'}
+                  {activeTab === 'prova' && 'Nota mínima: 7,0'}
+                </p>
+              </div>
+            </div>
 
             {/* Content Tab */}
             <TabsContent value="conteudo" className="space-y-3 sm:space-y-4">
@@ -721,7 +764,25 @@ export default function CourseStudy() {
           </Tabs>
         </div>
       </main>
-      <Footer />
+      
+      {/* Desktop footer */}
+      <div className="hidden md:block">
+        <Footer />
+      </div>
+      
+      {/* Mobile bottom navigation */}
+      {isMobile && (
+        <MobileStudyNav
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          progress={currentProgress}
+          examUnlocked={currentProgress >= 66}
+          currentModuleIndex={currentModuleIndex}
+          totalModules={modules.length}
+          onPrevModule={handlePrevModule}
+          onNextModule={handleNextModule}
+        />
+      )}
     </div>
   );
 }

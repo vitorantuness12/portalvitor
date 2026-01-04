@@ -4,6 +4,7 @@ import { HeroSection } from '@/components/home/HeroSection';
 import { FeaturedCourses } from '@/components/home/FeaturedCourses';
 import { CategorySection } from '@/components/home/CategorySection';
 import { WhyChooseUs } from '@/components/home/WhyChooseUs';
+import { TestimonialsSection } from '@/components/home/TestimonialsSection';
 
 const Index = () => {
   return (
@@ -13,6 +14,7 @@ const Index = () => {
         <HeroSection />
         <CategorySection />
         <FeaturedCourses />
+        <TestimonialsSection />
         <WhyChooseUs />
       </main>
       <Footer />

@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Search, Filter } from 'lucide-react';
+import { Search, Filter, Gift } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { CourseCard } from '@/components/courses/CourseCard';
@@ -12,9 +13,32 @@ import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function CoursesPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedLevel, setSelectedLevel] = useState<string | null>(null);
+  const [priceFilter, setPriceFilter] = useState<'all' | 'free' | 'paid'>('all');
+
+  // Sync price filter from URL on mount
+  useEffect(() => {
+    const priceParam = searchParams.get('price');
+    if (priceParam === 'free') {
+      setPriceFilter('free');
+    } else if (priceParam === 'paid') {
+      setPriceFilter('paid');
+    }
+  }, [searchParams]);
+
+  // Update URL when price filter changes
+  const handlePriceFilterChange = (filter: 'all' | 'free' | 'paid') => {
+    setPriceFilter(filter);
+    if (filter === 'all') {
+      searchParams.delete('price');
+    } else {
+      searchParams.set('price', filter);
+    }
+    setSearchParams(searchParams);
+  };
 
   const { data: categories } = useQuery({
     queryKey: ['categories'],
@@ -29,7 +53,7 @@ export default function CoursesPage() {
   });
 
   const { data: courses, isLoading } = useQuery({
-    queryKey: ['courses', selectedCategory, selectedLevel, searchTerm],
+    queryKey: ['courses', selectedCategory, selectedLevel, searchTerm, priceFilter],
     queryFn: async () => {
       let query = supabase
         .from('courses')
@@ -51,6 +75,12 @@ export default function CoursesPage() {
 
       if (searchTerm) {
         query = query.ilike('title', `%${searchTerm}%`);
+      }
+
+      if (priceFilter === 'free') {
+        query = query.eq('price', 0);
+      } else if (priceFilter === 'paid') {
+        query = query.gt('price', 0);
       }
 
       const { data, error } = await query.order('created_at', { ascending: false });
@@ -162,6 +192,36 @@ export default function CoursesPage() {
                   ))}
                 </div>
               </div>
+
+              <div className="flex items-start gap-2 flex-wrap">
+                <div className="flex items-center gap-2 w-full sm:w-auto mb-1 sm:mb-0">
+                  <Gift className="h-4 w-4 text-muted-foreground shrink-0 sm:ml-6" />
+                  <span className="text-xs sm:text-sm font-medium">Preço:</span>
+                </div>
+                <div className="flex flex-wrap gap-1.5 sm:gap-2 sm:ml-0">
+                  <Badge
+                    variant={priceFilter === 'all' ? 'default' : 'outline'}
+                    className="cursor-pointer text-xs"
+                    onClick={() => handlePriceFilterChange('all')}
+                  >
+                    Todos
+                  </Badge>
+                  <Badge
+                    variant={priceFilter === 'free' ? 'default' : 'outline'}
+                    className="cursor-pointer text-xs"
+                    onClick={() => handlePriceFilterChange('free')}
+                  >
+                    🎁 Gratuitos
+                  </Badge>
+                  <Badge
+                    variant={priceFilter === 'paid' ? 'default' : 'outline'}
+                    className="cursor-pointer text-xs"
+                    onClick={() => handlePriceFilterChange('paid')}
+                  >
+                    💰 Pagos
+                  </Badge>
+                </div>
+              </div>
             </div>
 
             {/* Courses Grid */}
@@ -213,6 +273,7 @@ export default function CoursesPage() {
                     setSearchTerm('');
                     setSelectedCategory(null);
                     setSelectedLevel(null);
+                    handlePriceFilterChange('all');
                   }}
                 >
                   Limpar filtros

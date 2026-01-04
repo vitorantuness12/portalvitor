@@ -1,11 +1,11 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import confetti from 'canvas-confetti';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   BookOpen, FileText, CheckCircle, ArrowLeft, ArrowRight, 
   Trophy, Lock, ChevronDown, ChevronUp, Award, StickyNote,
-  Sparkles, Target
+  Sparkles, Target, Clock, AlertTriangle, RotateCcw
 } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
@@ -26,6 +26,9 @@ import { QuestionCard } from '@/components/courses/QuestionCard';
 import { MobileStudyNav } from '@/components/courses/MobileStudyNav';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
+
+const MAX_EXAM_ATTEMPTS = 3;
+const EXAM_DURATION_SECONDS = 60 * 60; // 1 hour
 
 interface Module {
   title: string;
@@ -54,6 +57,9 @@ export default function CourseStudy() {
   const [exerciseResults, setExerciseResults] = useState<Record<string, boolean> | null>(null);
   const [examAnswers, setExamAnswers] = useState<Record<string, number>>({});
   const [showExamResults, setShowExamResults] = useState(false);
+  const [examStarted, setExamStarted] = useState(false);
+  const [timeRemaining, setTimeRemaining] = useState(EXAM_DURATION_SECONDS);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Fetch course data
   const { data: course, isLoading: courseLoading } = useQuery({
@@ -138,6 +144,7 @@ export default function CourseStudy() {
       if (!enrollment) throw new Error('Matrícula não encontrada');
       
       const status = score >= 7 ? 'passed' : 'failed';
+      const newAttempts = (enrollment.exam_attempts || 0) + 1;
       
       const { error } = await supabase
         .from('enrollments')
@@ -146,15 +153,23 @@ export default function CourseStudy() {
           exam_completed_at: new Date().toISOString(),
           status,
           progress: 100,
+          exam_attempts: newAttempts,
         })
         .eq('id', enrollment.id);
       
       if (error) throw error;
-      return { score, status };
+      return { score, status, attempts: newAttempts };
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['enrollment', id] });
       setShowExamResults(true);
+      setExamStarted(false);
+      
+      // Clear timer
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
       
       if (data.status === 'passed') {
         // Trigger confetti celebration
@@ -190,14 +205,82 @@ export default function CourseStudy() {
           description: `Sua nota: ${data.score.toFixed(1)}. Você pode gerar seu certificado!`,
         });
       } else {
+        const attemptsLeft = MAX_EXAM_ATTEMPTS - data.attempts;
         toast({
           title: 'Não foi dessa vez...',
-          description: `Sua nota: ${data.score.toFixed(1)}. É necessário nota mínima 7,0 para aprovação.`,
+          description: `Sua nota: ${data.score.toFixed(1)}. ${attemptsLeft > 0 ? `Você ainda tem ${attemptsLeft} tentativa(s).` : 'Você não tem mais tentativas.'}`,
           variant: 'destructive',
         });
       }
     },
   });
+
+  // Start exam and timer
+  const handleStartExam = () => {
+    setExamStarted(true);
+    setTimeRemaining(EXAM_DURATION_SECONDS);
+    setExamAnswers({});
+    
+    timerRef.current = setInterval(() => {
+      setTimeRemaining(prev => {
+        if (prev <= 1) {
+          // Time's up - auto submit
+          if (timerRef.current) {
+            clearInterval(timerRef.current);
+            timerRef.current = null;
+          }
+          handleTimeUp();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  // Handle time up
+  const handleTimeUp = () => {
+    if (!examQuestions) return;
+    
+    let correctCount = 0;
+    examQuestions.forEach(q => {
+      if (examAnswers[q.id] === q.correct_answer) {
+        correctCount++;
+      }
+    });
+    
+    const score = (correctCount / examQuestions.length) * 10;
+    submitExamMutation.mutate(score);
+    
+    toast({
+      title: '⏰ Tempo esgotado!',
+      description: 'A prova foi enviada automaticamente.',
+      variant: 'destructive',
+    });
+  };
+
+  // Reset exam for retry
+  const handleRetryExam = () => {
+    setExamAnswers({});
+    setShowExamResults(false);
+    setExamStarted(false);
+    setTimeRemaining(EXAM_DURATION_SECONDS);
+  };
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+  }, []);
+
+  // Format time remaining
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
 
   // Parse modules from content_pdf_url (stored as JSON)
   const modules: Module[] = course?.content_pdf_url 
@@ -614,74 +697,70 @@ export default function CourseStudy() {
 
             {/* Exam Tab */}
             <TabsContent value="prova" className="space-y-4 sm:space-y-6">
-              {enrollment.exam_completed_at ? (
+              {/* Show results if passed or failed with no retries left */}
+              {enrollment.status === 'passed' ? (
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className={cn(
-                    'relative overflow-hidden rounded-3xl border-2 p-8 sm:p-12 text-center',
-                    enrollment.status === 'passed'
-                      ? 'border-emerald-500/50 bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent'
-                      : 'border-rose-500/50 bg-gradient-to-br from-rose-500/10 via-rose-500/5 to-transparent'
-                  )}
+                  className="relative overflow-hidden rounded-3xl border-2 p-8 sm:p-12 text-center border-emerald-500/50 bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent"
                 >
-                  {/* Decorative elements */}
                   <div className="absolute inset-0 overflow-hidden">
-                    <div className={cn(
-                      'absolute -top-24 -right-24 w-48 h-48 rounded-full blur-3xl',
-                      enrollment.status === 'passed' ? 'bg-emerald-500/20' : 'bg-rose-500/20'
-                    )} />
-                    <div className={cn(
-                      'absolute -bottom-24 -left-24 w-48 h-48 rounded-full blur-3xl',
-                      enrollment.status === 'passed' ? 'bg-emerald-500/10' : 'bg-rose-500/10'
-                    )} />
+                    <div className="absolute -top-24 -right-24 w-48 h-48 rounded-full blur-3xl bg-emerald-500/20" />
+                    <div className="absolute -bottom-24 -left-24 w-48 h-48 rounded-full blur-3xl bg-emerald-500/10" />
                   </div>
 
                   <div className="relative">
-                    {enrollment.status === 'passed' ? (
-                      <>
-                        <motion.div
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.2 }}
-                          className="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-xl shadow-emerald-500/30"
-                        >
-                          <Trophy className="w-10 h-10 sm:w-12 sm:h-12 text-white" />
-                        </motion.div>
-                        <h2 className="text-2xl sm:text-3xl font-bold mb-3 bg-gradient-to-r from-emerald-600 to-emerald-500 bg-clip-text text-transparent">
-                          Parabéns! Aprovado!
-                        </h2>
-                        <p className="text-muted-foreground mb-6 text-base sm:text-lg">
-                          Sua nota: <span className="font-bold text-emerald-500 text-xl">{enrollment.exam_score?.toFixed(1)}</span>
-                        </p>
-                        <Link to={`/curso/${id}/certificado`}>
-                          <Button variant="hero" size="lg" className="gap-2 px-8">
-                            <Award className="h-5 w-5" />
-                            Gerar Certificado
-                          </Button>
-                        </Link>
-                      </>
-                    ) : (
-                      <>
-                        <motion.div
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.2 }}
-                          className="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-rose-500 to-rose-600 flex items-center justify-center shadow-xl shadow-rose-500/30"
-                        >
-                          <span className="text-4xl sm:text-5xl">😔</span>
-                        </motion.div>
-                        <h2 className="text-2xl sm:text-3xl font-bold mb-3 text-rose-500">
-                          Não foi dessa vez...
-                        </h2>
-                        <p className="text-muted-foreground mb-2 text-base sm:text-lg">
-                          Sua nota: <span className="font-bold text-rose-500 text-xl">{enrollment.exam_score?.toFixed(1)}</span>
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          É necessário nota mínima 7,0 para aprovação.
-                        </p>
-                      </>
-                    )}
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.2 }}
+                      className="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-xl shadow-emerald-500/30"
+                    >
+                      <Trophy className="w-10 h-10 sm:w-12 sm:h-12 text-white" />
+                    </motion.div>
+                    <h2 className="text-2xl sm:text-3xl font-bold mb-3 bg-gradient-to-r from-emerald-600 to-emerald-500 bg-clip-text text-transparent">
+                      Parabéns! Aprovado!
+                    </h2>
+                    <p className="text-muted-foreground mb-6 text-base sm:text-lg">
+                      Sua nota: <span className="font-bold text-emerald-500 text-xl">{enrollment.exam_score?.toFixed(1)}</span>
+                    </p>
+                    <Link to={`/curso/${id}/certificado`}>
+                      <Button variant="hero" size="lg" className="gap-2 px-8">
+                        <Award className="h-5 w-5" />
+                        Gerar Certificado
+                      </Button>
+                    </Link>
+                  </div>
+                </motion.div>
+              ) : enrollment.status === 'failed' && (enrollment.exam_attempts || 0) >= MAX_EXAM_ATTEMPTS ? (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="relative overflow-hidden rounded-3xl border-2 p-8 sm:p-12 text-center border-rose-500/50 bg-gradient-to-br from-rose-500/10 via-rose-500/5 to-transparent"
+                >
+                  <div className="absolute inset-0 overflow-hidden">
+                    <div className="absolute -top-24 -right-24 w-48 h-48 rounded-full blur-3xl bg-rose-500/20" />
+                    <div className="absolute -bottom-24 -left-24 w-48 h-48 rounded-full blur-3xl bg-rose-500/10" />
+                  </div>
+
+                  <div className="relative">
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.2 }}
+                      className="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-rose-500 to-rose-600 flex items-center justify-center shadow-xl shadow-rose-500/30"
+                    >
+                      <AlertTriangle className="w-10 h-10 sm:w-12 sm:h-12 text-white" />
+                    </motion.div>
+                    <h2 className="text-2xl sm:text-3xl font-bold mb-3 text-rose-500">
+                      Tentativas esgotadas
+                    </h2>
+                    <p className="text-muted-foreground mb-2 text-base sm:text-lg">
+                      Sua nota: <span className="font-bold text-rose-500 text-xl">{enrollment.exam_score?.toFixed(1)}</span>
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Você utilizou todas as {MAX_EXAM_ATTEMPTS} tentativas disponíveis.
+                    </p>
                   </div>
                 </motion.div>
               ) : (
@@ -690,18 +769,48 @@ export default function CourseStudy() {
                   <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="flex items-center gap-4 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-transparent border-2 border-amber-500/30"
+                    className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-transparent border-2 border-amber-500/30"
                   >
-                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/25">
-                      <Trophy className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+                    <div className="flex items-center gap-4 flex-1">
+                      <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/25 flex-shrink-0">
+                        <Trophy className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-sm sm:text-base">Prova Final</p>
+                        <p className="text-xs sm:text-sm text-muted-foreground">
+                          Nota mínima <span className="font-bold text-amber-600">7,0</span> • Tempo: <span className="font-bold">1 hora</span> • Tentativas: <span className="font-bold">{MAX_EXAM_ATTEMPTS - (enrollment.exam_attempts || 0)}/{MAX_EXAM_ATTEMPTS}</span>
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <p className="font-semibold text-sm sm:text-base">Prova Final</p>
-                      <p className="text-xs sm:text-sm text-muted-foreground">
-                        Nota mínima <span className="font-bold text-amber-600">7,0</span> para aprovação e certificado
-                      </p>
-                    </div>
+                    
+                    {/* Timer display when exam started */}
+                    {examStarted && (
+                      <div className={cn(
+                        "flex items-center gap-2 px-4 py-2 rounded-xl font-mono text-lg font-bold",
+                        timeRemaining <= 300 ? "bg-rose-500/20 text-rose-500" : "bg-primary/20 text-primary"
+                      )}>
+                        <Clock className="w-5 h-5" />
+                        {formatTime(timeRemaining)}
+                      </div>
+                    )}
                   </motion.div>
+
+                  {/* Previous attempt info */}
+                  {enrollment.exam_completed_at && enrollment.status === 'failed' && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="flex items-center gap-3 p-4 rounded-xl bg-rose-500/10 border border-rose-500/30"
+                    >
+                      <AlertTriangle className="w-5 h-5 text-rose-500 flex-shrink-0" />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-rose-500">Última tentativa: {enrollment.exam_score?.toFixed(1)}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Você ainda tem {MAX_EXAM_ATTEMPTS - (enrollment.exam_attempts || 0)} tentativa(s)
+                        </p>
+                      </div>
+                    </motion.div>
+                  )}
 
                   {!examQuestions || examQuestions.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-12 sm:py-16">
@@ -710,6 +819,33 @@ export default function CourseStudy() {
                       </div>
                       <p className="text-muted-foreground text-sm sm:text-base">Prova em breve.</p>
                     </div>
+                  ) : !examStarted ? (
+                    /* Start exam screen */
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="text-center py-12 sm:py-16"
+                    >
+                      <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-amber-500/20 to-orange-500/10 flex items-center justify-center">
+                        <Clock className="w-10 h-10 sm:w-12 sm:h-12 text-amber-500" />
+                      </div>
+                      <h3 className="text-xl sm:text-2xl font-bold mb-3">Pronto para começar?</h3>
+                      <p className="text-muted-foreground mb-2 max-w-md mx-auto">
+                        Você terá <span className="font-bold text-foreground">1 hora</span> para completar a prova.
+                      </p>
+                      <p className="text-sm text-muted-foreground mb-6">
+                        {examQuestions.length} questões • Nota mínima 7,0
+                      </p>
+                      <Button 
+                        variant="hero" 
+                        size="lg"
+                        onClick={handleStartExam}
+                        className="gap-2 px-8 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
+                      >
+                        <Clock className="h-5 w-5" />
+                        Iniciar Prova
+                      </Button>
+                    </motion.div>
                   ) : (
                     <>
                       {/* Questions */}

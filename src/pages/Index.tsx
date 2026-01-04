@@ -8,6 +8,7 @@ import { TestimonialsSection } from '@/components/home/TestimonialsSection';
 import { HowItWorksSection } from '@/components/home/HowItWorksSection';
 import { FAQSection } from '@/components/home/FAQSection';
 import { BadgesSection } from '@/components/home/BadgesSection';
+import { FreeCoursesBanner } from '@/components/home/FreeCoursesBanner';
 
 const Index = () => {
   return (
@@ -15,6 +16,7 @@ const Index = () => {
       <Header />
       <main className="flex-1">
         <HeroSection />
+        <FreeCoursesBanner />
         <HowItWorksSection />
         <CategorySection />
         <FeaturedCourses />

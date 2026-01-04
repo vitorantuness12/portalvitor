@@ -6,6 +6,7 @@ import { CategorySection } from '@/components/home/CategorySection';
 import { WhyChooseUs } from '@/components/home/WhyChooseUs';
 import { TestimonialsSection } from '@/components/home/TestimonialsSection';
 import { HowItWorksSection } from '@/components/home/HowItWorksSection';
+import { FAQSection } from '@/components/home/FAQSection';
 
 const Index = () => {
   return (
@@ -18,6 +19,7 @@ const Index = () => {
         <FeaturedCourses />
         <TestimonialsSection />
         <WhyChooseUs />
+        <FAQSection />
       </main>
       <Footer />
     </div>

@@ -57,11 +57,18 @@ export function CourseCard({
             {categoryName}
           </Badge>
         )}
-        {isEnrolled && (
-          <Badge className="absolute top-3 right-3 bg-success text-success-foreground">
-            Matriculado
-          </Badge>
-        )}
+        <div className="absolute top-3 right-3 flex flex-col gap-1.5 items-end">
+          {price === 0 && (
+            <Badge className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white border-0 shadow-lg animate-pulse">
+              🎁 Grátis
+            </Badge>
+          )}
+          {isEnrolled && (
+            <Badge className="bg-success text-success-foreground">
+              Matriculado
+            </Badge>
+          )}
+        </div>
       </div>
 
       <div className="p-4 sm:p-5 space-y-3 sm:space-y-4">

@@ -11,15 +11,16 @@ interface BulkCourseRequest {
   categoryId?: string;
   autoCategory?: boolean;
   price?: number;
+  autoPrice?: boolean;
   additionalInstructions?: string;
 }
 
 // Tool schemas for structured output - will be updated dynamically with categories
-const createCourseAnalysisTool = (categoryNames: string[]) => ({
+const createCourseAnalysisTool = (categoryNames: string[], includePrice: boolean) => ({
   type: "function",
   function: {
     name: "analyze_course_topic",
-    description: "Analyze a course topic and determine the appropriate level, duration, and category",
+    description: "Analyze a course topic and determine the appropriate level, duration, category, and price",
     parameters: {
       type: "object",
       properties: {
@@ -41,12 +42,18 @@ const createCourseAnalysisTool = (categoryNames: string[]) => ({
           enum: categoryNames,
           description: "The most appropriate category for this course based on its topic"
         },
+        ...(includePrice ? {
+          suggestedPrice: {
+            type: "number",
+            description: "Suggested price in BRL (Brazilian Reais). Consider: free (0) for basic intro courses, 29-49 for short beginner courses, 79-149 for intermediate courses, 199-399 for advanced/specialized courses, 499+ for comprehensive professional courses. Base on duration, complexity, and market value."
+          }
+        } : {}),
         reasoning: {
           type: "string",
-          description: "Brief explanation of why this level, duration, and category were chosen"
+          description: "Brief explanation of why this level, duration, category, and price were chosen"
         }
       },
-      required: ["level", "duration", "moduleCount", "suggestedCategory", "reasoning"]
+      required: ["level", "duration", "moduleCount", "suggestedCategory", ...(includePrice ? ["suggestedPrice"] : []), "reasoning"]
     }
   }
 });
@@ -178,9 +185,9 @@ serve(async (req) => {
       });
     }
 
-    const { topic, categoryId, autoCategory, price, additionalInstructions }: BulkCourseRequest = await req.json();
+    const { topic, categoryId, autoCategory, price, autoPrice, additionalInstructions }: BulkCourseRequest = await req.json();
 
-    console.log("Bulk generating course with OpenAI:", { topic, price, autoCategory });
+    console.log("Bulk generating course with OpenAI:", { topic, price, autoCategory, autoPrice });
 
     // Fetch categories if auto-category is enabled
     let categories: { id: string; name: string }[] = [];
@@ -193,23 +200,30 @@ serve(async (req) => {
     }
 
     const categoryNames = categories.map(c => c.name);
-    const courseAnalysisTool = createCourseAnalysisTool(categoryNames.length > 0 ? categoryNames : ["Geral"]);
+    const courseAnalysisTool = createCourseAnalysisTool(
+      categoryNames.length > 0 ? categoryNames : ["Geral"],
+      autoPrice || false
+    );
 
-    // Step 1: Analyze topic to determine level, duration, and category
-    const analysisPrompt = autoCategory && categoryNames.length > 0
-      ? `Analise este tema de curso e determine:
+    // Step 1: Analyze topic to determine level, duration, category, and optionally price
+    let analysisPrompt = `Analise este tema de curso e determine:
 1. O nível (iniciante, intermediario ou avancado)
-2. A carga horária apropriada (5, 10, 20, 40, 60 ou 80 horas)
-3. A categoria mais apropriada dentre: ${categoryNames.join(", ")}
+2. A carga horária apropriada (5, 10, 20, 40, 60 ou 80 horas)`;
+    
+    if (autoCategory && categoryNames.length > 0) {
+      analysisPrompt += `\n3. A categoria mais apropriada dentre: ${categoryNames.join(", ")}`;
+    }
+    
+    if (autoPrice) {
+      analysisPrompt += `\n${autoCategory ? '4' : '3'}. O preço sugerido em Reais (R$) considerando:
+   - Gratuito (0): cursos introdutórios básicos
+   - R$ 29-49: cursos curtos para iniciantes
+   - R$ 79-149: cursos intermediários
+   - R$ 199-399: cursos avançados/especializados
+   - R$ 499+: cursos profissionais completos`;
+    }
 
-TEMA: "${topic}"
-${additionalInstructions ? `CONTEXTO ADICIONAL: ${additionalInstructions}` : ""}
-
-Considere:
-- Temas básicos ou introdutórios = iniciante, 5-10h
-- Temas que requerem conhecimento prévio = intermediario, 20-40h
-- Temas especializados ou complexos = avancado, 40-80h`
-      : `Analise este tema de curso e determine o nível (iniciante, intermediario ou avancado) e a carga horária apropriada (5, 10, 20, 40, 60 ou 80 horas):
+    analysisPrompt += `
 
 TEMA: "${topic}"
 ${additionalInstructions ? `CONTEXTO ADICIONAL: ${additionalInstructions}` : ""}
@@ -272,7 +286,7 @@ Considere:
 
     console.log("Course analysis:", analysis);
 
-    const { level, duration, moduleCount, suggestedCategory } = analysis;
+    const { level, duration, moduleCount, suggestedCategory, suggestedPrice } = analysis;
 
     // Determine final category ID
     let finalCategoryId = categoryId;
@@ -283,6 +297,10 @@ Considere:
         console.log("AI suggested category:", suggestedCategory, "->", finalCategoryId);
       }
     }
+
+    // Determine final price
+    const finalPrice = autoPrice && suggestedPrice !== undefined ? suggestedPrice : (price || 0);
+    console.log("Final price:", finalPrice, autoPrice ? "(AI suggested)" : "(manual)");
 
     // Step 2: Generate course content
     const contentPrompt = `Você é um professor especialista criando um curso online completo. O curso deve ensinar DE VERDADE, não apenas descrever o que será ensinado.
@@ -434,7 +452,7 @@ As questões devem testar a compreensão do conteúdo e ter níveis variados de 
         category_id: finalCategoryId || null,
         duration_hours: duration,
         level: level,
-        price: price || 0,
+        price: finalPrice,
         status: "active",
         content_pdf_url: JSON.stringify(courseContent.modules),
       })
@@ -497,6 +515,7 @@ As questões devem testar a compreensão do conteúdo e ter níveis variados de 
           level: level,
           duration: duration,
           category: suggestedCategory || null,
+          price: finalPrice,
           exercisesCount: exercises.exercises?.length || 0,
           examQuestionsCount: exam.examQuestions?.length || 0,
         },

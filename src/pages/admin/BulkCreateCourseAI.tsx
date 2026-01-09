@@ -25,6 +25,7 @@ interface CourseQueueItem {
   status: 'pending' | 'generating' | 'success' | 'error';
   title?: string;
   category?: string;
+  price?: number;
   error?: string;
 }
 
@@ -33,6 +34,7 @@ export default function BulkCreateCourseAI() {
   const [categoryId, setCategoryId] = useState('');
   const [autoCategory, setAutoCategory] = useState(true);
   const [price, setPrice] = useState('0');
+  const [autoPrice, setAutoPrice] = useState(true);
   const [additionalInstructions, setAdditionalInstructions] = useState('');
   const [queue, setQueue] = useState<CourseQueueItem[]>([]);
   const [isRunning, setIsRunning] = useState(false);
@@ -118,7 +120,8 @@ export default function BulkCreateCourseAI() {
               topic: initialQueue[i].topic,
               categoryId: autoCategory ? null : (categoryId || null),
               autoCategory,
-              price: parseFloat(price) || 0,
+              price: autoPrice ? null : (parseFloat(price) || 0),
+              autoPrice,
               additionalInstructions,
             }),
           }
@@ -134,7 +137,7 @@ export default function BulkCreateCourseAI() {
         setQueue((prev) =>
           prev.map((item, idx) =>
             idx === i
-              ? { ...item, status: 'success', title: result.course.title, category: result.course.category }
+              ? { ...item, status: 'success', title: result.course.title, category: result.course.category, price: result.course.price }
               : item
           )
         );
@@ -273,20 +276,38 @@ export default function BulkCreateCourseAI() {
                     </div>
                   )}
 
-                  <div className={`space-y-2 ${autoCategory ? 'sm:col-span-2' : ''}`}>
-                    <Label htmlFor="price">Preço (R$) para todos</Label>
-                    <Input
-                      id="price"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      placeholder="0.00"
-                      value={price}
-                      onChange={(e) => setPrice(e.target.value)}
-                      disabled={isRunning}
-                    />
+                  {!autoPrice && (
+                    <div className={`space-y-2 ${autoCategory ? 'sm:col-span-2' : ''}`}>
+                      <Label htmlFor="price">Preço (R$) para todos</Label>
+                      <Input
+                        id="price"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="0.00"
+                        value={price}
+                        onChange={(e) => setPrice(e.target.value)}
+                        disabled={isRunning}
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between p-3 rounded-lg border bg-muted/50">
+                <div className="flex items-center gap-2">
+                  <Wand2 className="h-4 w-4 text-primary" />
+                  <div>
+                    <Label htmlFor="auto-price" className="cursor-pointer">IA sugere preço</Label>
+                    <p className="text-xs text-muted-foreground">A IA define o preço baseado em complexidade e duração</p>
                   </div>
                 </div>
+                <Switch
+                  id="auto-price"
+                  checked={autoPrice}
+                  onCheckedChange={setAutoPrice}
+                  disabled={isRunning}
+                />
               </div>
 
               <div className="space-y-2">
@@ -413,10 +434,15 @@ export default function BulkCreateCourseAI() {
                                 </p>
                               )}
                               {item.status === 'success' && (
-                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                <div className="flex items-center flex-wrap gap-1.5 text-xs text-muted-foreground">
                                   {item.category && (
                                     <span className="bg-primary/10 text-primary px-1.5 py-0.5 rounded text-[10px] font-medium">
                                       {item.category}
+                                    </span>
+                                  )}
+                                  {item.price !== undefined && (
+                                    <span className="bg-success/10 text-success px-1.5 py-0.5 rounded text-[10px] font-medium">
+                                      {item.price === 0 ? 'Grátis' : `R$ ${item.price.toFixed(2)}`}
                                     </span>
                                   )}
                                   {item.title !== item.topic && (
@@ -448,7 +474,7 @@ export default function BulkCreateCourseAI() {
                 <div className="text-sm text-muted-foreground">
                   <p className="font-medium text-foreground">Como funciona</p>
                   <ul className="mt-2 space-y-1 list-disc list-inside">
-                    <li>A IA analisa cada tema e decide automaticamente o nível e carga horária</li>
+                    <li>A IA analisa cada tema e decide automaticamente o nível, carga horária, categoria e preço</li>
                     <li>Cada curso recebe conteúdo, 10 exercícios e 15 questões de prova</li>
                     <li>Você pode pausar e retomar o processo a qualquer momento</li>
                     <li>Cursos com erro podem ser recriados individualmente depois</li>

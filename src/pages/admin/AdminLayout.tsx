@@ -12,6 +12,7 @@ import {
   GraduationCap,
   Menu,
   Sparkles,
+  Layers,
   Headphones,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
@@ -25,6 +26,7 @@ const sidebarLinks = [
   { href: '/admin', icon: LayoutDashboard, label: 'Dashboard', exact: true },
   { href: '/admin/cursos', icon: BookOpen, label: 'Cursos' },
   { href: '/admin/criar-curso', icon: Sparkles, label: 'Criar com IA' },
+  { href: '/admin/criar-cursos-massa', icon: Layers, label: 'Criar em Massa' },
   { href: '/admin/usuarios', icon: Users, label: 'Usuários' },
   { href: '/admin/categorias', icon: FolderOpen, label: 'Categorias' },
   { href: '/admin/certificados', icon: Award, label: 'Certificados' },

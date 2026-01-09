@@ -23,6 +23,7 @@ import AdminUsers from "./pages/admin/Users";
 import AdminCategories from "./pages/admin/Categories";
 import AdminCertificates from "./pages/admin/Certificates";
 import CreateCourseAI from "./pages/admin/CreateCourseAI";
+import BulkCreateCourseAI from "./pages/admin/BulkCreateCourseAI";
 import AdminSupportTickets from "./pages/admin/SupportTickets";
 import NotFound from "./pages/NotFound";
 import { SupportChat } from "./components/support/SupportChat";
@@ -58,6 +59,7 @@ const App = () => (
               <Route path="categorias" element={<AdminCategories />} />
               <Route path="certificados" element={<AdminCertificates />} />
               <Route path="criar-curso" element={<CreateCourseAI />} />
+              <Route path="criar-cursos-massa" element={<BulkCreateCourseAI />} />
               <Route path="suporte" element={<AdminSupportTickets />} />
             </Route>
             

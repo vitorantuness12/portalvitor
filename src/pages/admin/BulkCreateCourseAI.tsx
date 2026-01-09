@@ -1,10 +1,11 @@
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Layers, Check, X, Pause, Play, AlertCircle, Loader2 } from 'lucide-react';
+import { Sparkles, Layers, Check, X, Pause, Play, AlertCircle, Loader2, Wand2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
 import {
   Select,
   SelectContent,
@@ -23,12 +24,14 @@ interface CourseQueueItem {
   topic: string;
   status: 'pending' | 'generating' | 'success' | 'error';
   title?: string;
+  category?: string;
   error?: string;
 }
 
 export default function BulkCreateCourseAI() {
   const [topics, setTopics] = useState('');
   const [categoryId, setCategoryId] = useState('');
+  const [autoCategory, setAutoCategory] = useState(true);
   const [price, setPrice] = useState('0');
   const [additionalInstructions, setAdditionalInstructions] = useState('');
   const [queue, setQueue] = useState<CourseQueueItem[]>([]);
@@ -113,7 +116,8 @@ export default function BulkCreateCourseAI() {
             },
             body: JSON.stringify({
               topic: initialQueue[i].topic,
-              categoryId: categoryId || null,
+              categoryId: autoCategory ? null : (categoryId || null),
+              autoCategory,
               price: parseFloat(price) || 0,
               additionalInstructions,
             }),
@@ -130,7 +134,7 @@ export default function BulkCreateCourseAI() {
         setQueue((prev) =>
           prev.map((item, idx) =>
             idx === i
-              ? { ...item, status: 'success', title: result.course.title }
+              ? { ...item, status: 'success', title: result.course.title, category: result.course.category }
               : item
           )
         );
@@ -229,39 +233,59 @@ export default function BulkCreateCourseAI() {
                 </p>
               </div>
 
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Categoria (para todos)</Label>
-                  <Select
-                    value={categoryId}
-                    onValueChange={setCategoryId}
-                    disabled={isRunning}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione uma categoria" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories?.map((cat) => (
-                        <SelectItem key={cat.id} value={cat.id}>
-                          {cat.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="price">Preço (R$) para todos</Label>
-                  <Input
-                    id="price"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    placeholder="0.00"
-                    value={price}
-                    onChange={(e) => setPrice(e.target.value)}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-3 rounded-lg border bg-muted/50">
+                  <div className="flex items-center gap-2">
+                    <Wand2 className="h-4 w-4 text-primary" />
+                    <div>
+                      <Label htmlFor="auto-category" className="cursor-pointer">IA sugere categoria</Label>
+                      <p className="text-xs text-muted-foreground">A IA escolhe a melhor categoria para cada curso</p>
+                    </div>
+                  </div>
+                  <Switch
+                    id="auto-category"
+                    checked={autoCategory}
+                    onCheckedChange={setAutoCategory}
                     disabled={isRunning}
                   />
+                </div>
+
+                <div className="grid sm:grid-cols-2 gap-4">
+                  {!autoCategory && (
+                    <div className="space-y-2">
+                      <Label>Categoria (para todos)</Label>
+                      <Select
+                        value={categoryId}
+                        onValueChange={setCategoryId}
+                        disabled={isRunning}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione uma categoria" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {categories?.map((cat) => (
+                            <SelectItem key={cat.id} value={cat.id}>
+                              {cat.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+
+                  <div className={`space-y-2 ${autoCategory ? 'sm:col-span-2' : ''}`}>
+                    <Label htmlFor="price">Preço (R$) para todos</Label>
+                    <Input
+                      id="price"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      placeholder="0.00"
+                      value={price}
+                      onChange={(e) => setPrice(e.target.value)}
+                      disabled={isRunning}
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -388,10 +412,17 @@ export default function BulkCreateCourseAI() {
                                   Gerando conteúdo, exercícios e prova...
                                 </p>
                               )}
-                              {item.status === 'success' && item.title !== item.topic && (
-                                <p className="text-xs text-muted-foreground truncate">
-                                  Tema: {item.topic}
-                                </p>
+                              {item.status === 'success' && (
+                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                  {item.category && (
+                                    <span className="bg-primary/10 text-primary px-1.5 py-0.5 rounded text-[10px] font-medium">
+                                      {item.category}
+                                    </span>
+                                  )}
+                                  {item.title !== item.topic && (
+                                    <span className="truncate">Tema: {item.topic}</span>
+                                  )}
+                                </div>
                               )}
                               {item.error && (
                                 <p className="text-xs text-destructive">{item.error}</p>

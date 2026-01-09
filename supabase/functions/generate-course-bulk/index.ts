@@ -35,7 +35,7 @@ const createCourseAnalysisTool = (categoryNames: string[], includePrice: boolean
         },
         moduleCount: {
           type: "number",
-          description: "Recommended number of modules (3-8)"
+          description: "Recommended number of modules based on duration: 5h=3 modules, 10h=4 modules, 20h=5 modules, 40h=7 modules, 60h=9 modules, 80h=12 modules. More hours = more modules for complete coverage."
         },
         suggestedCategory: {
           type: "string",
@@ -229,9 +229,17 @@ TEMA: "${topic}"
 ${additionalInstructions ? `CONTEXTO ADICIONAL: ${additionalInstructions}` : ""}
 
 Considere:
-- Temas básicos ou introdutórios = iniciante, 5-10h
-- Temas que requerem conhecimento prévio = intermediario, 20-40h
-- Temas especializados ou complexos = avancado, 40-80h`;
+- Temas básicos ou introdutórios = iniciante, 5-10h, 3-4 módulos
+- Temas que requerem conhecimento prévio = intermediario, 20-40h, 5-7 módulos
+- Temas especializados ou complexos = avancado, 40-80h, 7-12 módulos
+
+REGRA DE MÓDULOS (muito importante):
+- 5 horas = 3 módulos
+- 10 horas = 4 módulos
+- 20 horas = 5-6 módulos
+- 40 horas = 7-8 módulos
+- 60 horas = 9-10 módulos
+- 80 horas = 11-12 módulos`;
 
     const analysisResponse = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -302,13 +310,16 @@ Considere:
     const finalPrice = autoPrice && suggestedPrice !== undefined ? suggestedPrice : (price || 0);
     console.log("Final price:", finalPrice, autoPrice ? "(AI suggested)" : "(manual)");
 
+    // Calculate appropriate module count based on duration if not provided
+    const calculatedModuleCount = moduleCount || Math.max(3, Math.min(12, Math.floor(duration / 6) + 2));
+    
     // Step 2: Generate course content
     const contentPrompt = `Você é um professor especialista criando um curso online completo. O curso deve ensinar DE VERDADE, não apenas descrever o que será ensinado.
 
 CURSO: "${topic}"
 NÍVEL: ${level}
 CARGA HORÁRIA: ${duration} horas
-NÚMERO DE MÓDULOS: ${moduleCount || 4}
+NÚMERO DE MÓDULOS: ${calculatedModuleCount} (OBRIGATÓRIO - crie EXATAMENTE ${calculatedModuleCount} módulos)
 ${additionalInstructions ? `INSTRUÇÕES ADICIONAIS: ${additionalInstructions}` : ""}
 
 REGRAS CRÍTICAS PARA O CONTEÚDO DOS MÓDULOS:
@@ -316,7 +327,8 @@ REGRAS CRÍTICAS PARA O CONTEÚDO DOS MÓDULOS:
 2. ESCREVA O CONTEÚDO EDUCACIONAL REAL - ensine o assunto diretamente
 3. Cada módulo deve conter conceitos, explicações, exemplos práticos e dicas
 4. Use subtítulos em markdown (##, ###) para organizar o conteúdo
-5. Mínimo de 500 palavras de conteúdo REAL por módulo`;
+5. Mínimo de 500 palavras de conteúdo REAL por módulo
+6. IMPORTANTE: Você DEVE criar EXATAMENTE ${calculatedModuleCount} módulos para cobrir toda a carga horária de ${duration}h`;
 
     const contentResponse = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",

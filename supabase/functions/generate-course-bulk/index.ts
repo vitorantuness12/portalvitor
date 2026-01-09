@@ -131,9 +131,9 @@ serve(async (req) => {
   }
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+    const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
+    if (!OPENAI_API_KEY) {
+      throw new Error("OPENAI_API_KEY is not configured");
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -174,17 +174,17 @@ serve(async (req) => {
 
     const { topic, categoryId, price, additionalInstructions }: BulkCourseRequest = await req.json();
 
-    console.log("Bulk generating course:", { topic, price });
+    console.log("Bulk generating course with OpenAI:", { topic, price });
 
     // Step 1: Analyze topic to determine level and duration
-    const analysisResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const analysisResponse = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "gpt-4o-mini",
         messages: [
           { 
             role: "system", 
@@ -209,15 +209,11 @@ Considere:
     });
 
     if (!analysisResponse.ok) {
+      const errorText = await analysisResponse.text();
+      console.error("OpenAI analysis error:", analysisResponse.status, errorText);
       if (analysisResponse.status === 429) {
         return new Response(JSON.stringify({ error: "Limite de requisições excedido. Tente novamente em alguns minutos." }), {
           status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      if (analysisResponse.status === 402) {
-        return new Response(JSON.stringify({ error: "Créditos de IA esgotados. Adicione mais créditos para continuar." }), {
-          status: 402,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
@@ -260,20 +256,21 @@ REGRAS CRÍTICAS PARA O CONTEÚDO DOS MÓDULOS:
 4. Use subtítulos em markdown (##, ###) para organizar o conteúdo
 5. Mínimo de 500 palavras de conteúdo REAL por módulo`;
 
-    const contentResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const contentResponse = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "gpt-4o-mini",
         messages: [
           { role: "system", content: "Você é um professor universitário especialista em educação online. Você cria conteúdo educacional REAL e PRÁTICO que ensina de verdade. Use a função fornecida para estruturar o curso." },
           { role: "user", content: contentPrompt },
         ],
         tools: [courseContentTool],
         tool_choice: { type: "function", function: { name: "create_course_content" } },
+        max_tokens: 16000,
       }),
     });
 
@@ -314,20 +311,21 @@ REGRAS CRÍTICAS PARA O CONTEÚDO DOS MÓDULOS:
     const exercisesPrompt = `Crie 10 exercícios de múltipla escolha para o curso "${courseContent.title}" sobre "${topic}". 
 As questões devem testar a compreensão do conteúdo e ter níveis variados de dificuldade.`;
 
-    const exercisesResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const exercisesResponse = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "gpt-4o-mini",
         messages: [
           { role: "system", content: "Você é um especialista em avaliação educacional. Use a função fornecida para criar exercícios." },
           { role: "user", content: exercisesPrompt },
         ],
         tools: [exercisesTool],
         tool_choice: { type: "function", function: { name: "create_exercises" } },
+        max_tokens: 4000,
       }),
     });
 
@@ -349,20 +347,21 @@ As questões devem testar a compreensão do conteúdo e ter níveis variados de 
     // Step 4: Generate exam
     const examPrompt = `Crie uma prova final com 15 questões de múltipla escolha para o curso "${courseContent.title}" sobre "${topic}".`;
 
-    const examResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const examResponse = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "gpt-4o-mini",
         messages: [
           { role: "system", content: "Você é um especialista em avaliação educacional. Use a função fornecida para criar a prova." },
           { role: "user", content: examPrompt },
         ],
         tools: [examTool],
         tool_choice: { type: "function", function: { name: "create_exam" } },
+        max_tokens: 6000,
       }),
     });
 

@@ -9,16 +9,17 @@ const corsHeaders = {
 interface BulkCourseRequest {
   topic: string;
   categoryId?: string;
+  autoCategory?: boolean;
   price?: number;
   additionalInstructions?: string;
 }
 
-// Tool schemas for structured output
-const courseAnalysisTool = {
+// Tool schemas for structured output - will be updated dynamically with categories
+const createCourseAnalysisTool = (categoryNames: string[]) => ({
   type: "function",
   function: {
     name: "analyze_course_topic",
-    description: "Analyze a course topic and determine the appropriate level and duration",
+    description: "Analyze a course topic and determine the appropriate level, duration, and category",
     parameters: {
       type: "object",
       properties: {
@@ -35,15 +36,20 @@ const courseAnalysisTool = {
           type: "number",
           description: "Recommended number of modules (3-8)"
         },
+        suggestedCategory: {
+          type: "string",
+          enum: categoryNames,
+          description: "The most appropriate category for this course based on its topic"
+        },
         reasoning: {
           type: "string",
-          description: "Brief explanation of why this level and duration were chosen"
+          description: "Brief explanation of why this level, duration, and category were chosen"
         }
       },
-      required: ["level", "duration", "moduleCount", "reasoning"]
+      required: ["level", "duration", "moduleCount", "suggestedCategory", "reasoning"]
     }
   }
-};
+});
 
 const courseContentTool = {
   type: "function",
@@ -172,11 +178,47 @@ serve(async (req) => {
       });
     }
 
-    const { topic, categoryId, price, additionalInstructions }: BulkCourseRequest = await req.json();
+    const { topic, categoryId, autoCategory, price, additionalInstructions }: BulkCourseRequest = await req.json();
 
-    console.log("Bulk generating course with OpenAI:", { topic, price });
+    console.log("Bulk generating course with OpenAI:", { topic, price, autoCategory });
 
-    // Step 1: Analyze topic to determine level and duration
+    // Fetch categories if auto-category is enabled
+    let categories: { id: string; name: string }[] = [];
+    if (autoCategory) {
+      const { data: catData } = await supabase
+        .from("categories")
+        .select("id, name")
+        .order("name");
+      categories = catData || [];
+    }
+
+    const categoryNames = categories.map(c => c.name);
+    const courseAnalysisTool = createCourseAnalysisTool(categoryNames.length > 0 ? categoryNames : ["Geral"]);
+
+    // Step 1: Analyze topic to determine level, duration, and category
+    const analysisPrompt = autoCategory && categoryNames.length > 0
+      ? `Analise este tema de curso e determine:
+1. O nível (iniciante, intermediario ou avancado)
+2. A carga horária apropriada (5, 10, 20, 40, 60 ou 80 horas)
+3. A categoria mais apropriada dentre: ${categoryNames.join(", ")}
+
+TEMA: "${topic}"
+${additionalInstructions ? `CONTEXTO ADICIONAL: ${additionalInstructions}` : ""}
+
+Considere:
+- Temas básicos ou introdutórios = iniciante, 5-10h
+- Temas que requerem conhecimento prévio = intermediario, 20-40h
+- Temas especializados ou complexos = avancado, 40-80h`
+      : `Analise este tema de curso e determine o nível (iniciante, intermediario ou avancado) e a carga horária apropriada (5, 10, 20, 40, 60 ou 80 horas):
+
+TEMA: "${topic}"
+${additionalInstructions ? `CONTEXTO ADICIONAL: ${additionalInstructions}` : ""}
+
+Considere:
+- Temas básicos ou introdutórios = iniciante, 5-10h
+- Temas que requerem conhecimento prévio = intermediario, 20-40h
+- Temas especializados ou complexos = avancado, 40-80h`;
+
     const analysisResponse = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -188,19 +230,11 @@ serve(async (req) => {
         messages: [
           { 
             role: "system", 
-            content: "Você é um especialista em design instrucional. Analise o tema do curso e determine o nível de dificuldade apropriado e a carga horária recomendada baseado na complexidade e profundidade necessária para ensinar o assunto." 
+            content: "Você é um especialista em design instrucional. Analise o tema do curso e determine o nível de dificuldade apropriado, a carga horária recomendada e a categoria mais adequada baseado na complexidade e natureza do assunto." 
           },
           { 
             role: "user", 
-            content: `Analise este tema de curso e determine o nível (iniciante, intermediario ou avancado) e a carga horária apropriada (5, 10, 20, 40, 60 ou 80 horas):
-
-TEMA: "${topic}"
-${additionalInstructions ? `CONTEXTO ADICIONAL: ${additionalInstructions}` : ""}
-
-Considere:
-- Temas básicos ou introdutórios = iniciante, 5-10h
-- Temas que requerem conhecimento prévio = intermediario, 20-40h
-- Temas especializados ou complexos = avancado, 40-80h` 
+            content: analysisPrompt
           },
         ],
         tools: [courseAnalysisTool],
@@ -238,7 +272,17 @@ Considere:
 
     console.log("Course analysis:", analysis);
 
-    const { level, duration, moduleCount } = analysis;
+    const { level, duration, moduleCount, suggestedCategory } = analysis;
+
+    // Determine final category ID
+    let finalCategoryId = categoryId;
+    if (autoCategory && suggestedCategory && categories.length > 0) {
+      const matchedCategory = categories.find(c => c.name === suggestedCategory);
+      if (matchedCategory) {
+        finalCategoryId = matchedCategory.id;
+        console.log("AI suggested category:", suggestedCategory, "->", finalCategoryId);
+      }
+    }
 
     // Step 2: Generate course content
     const contentPrompt = `Você é um professor especialista criando um curso online completo. O curso deve ensinar DE VERDADE, não apenas descrever o que será ensinado.
@@ -387,7 +431,7 @@ As questões devem testar a compreensão do conteúdo e ter níveis variados de 
         title: courseContent.title,
         description: courseContent.description,
         short_description: courseContent.subtitle?.substring(0, 150),
-        category_id: categoryId || null,
+        category_id: finalCategoryId || null,
         duration_hours: duration,
         level: level,
         price: price || 0,
@@ -452,6 +496,7 @@ As questões devem testar a compreensão do conteúdo e ter níveis variados de 
           title: course.title,
           level: level,
           duration: duration,
+          category: suggestedCategory || null,
           exercisesCount: exercises.exercises?.length || 0,
           examQuestionsCount: exam.examQuestions?.length || 0,
         },

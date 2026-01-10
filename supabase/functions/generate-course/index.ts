@@ -12,6 +12,7 @@ interface CourseRequest {
   duration: number;
   categoryId?: string;
   price?: number;
+  contentDepth?: string; // "basico", "detalhado", "extenso"
   additionalInstructions?: string;
 }
 
@@ -154,67 +155,62 @@ serve(async (req) => {
       });
     }
 
-    const { topic, level, duration, categoryId, price, additionalInstructions }: CourseRequest = await req.json();
+    const { topic, level, duration, categoryId, price, contentDepth, additionalInstructions }: CourseRequest = await req.json();
 
-    console.log("Generating course with OpenAI:", { topic, level, duration, price });
+    console.log("Generating course with OpenAI:", { topic, level, duration, price, contentDepth });
 
     // Step 1: Generate course content using tool calling
     const moduleCount = duration <= 10 ? 3 : duration <= 20 ? 4 : duration <= 40 ? 5 : duration <= 60 ? 6 : 8;
     
-    const contentPrompt = `Você é um professor universitário renomado criando um curso online COMPLETO E EXTENSO. O curso deve ser um material didático de alta qualidade, como um livro-texto profissional.
+    // Define content depth parameters
+    const depthConfig = {
+      basico: { minWords: 500, maxTokens: 8000, description: "resumido e direto ao ponto" },
+      detalhado: { minWords: 1000, maxTokens: 12000, description: "com bom nível de detalhes e exemplos" },
+      extenso: { minWords: 2000, maxTokens: 16000, description: "extremamente completo como um livro didático profissional" }
+    };
+    const depth = depthConfig[contentDepth as keyof typeof depthConfig] || depthConfig.detalhado;
+    
+    const contentPrompt = `Você é um professor universitário renomado criando um curso online. O curso deve ser um material didático de alta qualidade.
 
 CURSO: "${topic}"
 NÍVEL: ${level}
 CARGA HORÁRIA: ${duration} horas
 NÚMERO DE MÓDULOS: ${moduleCount}
+PROFUNDIDADE DO CONTEÚDO: ${depth.description}
 ${additionalInstructions ? `INSTRUÇÕES ADICIONAIS: ${additionalInstructions}` : ""}
 
-⚠️ REGRAS ABSOLUTAMENTE CRÍTICAS - LEIA COM ATENÇÃO:
+⚠️ REGRAS CRÍTICAS:
 
-1. CADA MÓDULO DEVE TER NO MÍNIMO 1500-2000 PALAVRAS de conteúdo educacional real
+1. CADA MÓDULO DEVE TER NO MÍNIMO ${depth.minWords} PALAVRAS de conteúdo educacional real
 2. NÃO ESCREVA frases como "Neste módulo vamos...", "Você aprenderá...", "Exploraremos..."
 3. ESCREVA O CONTEÚDO COMPLETO como um capítulo de livro didático
 
-ESTRUTURA OBRIGATÓRIA PARA CADA MÓDULO:
+ESTRUTURA PARA CADA MÓDULO:
 
 ## [Título do Tópico Principal]
 
-### Introdução e Contexto (200+ palavras)
-- Explique O QUE é o conceito
-- POR QUE é importante
-- COMO se aplica na prática
-- Contexto histórico ou de mercado quando relevante
+### Introdução e Contexto
+- Explique O QUE é o conceito, POR QUE é importante, COMO se aplica
 
-### Fundamentos Teóricos (400+ palavras)
-- Definições detalhadas de todos os termos
-- Princípios e conceitos fundamentais explicados em profundidade
-- Relação entre conceitos
-- Fórmulas, frameworks ou modelos com explicação completa
+### Fundamentos Teóricos
+- Definições detalhadas, princípios e conceitos fundamentais
+- Fórmulas, frameworks ou modelos quando aplicável
 
-### Técnicas e Metodologias (400+ palavras)
+### Técnicas e Metodologias
 - Passo a passo detalhado de cada técnica
 - Quando usar cada abordagem
-- Variações e adaptações
-- Dicas de implementação
 
-### Exemplos Práticos Detalhados (300+ palavras)
-- Pelo menos 2-3 exemplos reais e detalhados
-- Casos de uso específicos com números e dados
+### Exemplos Práticos
+- Exemplos reais com dados específicos
 - Templates ou scripts quando aplicável
-- Análise do que funciona e por quê
 
-### Erros Comuns e Como Evitar (150+ palavras)
-- Lista dos erros mais frequentes
-- Explicação de por que acontecem
-- Soluções práticas
+### Erros Comuns
+- Lista de erros frequentes e como evitar
 
-### Exercícios de Fixação (100+ palavras)
+### Exercícios de Fixação
 - Perguntas para reflexão
-- Atividades práticas sugeridas
 
-Use formatação rica: **negrito**, *itálico*, listas numeradas, tabelas quando apropriado, citações, e organize com subtítulos claros.
-
-LEMBRE-SE: Você está escrevendo um LIVRO DIDÁTICO COMPLETO, não um resumo ou índice. O aluno deve conseguir APRENDER TUDO apenas lendo este conteúdo, sem precisar de material complementar.`;
+Use **negrito**, *itálico*, listas numeradas, tabelas. O aluno deve conseguir aprender tudo apenas lendo este conteúdo.`;
 
     const contentResponse = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -230,7 +226,7 @@ LEMBRE-SE: Você está escrevendo um LIVRO DIDÁTICO COMPLETO, não um resumo ou
         ],
         tools: [courseContentTool],
         tool_choice: { type: "function", function: { name: "create_course_content" } },
-        max_tokens: 16000,
+        max_tokens: depth.maxTokens,
       }),
     });
 

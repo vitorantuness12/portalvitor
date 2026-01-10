@@ -24,6 +24,7 @@ export default function CreateCourseAI() {
     duration: '10',
     categoryId: '',
     price: '0',
+    contentDepth: 'detalhado',
     additionalInstructions: '',
   });
   const [isGenerating, setIsGenerating] = useState(false);
@@ -92,6 +93,7 @@ export default function CreateCourseAI() {
             duration: parseInt(formData.duration),
             categoryId: formData.categoryId || null,
             price: parseFloat(formData.price) || 0,
+            contentDepth: formData.contentDepth,
             additionalInstructions: formData.additionalInstructions,
           }),
         }
@@ -128,6 +130,7 @@ export default function CreateCourseAI() {
         duration: '10',
         categoryId: '',
         price: '0',
+        contentDepth: 'detalhado',
         additionalInstructions: '',
       });
     } catch (error: any) {
@@ -219,6 +222,42 @@ export default function CreateCourseAI() {
                       </SelectContent>
                     </Select>
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Profundidade do Conteúdo</Label>
+                  <Select
+                    value={formData.contentDepth}
+                    onValueChange={(value) => setFormData({ ...formData, contentDepth: value })}
+                    disabled={isGenerating}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="basico">
+                        <div className="flex flex-col">
+                          <span>Básico</span>
+                          <span className="text-xs text-muted-foreground">~500 palavras por módulo - Conteúdo resumido</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="detalhado">
+                        <div className="flex flex-col">
+                          <span>Detalhado</span>
+                          <span className="text-xs text-muted-foreground">~1000 palavras por módulo - Recomendado</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="extenso">
+                        <div className="flex flex-col">
+                          <span>Extenso</span>
+                          <span className="text-xs text-muted-foreground">~2000 palavras por módulo - Conteúdo completo</span>
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Define a quantidade de texto e detalhes em cada módulo
+                  </p>
                 </div>
 
                 <div className="grid sm:grid-cols-2 gap-4">

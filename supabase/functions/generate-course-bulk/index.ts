@@ -13,6 +13,7 @@ interface BulkCourseRequest {
   price?: number;
   autoPrice?: boolean;
   durationRange?: string; // "5-10", "10-20", "20-40", "60", "80"
+  contentDepth?: string; // "basico", "detalhado", "extenso"
   additionalInstructions?: string;
 }
 
@@ -186,9 +187,9 @@ serve(async (req) => {
       });
     }
 
-    const { topic, categoryId, autoCategory, price, autoPrice, durationRange, additionalInstructions }: BulkCourseRequest = await req.json();
+    const { topic, categoryId, autoCategory, price, autoPrice, durationRange, contentDepth, additionalInstructions }: BulkCourseRequest = await req.json();
 
-    console.log("Bulk generating course with OpenAI:", { topic, price, autoCategory, autoPrice, durationRange });
+    console.log("Bulk generating course with OpenAI:", { topic, price, autoCategory, autoPrice, durationRange, contentDepth });
 
     // Fetch categories if auto-category is enabled
     let categories: { id: string; name: string }[] = [];
@@ -360,44 +361,53 @@ Use valores quebrados como 19.90, 29.90, 39.90, etc.`;
     console.log("Final duration:", finalDuration, forcedDuration ? "(user selected)" : "(AI suggested)");
     console.log("Final module count:", finalModuleCount);
     
+    // Define content depth parameters
+    const depthConfig = {
+      basico: { minWords: 500, maxTokens: 8000, description: "resumido e direto ao ponto" },
+      detalhado: { minWords: 1000, maxTokens: 12000, description: "com bom nível de detalhes e exemplos" },
+      extenso: { minWords: 2000, maxTokens: 16000, description: "extremamente completo como um livro didático profissional" }
+    };
+    const depth = depthConfig[contentDepth as keyof typeof depthConfig] || depthConfig.detalhado;
+    
     // Step 2: Generate course content
-    const contentPrompt = `Você é um professor universitário renomado criando um curso online COMPLETO E EXTENSO. O curso deve ser um material didático de alta qualidade.
+    const contentPrompt = `Você é um professor universitário renomado criando um curso online. O curso deve ser um material didático de alta qualidade.
 
 CURSO: "${topic}"
 NÍVEL: ${level}
 CARGA HORÁRIA: ${finalDuration} horas
 NÚMERO DE MÓDULOS: ${finalModuleCount} (OBRIGATÓRIO - crie EXATAMENTE ${finalModuleCount} módulos)
+PROFUNDIDADE DO CONTEÚDO: ${depth.description}
 ${additionalInstructions ? `INSTRUÇÕES ADICIONAIS: ${additionalInstructions}` : ""}
 
-⚠️ REGRAS ABSOLUTAMENTE CRÍTICAS:
+⚠️ REGRAS CRÍTICAS:
 
-1. CADA MÓDULO DEVE TER NO MÍNIMO 1500-2000 PALAVRAS de conteúdo educacional real
+1. CADA MÓDULO DEVE TER NO MÍNIMO ${depth.minWords} PALAVRAS de conteúdo educacional real
 2. NÃO ESCREVA frases como "Neste módulo vamos...", "Você aprenderá...", "Exploraremos..."
 3. ESCREVA O CONTEÚDO COMPLETO como um capítulo de livro didático
 
-ESTRUTURA OBRIGATÓRIA PARA CADA MÓDULO:
+ESTRUTURA PARA CADA MÓDULO:
 
 ## [Título do Tópico]
 
-### Introdução e Contexto (200+ palavras)
+### Introdução e Contexto
 - O QUE é, POR QUE é importante, COMO se aplica
 
-### Fundamentos Teóricos (400+ palavras)
+### Fundamentos Teóricos
 - Definições detalhadas, princípios, conceitos em profundidade
 
-### Técnicas e Metodologias (400+ palavras)
+### Técnicas e Metodologias
 - Passo a passo detalhado, quando usar, variações
 
-### Exemplos Práticos (300+ palavras)
-- 2-3 exemplos reais e detalhados com dados específicos
+### Exemplos Práticos
+- Exemplos reais e detalhados com dados específicos
 
-### Erros Comuns (150+ palavras)
+### Erros Comuns
 - Lista de erros frequentes e como evitar
 
-### Exercícios (100+ palavras)
+### Exercícios
 - Perguntas para reflexão e atividades práticas
 
-Use **negrito**, *itálico*, listas, tabelas. Escreva como um LIVRO DIDÁTICO COMPLETO.
+Use **negrito**, *itálico*, listas, tabelas.
 IMPORTANTE: Crie EXATAMENTE ${finalModuleCount} módulos para ${finalDuration}h de curso.`;
 
     const contentResponse = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -414,7 +424,7 @@ IMPORTANTE: Crie EXATAMENTE ${finalModuleCount} módulos para ${finalDuration}h 
         ],
         tools: [courseContentTool],
         tool_choice: { type: "function", function: { name: "create_course_content" } },
-        max_tokens: 16000,
+        max_tokens: depth.maxTokens,
       }),
     });
 

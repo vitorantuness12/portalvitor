@@ -35,6 +35,7 @@ export default function BulkCreateCourseAI() {
   const [autoCategory, setAutoCategory] = useState(true);
   const [price, setPrice] = useState('0');
   const [autoPrice, setAutoPrice] = useState(true);
+  const [durationRange, setDurationRange] = useState('auto');
   const [additionalInstructions, setAdditionalInstructions] = useState('');
   const [queue, setQueue] = useState<CourseQueueItem[]>([]);
   const [isRunning, setIsRunning] = useState(false);
@@ -122,6 +123,7 @@ export default function BulkCreateCourseAI() {
               autoCategory,
               price: autoPrice ? null : (parseFloat(price) || 0),
               autoPrice,
+              durationRange: durationRange !== 'auto' ? durationRange : null,
               additionalInstructions,
             }),
           }
@@ -308,6 +310,35 @@ export default function BulkCreateCourseAI() {
                   onCheckedChange={setAutoPrice}
                   disabled={isRunning}
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Carga Horária</Label>
+                <Select
+                  value={durationRange}
+                  onValueChange={setDurationRange}
+                  disabled={isRunning}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione a carga horária" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="auto">
+                      <span className="flex items-center gap-2">
+                        <Wand2 className="h-3 w-3" />
+                        IA decide automaticamente
+                      </span>
+                    </SelectItem>
+                    <SelectItem value="5-10">5 a 10 horas</SelectItem>
+                    <SelectItem value="10-20">10 a 20 horas</SelectItem>
+                    <SelectItem value="20-40">20 a 40 horas</SelectItem>
+                    <SelectItem value="60">60 horas</SelectItem>
+                    <SelectItem value="80">80 horas</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Define a duração e quantidade de módulos dos cursos
+                </p>
               </div>
 
               <div className="space-y-2">

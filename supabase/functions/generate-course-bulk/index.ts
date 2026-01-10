@@ -402,12 +402,12 @@ As questões devem testar a compreensão do conteúdo e ter níveis variados de 
       body: JSON.stringify({
         model: "gpt-4o-mini",
         messages: [
-          { role: "system", content: "Você é um especialista em avaliação educacional. Use a função fornecida para criar exercícios." },
+          { role: "system", content: "Você é um especialista em avaliação educacional. Crie exercícios de múltipla escolha concisos e diretos. Use a função fornecida." },
           { role: "user", content: exercisesPrompt },
         ],
         tools: [exercisesTool],
         tool_choice: { type: "function", function: { name: "create_exercises" } },
-        max_tokens: 4000,
+        max_tokens: 8000,
       }),
     });
 
@@ -417,10 +417,22 @@ As questões devem testar a compreensão do conteúdo e ter níveis variados de 
         const exercisesData = await exercisesResponse.json();
         const toolCall = exercisesData.choices[0].message.tool_calls?.[0];
         if (toolCall && toolCall.function.arguments) {
-          exercises = JSON.parse(toolCall.function.arguments);
+          let argsStr = toolCall.function.arguments;
+          // Try to fix truncated JSON by closing arrays/objects
+          if (!argsStr.endsWith('}')) {
+            // Find last complete exercise and close properly
+            const lastCompleteExercise = argsStr.lastIndexOf('},');
+            if (lastCompleteExercise > 0) {
+              argsStr = argsStr.substring(0, lastCompleteExercise + 1) + ']}';
+            } else {
+              argsStr = '{"exercises":[]}';
+            }
+          }
+          exercises = JSON.parse(argsStr);
         }
       } catch (e) {
         console.error("Failed to parse exercises:", e);
+        exercises = { exercises: [] };
       }
     }
 

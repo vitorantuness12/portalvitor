@@ -12,6 +12,7 @@ interface BulkCourseRequest {
   autoCategory?: boolean;
   price?: number;
   autoPrice?: boolean;
+  durationRange?: string; // "5-10", "10-20", "20-40", "60", "80"
   additionalInstructions?: string;
 }
 
@@ -185,9 +186,9 @@ serve(async (req) => {
       });
     }
 
-    const { topic, categoryId, autoCategory, price, autoPrice, additionalInstructions }: BulkCourseRequest = await req.json();
+    const { topic, categoryId, autoCategory, price, autoPrice, durationRange, additionalInstructions }: BulkCourseRequest = await req.json();
 
-    console.log("Bulk generating course with OpenAI:", { topic, price, autoCategory, autoPrice });
+    console.log("Bulk generating course with OpenAI:", { topic, price, autoCategory, autoPrice, durationRange });
 
     // Fetch categories if auto-category is enabled
     let categories: { id: string; name: string }[] = [];
@@ -205,10 +206,44 @@ serve(async (req) => {
       autoPrice || false
     );
 
+    // Calculate duration and modules based on durationRange if provided
+    let forcedDuration: number | null = null;
+    let forcedModuleCount: number | null = null;
+    
+    if (durationRange) {
+      switch (durationRange) {
+        case "5-10":
+          forcedDuration = 10;
+          forcedModuleCount = 4;
+          break;
+        case "10-20":
+          forcedDuration = 20;
+          forcedModuleCount = 5;
+          break;
+        case "20-40":
+          forcedDuration = 40;
+          forcedModuleCount = 7;
+          break;
+        case "60":
+          forcedDuration = 60;
+          forcedModuleCount = 9;
+          break;
+        case "80":
+          forcedDuration = 80;
+          forcedModuleCount = 12;
+          break;
+      }
+    }
+
     // Step 1: Analyze topic to determine level, duration, category, and optionally price
     let analysisPrompt = `Analise este tema de curso e determine:
-1. O nível (iniciante, intermediario ou avancado)
-2. A carga horária apropriada (5, 10, 20, 40, 60 ou 80 horas)`;
+1. O nível (iniciante, intermediario ou avancado)`;
+    
+    if (!forcedDuration) {
+      analysisPrompt += `\n2. A carga horária apropriada (5, 10, 20, 40, 60 ou 80 horas)`;
+    } else {
+      analysisPrompt += `\n2. A carga horária DEVE ser ${forcedDuration} horas (já definida pelo usuário)`;
+    }
     
     if (autoCategory && categoryNames.length > 0) {
       analysisPrompt += `\n3. A categoria mais apropriada dentre: ${categoryNames.join(", ")}`;
@@ -227,6 +262,7 @@ serve(async (req) => {
 
 TEMA: "${topic}"
 ${additionalInstructions ? `CONTEXTO ADICIONAL: ${additionalInstructions}` : ""}
+${forcedDuration ? `\nIMPORTANTE: A duração DEVE ser ${forcedDuration} horas. O usuário escolheu essa carga horária.` : ""}
 
 Considere:
 - Temas básicos ou introdutórios = iniciante, 5-10h, 3-4 módulos
@@ -302,7 +338,11 @@ Use valores quebrados como 19.90, 29.90, 39.90, etc.`;
 
     console.log("Course analysis:", analysis);
 
-    const { level, duration, moduleCount, suggestedCategory, suggestedPrice } = analysis;
+    const { level, suggestedCategory, suggestedPrice } = analysis;
+    
+    // Use forced duration/moduleCount if provided, otherwise use AI suggestion
+    const finalDuration = forcedDuration || analysis.duration || 10;
+    const finalModuleCount = forcedModuleCount || analysis.moduleCount || Math.max(3, Math.min(12, Math.floor(finalDuration / 6) + 2));
 
     // Determine final category ID
     let finalCategoryId = categoryId;
@@ -317,17 +357,16 @@ Use valores quebrados como 19.90, 29.90, 39.90, etc.`;
     // Determine final price
     const finalPrice = autoPrice && suggestedPrice !== undefined ? suggestedPrice : (price || 0);
     console.log("Final price:", finalPrice, autoPrice ? "(AI suggested)" : "(manual)");
-
-    // Calculate appropriate module count based on duration if not provided
-    const calculatedModuleCount = moduleCount || Math.max(3, Math.min(12, Math.floor(duration / 6) + 2));
+    console.log("Final duration:", finalDuration, forcedDuration ? "(user selected)" : "(AI suggested)");
+    console.log("Final module count:", finalModuleCount);
     
     // Step 2: Generate course content
     const contentPrompt = `Você é um professor especialista criando um curso online completo. O curso deve ensinar DE VERDADE, não apenas descrever o que será ensinado.
 
 CURSO: "${topic}"
 NÍVEL: ${level}
-CARGA HORÁRIA: ${duration} horas
-NÚMERO DE MÓDULOS: ${calculatedModuleCount} (OBRIGATÓRIO - crie EXATAMENTE ${calculatedModuleCount} módulos)
+CARGA HORÁRIA: ${finalDuration} horas
+NÚMERO DE MÓDULOS: ${finalModuleCount} (OBRIGATÓRIO - crie EXATAMENTE ${finalModuleCount} módulos)
 ${additionalInstructions ? `INSTRUÇÕES ADICIONAIS: ${additionalInstructions}` : ""}
 
 REGRAS CRÍTICAS PARA O CONTEÚDO DOS MÓDULOS:
@@ -336,7 +375,7 @@ REGRAS CRÍTICAS PARA O CONTEÚDO DOS MÓDULOS:
 3. Cada módulo deve conter conceitos, explicações, exemplos práticos e dicas
 4. Use subtítulos em markdown (##, ###) para organizar o conteúdo
 5. Mínimo de 500 palavras de conteúdo REAL por módulo
-6. IMPORTANTE: Você DEVE criar EXATAMENTE ${calculatedModuleCount} módulos para cobrir toda a carga horária de ${duration}h`;
+6. IMPORTANTE: Você DEVE criar EXATAMENTE ${finalModuleCount} módulos para cobrir toda a carga horária de ${finalDuration}h`;
 
     const contentResponse = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -482,7 +521,7 @@ As questões devem testar a compreensão do conteúdo e ter níveis variados de 
         description: courseContent.description,
         short_description: courseContent.subtitle?.substring(0, 150),
         category_id: finalCategoryId || null,
-        duration_hours: duration,
+        duration_hours: finalDuration,
         level: level,
         price: finalPrice,
         status: "active",
@@ -545,7 +584,7 @@ As questões devem testar a compreensão do conteúdo e ter níveis variados de 
           id: course.id,
           title: course.title,
           level: level,
-          duration: duration,
+          duration: finalDuration,
           category: suggestedCategory || null,
           price: finalPrice,
           exercisesCount: exercises.exercises?.length || 0,

@@ -36,6 +36,7 @@ export default function BulkCreateCourseAI() {
   const [price, setPrice] = useState('0');
   const [autoPrice, setAutoPrice] = useState(true);
   const [durationRange, setDurationRange] = useState('auto');
+  const [contentDepth, setContentDepth] = useState('detalhado');
   const [additionalInstructions, setAdditionalInstructions] = useState('');
   const [queue, setQueue] = useState<CourseQueueItem[]>([]);
   const [isRunning, setIsRunning] = useState(false);
@@ -124,6 +125,7 @@ export default function BulkCreateCourseAI() {
               price: autoPrice ? null : (parseFloat(price) || 0),
               autoPrice,
               durationRange: durationRange !== 'auto' ? durationRange : null,
+              contentDepth,
               additionalInstructions,
             }),
           }
@@ -338,6 +340,42 @@ export default function BulkCreateCourseAI() {
                 </Select>
                 <p className="text-xs text-muted-foreground">
                   Define a duração e quantidade de módulos dos cursos
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Profundidade do Conteúdo</Label>
+                <Select
+                  value={contentDepth}
+                  onValueChange={setContentDepth}
+                  disabled={isRunning}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione a profundidade" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="basico">
+                      <div className="flex flex-col">
+                        <span>Básico</span>
+                        <span className="text-xs text-muted-foreground">~500 palavras/módulo</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="detalhado">
+                      <div className="flex flex-col">
+                        <span>Detalhado</span>
+                        <span className="text-xs text-muted-foreground">~1000 palavras/módulo</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="extenso">
+                      <div className="flex flex-col">
+                        <span>Extenso</span>
+                        <span className="text-xs text-muted-foreground">~2000 palavras/módulo</span>
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Define a quantidade de detalhes em cada módulo
                 </p>
               </div>
 

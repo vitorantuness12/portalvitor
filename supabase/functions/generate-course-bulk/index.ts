@@ -239,7 +239,15 @@ REGRA DE MÓDULOS (muito importante):
 - 20 horas = 5-6 módulos
 - 40 horas = 7-8 módulos
 - 60 horas = 9-10 módulos
-- 80 horas = 11-12 módulos`;
+- 80 horas = 11-12 módulos
+
+REGRA DE PREÇOS (OBRIGATÓRIO seguir esta tabela):
+- Cursos de 5-10 horas: R$ 9,90 a R$ 14,90
+- Cursos de 10-20 horas: R$ 19,90 a R$ 29,90
+- Cursos de 20-40 horas: R$ 39,90 a R$ 49,90
+- Cursos de 60 horas: R$ 59,90 a R$ 69,90
+- Cursos de 80 horas: R$ 89,90 a R$ 99,90
+Use valores quebrados como 19.90, 29.90, 39.90, etc.`;
 
     const analysisResponse = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",

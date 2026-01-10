@@ -11,7 +11,7 @@ const courseContentTool = {
   type: "function",
   function: {
     name: "create_course_content",
-    description: "Create complete educational course content with real teaching material, not descriptions of what will be taught",
+    description: "Create complete educational course content with EXTENSIVE teaching material. Each module MUST have minimum 1500-2000 words of comprehensive content.",
     parameters: {
       type: "object",
       properties: {
@@ -21,7 +21,7 @@ const courseContentTool = {
             type: "object",
             properties: {
               title: { type: "string", description: "Module title" },
-              content: { type: "string", description: "ACTUAL educational content teaching the subject. Must include: concepts, definitions, step-by-step explanations, practical examples, case studies, tips and techniques. DO NOT write what will be taught, ACTUALLY TEACH IT. Minimum 500 words of real educational content." }
+              content: { type: "string", description: "EXTENSIVE educational content with MINIMUM 1500-2000 words per module. Include: detailed theoretical explanations, multiple practical examples, real-world case studies, step-by-step tutorials, best practices, common mistakes to avoid, exercises, and reflection questions. Write like a complete textbook chapter." }
             },
             required: ["title", "content"]
           },
@@ -164,7 +164,7 @@ serve(async (req) => {
     const moduleCount = course.duration_hours <= 10 ? 3 : course.duration_hours <= 20 ? 4 : course.duration_hours <= 40 ? 5 : course.duration_hours <= 60 ? 6 : 8;
 
     // Step 1: Generate course content
-    const contentPrompt = `Você é um professor especialista criando conteúdo educacional para um curso online. O conteúdo deve ensinar DE VERDADE, não apenas descrever o que será ensinado.
+    const contentPrompt = `Você é um professor universitário renomado criando conteúdo educacional COMPLETO E EXTENSO para um curso online. O conteúdo deve ser um material didático de alta qualidade.
 
 CURSO: "${course.title}"
 DESCRIÇÃO: ${course.description}
@@ -172,39 +172,40 @@ NÍVEL: ${course.level}
 CARGA HORÁRIA: ${course.duration_hours} horas
 NÚMERO DE MÓDULOS: ${moduleCount}
 
-REGRAS CRÍTICAS PARA O CONTEÚDO DOS MÓDULOS:
-1. NÃO ESCREVA "Neste módulo vamos abordar..." ou "Você aprenderá sobre..." ou "Exploraremos..."
-2. ESCREVA O CONTEÚDO EDUCACIONAL REAL - ensine o assunto diretamente como um livro didático
-3. Cada módulo DEVE conter:
-   - Definições e conceitos explicados de forma clara e direta
-   - Explicações passo a passo de técnicas e processos
-   - Exemplos práticos e casos reais detalhados
-   - Dicas e melhores práticas
-   - Exercícios mentais ou reflexões
-4. Use subtítulos em markdown (##, ###) para organizar o conteúdo
-5. Inclua listas numeradas e com marcadores para facilitar a leitura
-6. Mínimo de 500 palavras de conteúdo EDUCACIONAL REAL por módulo
+⚠️ REGRAS ABSOLUTAMENTE CRÍTICAS:
 
-EXEMPLO DO QUE NÃO FAZER:
-"Neste módulo, mergulharemos profundamente na arte de estruturar um conteúdo. Exploraremos diversas técnicas e você aprenderá sobre..."
+1. CADA MÓDULO DEVE TER NO MÍNIMO 1500-2000 PALAVRAS de conteúdo educacional real
+2. NÃO ESCREVA frases como "Neste módulo vamos...", "Você aprenderá...", "Exploraremos..."
+3. ESCREVA O CONTEÚDO COMPLETO como um capítulo de livro didático
 
-EXEMPLO DO QUE FAZER:
-"## O que é Estruturação de Conteúdo
+ESTRUTURA OBRIGATÓRIA PARA CADA MÓDULO:
 
-Estruturação de conteúdo é o processo de organizar informações de forma lógica e progressiva para maximizar a compreensão e retenção do público.
+## [Título do Tópico]
 
-### Os 3 Princípios Fundamentais
+### Introdução e Contexto (200+ palavras)
+- O QUE é o conceito, POR QUE é importante, COMO se aplica na prática
 
-**1. Hierarquia Visual**
-A hierarquia visual estabelece a importância relativa dos elementos. Textos maiores e em negrito indicam maior importância.
+### Fundamentos Teóricos (400+ palavras)
+- Definições detalhadas de todos os termos
+- Princípios e conceitos fundamentais em profundidade
+- Fórmulas, frameworks ou modelos com explicação completa
 
-**2. Fluxo Lógico**
-O fluxo lógico segue uma progressão natural:
-1. Apresente o conceito básico primeiro
-2. Adicione detalhes e nuances
-3. Mostre aplicações práticas"
+### Técnicas e Metodologias (400+ palavras)
+- Passo a passo detalhado de cada técnica
+- Quando usar cada abordagem, variações e adaptações
 
-Crie ${moduleCount} módulos seguindo este padrão de ENSINAR o conteúdo diretamente.`;
+### Exemplos Práticos Detalhados (300+ palavras)
+- 2-3 exemplos reais com números e dados específicos
+- Templates ou scripts quando aplicável
+
+### Erros Comuns e Como Evitar (150+ palavras)
+- Lista dos erros frequentes e soluções práticas
+
+### Exercícios de Fixação (100+ palavras)
+- Perguntas para reflexão e atividades práticas
+
+Use **negrito**, *itálico*, listas numeradas, tabelas. Escreva como um LIVRO DIDÁTICO COMPLETO.
+Crie ${moduleCount} módulos com este nível de profundidade.`;
 
     const contentResponse = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",

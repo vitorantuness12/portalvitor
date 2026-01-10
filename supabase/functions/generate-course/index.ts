@@ -20,7 +20,7 @@ const courseContentTool = {
   type: "function",
   function: {
     name: "create_course_content",
-    description: "Create complete educational course content with real teaching material, not descriptions of what will be taught",
+    description: "Create complete educational course content with extensive real teaching material. Each module MUST have comprehensive content with minimum 1500-2000 words.",
     parameters: {
       type: "object",
       properties: {
@@ -33,7 +33,7 @@ const courseContentTool = {
             type: "object",
             properties: {
               title: { type: "string", description: "Module title" },
-              content: { type: "string", description: "ACTUAL educational content teaching the subject. Must include: concepts, definitions, step-by-step explanations, practical examples, case studies, tips and techniques. DO NOT write what will be taught, ACTUALLY TEACH IT. Minimum 500 words of real educational content." }
+              content: { type: "string", description: "EXTENSIVE educational content with MINIMUM 1500-2000 words per module. Must include: detailed theoretical explanations, multiple practical examples with code/formulas/templates, real-world case studies, step-by-step tutorials, best practices, common mistakes to avoid, exercises, and reflection questions. Write like a complete textbook chapter - thorough, detailed, and comprehensive. DO NOT summarize or describe - TEACH EVERYTHING IN FULL DETAIL." }
             },
             required: ["title", "content"]
           },
@@ -161,7 +161,7 @@ serve(async (req) => {
     // Step 1: Generate course content using tool calling
     const moduleCount = duration <= 10 ? 3 : duration <= 20 ? 4 : duration <= 40 ? 5 : duration <= 60 ? 6 : 8;
     
-    const contentPrompt = `Você é um professor especialista criando um curso online completo. O curso deve ensinar DE VERDADE, não apenas descrever o que será ensinado.
+    const contentPrompt = `Você é um professor universitário renomado criando um curso online COMPLETO E EXTENSO. O curso deve ser um material didático de alta qualidade, como um livro-texto profissional.
 
 CURSO: "${topic}"
 NÍVEL: ${level}
@@ -169,38 +169,52 @@ CARGA HORÁRIA: ${duration} horas
 NÚMERO DE MÓDULOS: ${moduleCount}
 ${additionalInstructions ? `INSTRUÇÕES ADICIONAIS: ${additionalInstructions}` : ""}
 
-REGRAS CRÍTICAS PARA O CONTEÚDO DOS MÓDULOS:
-1. NÃO ESCREVA "Neste módulo vamos abordar..." ou "Você aprenderá sobre..."
-2. ESCREVA O CONTEÚDO EDUCACIONAL REAL - ensine o assunto diretamente
-3. Cada módulo deve conter:
-   - Definições e conceitos explicados de forma clara
-   - Explicações passo a passo de técnicas e processos
-   - Exemplos práticos e casos reais
-   - Dicas e melhores práticas
-   - Exercícios mentais ou reflexões
-4. Use subtítulos em markdown (##, ###) para organizar o conteúdo
-5. Inclua listas, tabelas e formatação para facilitar a leitura
-6. Mínimo de 500 palavras de conteúdo REAL por módulo
+⚠️ REGRAS ABSOLUTAMENTE CRÍTICAS - LEIA COM ATENÇÃO:
 
-EXEMPLO DO QUE NÃO FAZER:
-"Neste módulo, mergulharemos profundamente na arte de estruturar um conteúdo. Exploraremos diversas técnicas..."
+1. CADA MÓDULO DEVE TER NO MÍNIMO 1500-2000 PALAVRAS de conteúdo educacional real
+2. NÃO ESCREVA frases como "Neste módulo vamos...", "Você aprenderá...", "Exploraremos..."
+3. ESCREVA O CONTEÚDO COMPLETO como um capítulo de livro didático
 
-EXEMPLO DO QUE FAZER:
-"## Estruturação de Conteúdo
+ESTRUTURA OBRIGATÓRIA PARA CADA MÓDULO:
 
-A estruturação eficaz de conteúdo segue três princípios fundamentais:
+## [Título do Tópico Principal]
 
-### 1. Abertura com Gancho
-O gancho é a primeira frase ou parágrafo que captura a atenção. Existem 4 tipos principais:
-- **Pergunta provocativa**: 'Você sabia que 90% das apresentações são esquecidas em 24 horas?'
-- **Estatística impactante**: 'Empresas perdem R$37 bilhões por ano com reuniões improdutivas.'
-- **História pessoal**: Comece com uma situação real que o público pode se identificar.
-- **Declaração ousada**: 'A maioria das técnicas de apresentação que você conhece estão erradas.'
+### Introdução e Contexto (200+ palavras)
+- Explique O QUE é o conceito
+- POR QUE é importante
+- COMO se aplica na prática
+- Contexto histórico ou de mercado quando relevante
 
-### 2. Desenvolvimento em Pirâmide
-Organize suas ideias do mais importante para o menos importante..."
+### Fundamentos Teóricos (400+ palavras)
+- Definições detalhadas de todos os termos
+- Princípios e conceitos fundamentais explicados em profundidade
+- Relação entre conceitos
+- Fórmulas, frameworks ou modelos com explicação completa
 
-Crie o curso seguindo este padrão de ENSINAR o conteúdo, não apenas descrevê-lo.`;
+### Técnicas e Metodologias (400+ palavras)
+- Passo a passo detalhado de cada técnica
+- Quando usar cada abordagem
+- Variações e adaptações
+- Dicas de implementação
+
+### Exemplos Práticos Detalhados (300+ palavras)
+- Pelo menos 2-3 exemplos reais e detalhados
+- Casos de uso específicos com números e dados
+- Templates ou scripts quando aplicável
+- Análise do que funciona e por quê
+
+### Erros Comuns e Como Evitar (150+ palavras)
+- Lista dos erros mais frequentes
+- Explicação de por que acontecem
+- Soluções práticas
+
+### Exercícios de Fixação (100+ palavras)
+- Perguntas para reflexão
+- Atividades práticas sugeridas
+
+Use formatação rica: **negrito**, *itálico*, listas numeradas, tabelas quando apropriado, citações, e organize com subtítulos claros.
+
+LEMBRE-SE: Você está escrevendo um LIVRO DIDÁTICO COMPLETO, não um resumo ou índice. O aluno deve conseguir APRENDER TUDO apenas lendo este conteúdo, sem precisar de material complementar.`;
 
     const contentResponse = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",

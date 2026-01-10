@@ -63,7 +63,7 @@ const courseContentTool = {
   type: "function",
   function: {
     name: "create_course_content",
-    description: "Create complete educational course content",
+    description: "Create complete educational course content with EXTENSIVE teaching material. Each module MUST have minimum 1500-2000 words of comprehensive content.",
     parameters: {
       type: "object",
       properties: {
@@ -76,7 +76,7 @@ const courseContentTool = {
             type: "object",
             properties: {
               title: { type: "string", description: "Module title" },
-              content: { type: "string", description: "Educational content with minimum 500 words" }
+              content: { type: "string", description: "EXTENSIVE educational content with MINIMUM 1500-2000 words. Include: detailed theory, multiple practical examples, real case studies, step-by-step tutorials, best practices, common mistakes, and exercises. Write like a complete textbook chapter." }
             },
             required: ["title", "content"]
           }
@@ -361,7 +361,7 @@ Use valores quebrados como 19.90, 29.90, 39.90, etc.`;
     console.log("Final module count:", finalModuleCount);
     
     // Step 2: Generate course content
-    const contentPrompt = `Você é um professor especialista criando um curso online completo. O curso deve ensinar DE VERDADE, não apenas descrever o que será ensinado.
+    const contentPrompt = `Você é um professor universitário renomado criando um curso online COMPLETO E EXTENSO. O curso deve ser um material didático de alta qualidade.
 
 CURSO: "${topic}"
 NÍVEL: ${level}
@@ -369,13 +369,36 @@ CARGA HORÁRIA: ${finalDuration} horas
 NÚMERO DE MÓDULOS: ${finalModuleCount} (OBRIGATÓRIO - crie EXATAMENTE ${finalModuleCount} módulos)
 ${additionalInstructions ? `INSTRUÇÕES ADICIONAIS: ${additionalInstructions}` : ""}
 
-REGRAS CRÍTICAS PARA O CONTEÚDO DOS MÓDULOS:
-1. NÃO ESCREVA "Neste módulo vamos abordar..." ou "Você aprenderá sobre..."
-2. ESCREVA O CONTEÚDO EDUCACIONAL REAL - ensine o assunto diretamente
-3. Cada módulo deve conter conceitos, explicações, exemplos práticos e dicas
-4. Use subtítulos em markdown (##, ###) para organizar o conteúdo
-5. Mínimo de 500 palavras de conteúdo REAL por módulo
-6. IMPORTANTE: Você DEVE criar EXATAMENTE ${finalModuleCount} módulos para cobrir toda a carga horária de ${finalDuration}h`;
+⚠️ REGRAS ABSOLUTAMENTE CRÍTICAS:
+
+1. CADA MÓDULO DEVE TER NO MÍNIMO 1500-2000 PALAVRAS de conteúdo educacional real
+2. NÃO ESCREVA frases como "Neste módulo vamos...", "Você aprenderá...", "Exploraremos..."
+3. ESCREVA O CONTEÚDO COMPLETO como um capítulo de livro didático
+
+ESTRUTURA OBRIGATÓRIA PARA CADA MÓDULO:
+
+## [Título do Tópico]
+
+### Introdução e Contexto (200+ palavras)
+- O QUE é, POR QUE é importante, COMO se aplica
+
+### Fundamentos Teóricos (400+ palavras)
+- Definições detalhadas, princípios, conceitos em profundidade
+
+### Técnicas e Metodologias (400+ palavras)
+- Passo a passo detalhado, quando usar, variações
+
+### Exemplos Práticos (300+ palavras)
+- 2-3 exemplos reais e detalhados com dados específicos
+
+### Erros Comuns (150+ palavras)
+- Lista de erros frequentes e como evitar
+
+### Exercícios (100+ palavras)
+- Perguntas para reflexão e atividades práticas
+
+Use **negrito**, *itálico*, listas, tabelas. Escreva como um LIVRO DIDÁTICO COMPLETO.
+IMPORTANTE: Crie EXATAMENTE ${finalModuleCount} módulos para ${finalDuration}h de curso.`;
 
     const contentResponse = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",

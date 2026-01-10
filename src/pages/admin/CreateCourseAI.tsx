@@ -79,6 +79,10 @@ export default function CreateCourseAI() {
         throw new Error('Você precisa estar logado para criar cursos');
       }
 
+      // Timeout de 10 minutos para cursos com conteúdo extenso
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 600000);
+
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-course`,
         {
@@ -96,8 +100,11 @@ export default function CreateCourseAI() {
             contentDepth: formData.contentDepth,
             additionalInstructions: formData.additionalInstructions,
           }),
+          signal: controller.signal,
         }
       );
+
+      clearTimeout(timeoutId);
 
       clearInterval(stepInterval);
 
@@ -136,9 +143,17 @@ export default function CreateCourseAI() {
     } catch (error: any) {
       clearInterval(stepInterval);
       console.error('Error generating course:', error);
+      
+      let errorMessage = error.message;
+      if (error.name === 'AbortError') {
+        errorMessage = 'A geração do curso demorou muito. Tente novamente ou selecione um nível de profundidade menor.';
+      } else if (error.message === 'Failed to fetch') {
+        errorMessage = 'Erro de conexão. A geração pode estar demorando. Verifique na lista de cursos se foi criado.';
+      }
+      
       toast({
         title: 'Erro ao criar curso',
-        description: error.message,
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {

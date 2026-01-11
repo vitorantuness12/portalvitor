@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Lightbulb, Loader2, Copy, Check, Sparkles } from 'lucide-react';
+import { Lightbulb, Loader2, Copy, Check, Sparkles, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -57,6 +57,24 @@ export default function TopicGenerator() {
       return data;
     },
   });
+
+  // Fetch courses count per category
+  const { data: coursesData = [] } = useQuery({
+    queryKey: ['courses-by-category'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('courses')
+        .select('category_id');
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Calculate courses count for selected category
+  const coursesInCategory = useMemo(() => {
+    if (!categoryId) return 0;
+    return coursesData.filter((c) => c.category_id === categoryId).length;
+  }, [categoryId, coursesData]);
 
   const handleGenerate = async () => {
     if (!categoryId) {
@@ -206,9 +224,19 @@ export default function TopicGenerator() {
                   ))}
                 </SelectContent>
               </Select>
-              <p className="text-xs text-muted-foreground">
-                A IA irá gerar temas relacionados a esta categoria
-              </p>
+              {categoryId && (
+                <div className="flex items-center gap-2 p-2 rounded-md bg-muted/50">
+                  <BookOpen className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">
+                    <span className="font-medium text-foreground">{coursesInCategory}</span> curso{coursesInCategory !== 1 ? 's' : ''} nesta categoria
+                  </span>
+                </div>
+              )}
+              {!categoryId && (
+                <p className="text-xs text-muted-foreground">
+                  A IA irá gerar temas relacionados a esta categoria
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">

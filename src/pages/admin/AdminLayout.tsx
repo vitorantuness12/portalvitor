@@ -14,6 +14,7 @@ import {
   Sparkles,
   Layers,
   Headphones,
+  Lightbulb,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -27,6 +28,7 @@ const sidebarLinks = [
   { href: '/admin/cursos', icon: BookOpen, label: 'Cursos' },
   { href: '/admin/criar-curso', icon: Sparkles, label: 'Criar com IA' },
   { href: '/admin/criar-cursos-massa', icon: Layers, label: 'Criar em Massa' },
+  { href: '/admin/gerador-temas', icon: Lightbulb, label: 'Gerador de Temas' },
   { href: '/admin/usuarios', icon: Users, label: 'Usuários' },
   { href: '/admin/categorias', icon: FolderOpen, label: 'Categorias' },
   { href: '/admin/certificados', icon: Award, label: 'Certificados' },

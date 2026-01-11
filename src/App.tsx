@@ -25,6 +25,7 @@ import AdminCertificates from "./pages/admin/Certificates";
 import CreateCourseAI from "./pages/admin/CreateCourseAI";
 import BulkCreateCourseAI from "./pages/admin/BulkCreateCourseAI";
 import AdminSupportTickets from "./pages/admin/SupportTickets";
+import TopicGenerator from "./pages/admin/TopicGenerator";
 import NotFound from "./pages/NotFound";
 import { SupportChat } from "./components/support/SupportChat";
 
@@ -60,6 +61,7 @@ const App = () => (
               <Route path="certificados" element={<AdminCertificates />} />
               <Route path="criar-curso" element={<CreateCourseAI />} />
               <Route path="criar-cursos-massa" element={<BulkCreateCourseAI />} />
+              <Route path="gerador-temas" element={<TopicGenerator />} />
               <Route path="suporte" element={<AdminSupportTickets />} />
             </Route>
             

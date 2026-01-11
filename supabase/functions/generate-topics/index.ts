@@ -12,6 +12,7 @@ interface TopicsRequest {
   categoryDescription?: string;
   quantity: number;
   level?: 'all' | 'iniciante' | 'intermediario' | 'avancado';
+  existingTopics?: string[];
 }
 
 serve(async (req) => {
@@ -58,7 +59,7 @@ serve(async (req) => {
     }
 
     // Parse request body
-    const { categoryName, categoryDescription, quantity, level = 'all' }: TopicsRequest = await req.json();
+    const { categoryName, categoryDescription, quantity, level = 'all', existingTopics = [] }: TopicsRequest = await req.json();
 
     if (!categoryName || !quantity) {
       throw new Error("Categoria e quantidade são obrigatórios");
@@ -69,7 +70,7 @@ serve(async (req) => {
       throw new Error("Quantidade deve ser 10, 20, 30 ou 40");
     }
 
-    console.log(`Generating ${quantity} topics for category: ${categoryName}, level: ${level}`);
+    console.log(`Generating ${quantity} topics for category: ${categoryName}, level: ${level}, existing topics to avoid: ${existingTopics.length}`);
 
     // Initialize OpenAI
     const openai = new OpenAI({ apiKey: openaiApiKey });
@@ -84,6 +85,17 @@ serve(async (req) => {
 
     const levelInstruction = levelInstructions[level] || levelInstructions.all;
 
+    // Build existing topics instruction
+    let existingTopicsInstruction = "";
+    if (existingTopics.length > 0) {
+      existingTopicsInstruction = `
+
+ATENÇÃO - NÃO GERE NENHUM DESTES TEMAS (já existem cursos com estes títulos ou títulos similares):
+${existingTopics.slice(0, 100).map(t => `- ${t}`).join('\n')}
+
+Os temas gerados devem ser COMPLETAMENTE DIFERENTES dos listados acima. Não use títulos iguais, parecidos ou variações desses temas.`;
+    }
+
     const prompt = `Você é um especialista em criação de cursos online. Gere exatamente ${quantity} ideias de temas para cursos na categoria "${categoryName}"${categoryDescription ? ` (${categoryDescription})` : ""}.
 
 Regras importantes:
@@ -96,6 +108,7 @@ Regras importantes:
 
 IMPORTANTE - Sobre o nível dos temas:
 ${levelInstruction}
+${existingTopicsInstruction}
 
 Retorne APENAS um array JSON com exatamente ${quantity} objetos. Cada objeto deve ter:
 - "topic": o nome do tema do curso

@@ -97,8 +97,12 @@ Regras importantes:
 IMPORTANTE - Sobre o nível dos temas:
 ${levelInstruction}
 
-Retorne APENAS um array JSON com exatamente ${quantity} strings, cada uma sendo um tema de curso. Exemplo:
-["Tema 1", "Tema 2", "Tema 3"]
+Retorne APENAS um array JSON com exatamente ${quantity} objetos. Cada objeto deve ter:
+- "topic": o nome do tema do curso
+- "level": o nível do tema ("iniciante", "intermediario" ou "avancado")
+
+Exemplo de formato:
+[{"topic": "Introdução ao Excel", "level": "iniciante"}, {"topic": "Dashboards Avançados", "level": "avancado"}]
 
 Não inclua numeração, explicações ou texto adicional. Apenas o array JSON.`;
 
@@ -107,11 +111,11 @@ Não inclua numeração, explicações ou texto adicional. Apenas o array JSON.`
       messages: [
         {
           role: "system",
-          content: "Você é um assistente especializado em criar temas para cursos online. Sempre responda apenas com um array JSON válido de strings.",
+          content: "Você é um assistente especializado em criar temas para cursos online. Sempre responda apenas com um array JSON válido de objetos contendo topic e level.",
         },
         { role: "user", content: prompt },
       ],
-      max_tokens: 2000,
+      max_tokens: 3000,
       temperature: 0.8,
     });
 
@@ -123,12 +127,24 @@ Não inclua numeração, explicações ou texto adicional. Apenas o array JSON.`
     console.log("Raw AI response:", content);
 
     // Parse the JSON array from the response
-    let topics: string[];
+    interface TopicItem {
+      topic: string;
+      level: string;
+    }
+    
+    let topics: TopicItem[];
     try {
       // Try to extract JSON array from the response
       const jsonMatch = content.match(/\[[\s\S]*\]/);
       if (jsonMatch) {
-        topics = JSON.parse(jsonMatch[0]);
+        const parsed = JSON.parse(jsonMatch[0]);
+        // Handle both old format (array of strings) and new format (array of objects)
+        if (typeof parsed[0] === 'string') {
+          // Old format - convert to new format with default level
+          topics = parsed.map((t: string) => ({ topic: t, level: level === 'all' ? 'intermediario' : level }));
+        } else {
+          topics = parsed;
+        }
       } else {
         throw new Error("Formato de resposta inválido");
       }

@@ -80,6 +80,13 @@ export default function TopicGenerator() {
         throw new Error('Você precisa estar logado');
       }
 
+      // Buscar cursos existentes para evitar duplicatas
+      const { data: existingCourses } = await supabase
+        .from('courses')
+        .select('title');
+      
+      const existingTitles = existingCourses?.map((c) => c.title) || [];
+
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-topics`,
         {
@@ -93,6 +100,7 @@ export default function TopicGenerator() {
             categoryDescription: selectedCategory.description,
             quantity: parseInt(quantity),
             level: level,
+            existingTopics: existingTitles,
           }),
         }
       );

@@ -11,9 +11,30 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/components/ui/use-toast';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+
+interface TopicItem {
+  topic: string;
+  level: string;
+}
+
+const levelConfig: Record<string, { label: string; className: string }> = {
+  iniciante: {
+    label: 'Iniciante',
+    className: 'bg-green-500/10 text-green-600 border-green-500/20 hover:bg-green-500/20',
+  },
+  intermediario: {
+    label: 'Intermediário',
+    className: 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20 hover:bg-yellow-500/20',
+  },
+  avancado: {
+    label: 'Avançado',
+    className: 'bg-red-500/10 text-red-600 border-red-500/20 hover:bg-red-500/20',
+  },
+};
 
 export default function TopicGenerator() {
   const { toast } = useToast();
@@ -21,7 +42,7 @@ export default function TopicGenerator() {
   const [quantity, setQuantity] = useState('10');
   const [level, setLevel] = useState('all');
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedTopics, setGeneratedTopics] = useState<string[]>([]);
+  const [generatedTopics, setGeneratedTopics] = useState<TopicItem[]>([]);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
   // Fetch categories
@@ -119,7 +140,8 @@ export default function TopicGenerator() {
 
   const copyAllToClipboard = async () => {
     try {
-      await navigator.clipboard.writeText(generatedTopics.join('\n'));
+      const allTopics = generatedTopics.map((t) => t.topic).join('\n');
+      await navigator.clipboard.writeText(allTopics);
       toast({
         title: 'Todos copiados!',
         description: 'Todos os temas foram copiados.',
@@ -130,6 +152,15 @@ export default function TopicGenerator() {
         variant: 'destructive',
       });
     }
+  };
+
+  const getLevelBadge = (topicLevel: string) => {
+    const config = levelConfig[topicLevel] || levelConfig.intermediario;
+    return (
+      <Badge variant="outline" className={`text-xs font-medium ${config.className}`}>
+        {config.label}
+      </Badge>
+    );
   };
 
   return (
@@ -255,7 +286,7 @@ export default function TopicGenerator() {
               </div>
             ) : generatedTopics.length > 0 ? (
               <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
-                {generatedTopics.map((topic, index) => (
+                {generatedTopics.map((item, index) => (
                   <motion.div
                     key={index}
                     initial={{ opacity: 0, x: -20 }}
@@ -263,12 +294,15 @@ export default function TopicGenerator() {
                     transition={{ delay: index * 0.05 }}
                     className="flex items-center justify-between gap-2 p-3 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors group"
                   >
-                    <span className="text-sm flex-1">{topic}</span>
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      {getLevelBadge(item.level)}
+                      <span className="text-sm truncate">{item.topic}</span>
+                    </div>
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={() => copyToClipboard(topic, index)}
+                      className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+                      onClick={() => copyToClipboard(item.topic, index)}
                     >
                       {copiedIndex === index ? (
                         <Check className="h-4 w-4 text-green-500" />

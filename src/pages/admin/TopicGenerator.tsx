@@ -19,6 +19,7 @@ export default function TopicGenerator() {
   const { toast } = useToast();
   const [categoryId, setCategoryId] = useState('');
   const [quantity, setQuantity] = useState('10');
+  const [level, setLevel] = useState('all');
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedTopics, setGeneratedTopics] = useState<string[]>([]);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
@@ -70,6 +71,7 @@ export default function TopicGenerator() {
             categoryName: selectedCategory.name,
             categoryDescription: selectedCategory.description,
             quantity: parseInt(quantity),
+            level: level,
           }),
         }
       );
@@ -181,8 +183,26 @@ export default function TopicGenerator() {
                   <SelectItem value="20">20 temas</SelectItem>
                   <SelectItem value="30">30 temas</SelectItem>
                   <SelectItem value="40">40 temas</SelectItem>
+              </SelectContent>
+            </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Nível</Label>
+              <Select value={level} onValueChange={setLevel}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os níveis</SelectItem>
+                  <SelectItem value="iniciante">Iniciante</SelectItem>
+                  <SelectItem value="intermediario">Intermediário</SelectItem>
+                  <SelectItem value="avancado">Avançado</SelectItem>
                 </SelectContent>
               </Select>
+              <p className="text-xs text-muted-foreground">
+                Filtre os temas por nível de dificuldade
+              </p>
             </div>
 
             <Button

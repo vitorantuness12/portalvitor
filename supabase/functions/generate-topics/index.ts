@@ -11,6 +11,7 @@ interface TopicsRequest {
   categoryName: string;
   categoryDescription?: string;
   quantity: number;
+  level?: 'all' | 'iniciante' | 'intermediario' | 'avancado';
 }
 
 serve(async (req) => {
@@ -57,7 +58,7 @@ serve(async (req) => {
     }
 
     // Parse request body
-    const { categoryName, categoryDescription, quantity }: TopicsRequest = await req.json();
+    const { categoryName, categoryDescription, quantity, level = 'all' }: TopicsRequest = await req.json();
 
     if (!categoryName || !quantity) {
       throw new Error("Categoria e quantidade são obrigatórios");
@@ -68,10 +69,20 @@ serve(async (req) => {
       throw new Error("Quantidade deve ser 10, 20, 30 ou 40");
     }
 
-    console.log(`Generating ${quantity} topics for category: ${categoryName}`);
+    console.log(`Generating ${quantity} topics for category: ${categoryName}, level: ${level}`);
 
     // Initialize OpenAI
     const openai = new OpenAI({ apiKey: openaiApiKey });
+
+    // Build level instruction
+    const levelInstructions: Record<string, string> = {
+      all: "Misture temas para iniciantes, intermediários e avançados de forma equilibrada.",
+      iniciante: "TODOS os temas devem ser para INICIANTES - pessoas sem conhecimento prévio na área. Foque em conceitos básicos, introduções, fundamentos e primeiros passos.",
+      intermediario: "TODOS os temas devem ser para nível INTERMEDIÁRIO - pessoas que já têm conhecimento básico. Foque em aprofundamento, técnicas mais elaboradas e aplicações práticas.",
+      avancado: "TODOS os temas devem ser para nível AVANÇADO - profissionais experientes. Foque em especializações, técnicas avançadas, otimizações e temas de alta complexidade.",
+    };
+
+    const levelInstruction = levelInstructions[level] || levelInstructions.all;
 
     const prompt = `Você é um especialista em criação de cursos online. Gere exatamente ${quantity} ideias de temas para cursos na categoria "${categoryName}"${categoryDescription ? ` (${categoryDescription})` : ""}.
 
@@ -81,8 +92,10 @@ Regras importantes:
 - Cada tema deve ser único e diferente dos outros
 - Os temas devem ter potencial de atrair alunos
 - Considere tendências atuais do mercado
-- Misture temas para iniciantes, intermediários e avançados
 - Inclua temas práticos e teóricos
+
+IMPORTANTE - Sobre o nível dos temas:
+${levelInstruction}
 
 Retorne APENAS um array JSON com exatamente ${quantity} strings, cada uma sendo um tema de curso. Exemplo:
 ["Tema 1", "Tema 2", "Tema 3"]

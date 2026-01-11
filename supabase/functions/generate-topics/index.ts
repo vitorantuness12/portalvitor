@@ -98,13 +98,18 @@ Os temas gerados devem ser COMPLETAMENTE DIFERENTES dos listados acima. Não use
 
     const prompt = `Você é um especialista em criação de cursos online. Gere exatamente ${quantity} ideias de temas para cursos na categoria "${categoryName}"${categoryDescription ? ` (${categoryDescription})` : ""}.
 
+CONTEXTO IMPORTANTE:
+Estes cursos serão criados usando IA e terão APENAS conteúdo em TEXTO (sem vídeos, sem aulas práticas ao vivo, sem demonstrações visuais complexas).
+
 Regras importantes:
+- Os temas devem ser adequados para cursos 100% textuais (teoria, conceitos, técnicas descritas em texto)
+- EVITE temas que dependam de demonstrações visuais ou práticas ao vivo (ex: "Corte de Cabelo", "Maquiagem", "Dança", "Pintura em Tela")
+- PREFIRA temas teóricos, conceituais, estratégicos, de gestão, negócios, marketing, desenvolvimento pessoal, finanças, escrita, etc.
 - Os temas devem ser específicos, práticos e comercializáveis
 - Evite temas muito genéricos ou amplos demais
 - Cada tema deve ser único e diferente dos outros
 - Os temas devem ter potencial de atrair alunos
 - Considere tendências atuais do mercado
-- Inclua temas práticos e teóricos
 
 IMPORTANTE - Sobre o nível dos temas:
 ${levelInstruction}
@@ -115,7 +120,7 @@ Retorne APENAS um array JSON com exatamente ${quantity} objetos. Cada objeto dev
 - "level": o nível do tema ("iniciante", "intermediario" ou "avancado")
 
 Exemplo de formato:
-[{"topic": "Introdução ao Excel", "level": "iniciante"}, {"topic": "Dashboards Avançados", "level": "avancado"}]
+[{"topic": "Introdução ao Excel", "level": "iniciante"}, {"topic": "Estratégias de Marketing Digital", "level": "avancado"}]
 
 Não inclua numeração, explicações ou texto adicional. Apenas o array JSON.`;
 

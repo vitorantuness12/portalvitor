@@ -354,6 +354,12 @@ export default function BulkCreateCourseAI() {
                     <SelectValue placeholder="Selecione a profundidade" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="auto">
+                      <div className="flex items-center gap-2">
+                        <Wand2 className="h-3 w-3" />
+                        <span>IA decide automaticamente</span>
+                      </div>
+                    </SelectItem>
                     <SelectItem value="basico">
                       <div className="flex flex-col">
                         <span>Básico</span>

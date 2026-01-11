@@ -362,12 +362,26 @@ Use valores quebrados como 19.90, 29.90, 39.90, etc.`;
     console.log("Final module count:", finalModuleCount);
     
     // Define content depth parameters
-    const depthConfig = {
-      basico: { minWords: 500, maxTokens: 8000, description: "resumido e direto ao ponto" },
-      detalhado: { minWords: 1000, maxTokens: 12000, description: "com bom nível de detalhes e exemplos" },
-      extenso: { minWords: 2000, maxTokens: 16000, description: "extremamente completo como um livro didático profissional" }
-    };
-    const depth = depthConfig[contentDepth as keyof typeof depthConfig] || depthConfig.detalhado;
+    // If contentDepth is 'auto' or not provided, AI decides based on course complexity
+    let depth;
+    if (contentDepth === 'auto' || !contentDepth) {
+      // AI decides depth based on level and duration
+      if (level === 'avancado' || finalDuration >= 60) {
+        depth = { minWords: 2000, maxTokens: 16000, description: "extremamente completo como um livro didático profissional" };
+      } else if (level === 'intermediario' || finalDuration >= 20) {
+        depth = { minWords: 1000, maxTokens: 12000, description: "com bom nível de detalhes e exemplos" };
+      } else {
+        depth = { minWords: 500, maxTokens: 8000, description: "resumido e direto ao ponto" };
+      }
+      console.log("AI decided content depth based on level:", level, "duration:", finalDuration);
+    } else {
+      const depthConfig = {
+        basico: { minWords: 500, maxTokens: 8000, description: "resumido e direto ao ponto" },
+        detalhado: { minWords: 1000, maxTokens: 12000, description: "com bom nível de detalhes e exemplos" },
+        extenso: { minWords: 2000, maxTokens: 16000, description: "extremamente completo como um livro didático profissional" }
+      };
+      depth = depthConfig[contentDepth as keyof typeof depthConfig] || depthConfig.detalhado;
+    }
     
     // Step 2: Generate course content
     const contentPrompt = `Você é um professor universitário renomado criando um curso online. O curso deve ser um material didático de alta qualidade.

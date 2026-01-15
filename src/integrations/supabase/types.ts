@@ -45,6 +45,7 @@ export type Database = {
           back_title: string | null
           back_validation_text: string | null
           back_validation_url: string | null
+          back_wave_style: string | null
           background_color: string | null
           border_style: string | null
           created_at: string | null
@@ -54,6 +55,7 @@ export type Database = {
           front_score_text: string | null
           front_subtitle: string | null
           front_title: string
+          front_wave_style: string | null
           id: string
           institution_logo_url: string | null
           institution_name: string
@@ -65,6 +67,8 @@ export type Database = {
           right_badge_url: string | null
           secondary_color: string | null
           show_back_side: boolean | null
+          show_back_waves: boolean | null
+          show_front_waves: boolean | null
           show_qr_code: boolean | null
           signature_image_url: string | null
           signature_name: string | null
@@ -79,6 +83,7 @@ export type Database = {
           back_title?: string | null
           back_validation_text?: string | null
           back_validation_url?: string | null
+          back_wave_style?: string | null
           background_color?: string | null
           border_style?: string | null
           created_at?: string | null
@@ -88,6 +93,7 @@ export type Database = {
           front_score_text?: string | null
           front_subtitle?: string | null
           front_title?: string
+          front_wave_style?: string | null
           id?: string
           institution_logo_url?: string | null
           institution_name?: string
@@ -99,6 +105,8 @@ export type Database = {
           right_badge_url?: string | null
           secondary_color?: string | null
           show_back_side?: boolean | null
+          show_back_waves?: boolean | null
+          show_front_waves?: boolean | null
           show_qr_code?: boolean | null
           signature_image_url?: string | null
           signature_name?: string | null
@@ -113,6 +121,7 @@ export type Database = {
           back_title?: string | null
           back_validation_text?: string | null
           back_validation_url?: string | null
+          back_wave_style?: string | null
           background_color?: string | null
           border_style?: string | null
           created_at?: string | null
@@ -122,6 +131,7 @@ export type Database = {
           front_score_text?: string | null
           front_subtitle?: string | null
           front_title?: string
+          front_wave_style?: string | null
           id?: string
           institution_logo_url?: string | null
           institution_name?: string
@@ -133,6 +143,8 @@ export type Database = {
           right_badge_url?: string | null
           secondary_color?: string | null
           show_back_side?: boolean | null
+          show_back_waves?: boolean | null
+          show_front_waves?: boolean | null
           show_qr_code?: boolean | null
           signature_image_url?: string | null
           signature_name?: string | null

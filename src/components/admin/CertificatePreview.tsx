@@ -31,17 +31,214 @@ interface CertificateConfigData {
   right_badge_url?: string | null;
   left_badge_text?: string | null;
   right_badge_text?: string | null;
+  front_wave_style?: string | null;
+  back_wave_style?: string | null;
+  show_front_waves?: boolean | null;
+  show_back_waves?: boolean | null;
 }
 
 interface CertificatePreviewProps {
   config: CertificateConfigData;
 }
 
+// Wave style components
+const WaveStyles = {
+  curves: (primaryColor: string, secondaryColor: string, position: 'bottom' | 'top') => {
+    if (position === 'bottom') {
+      return (
+        <svg 
+          className="absolute bottom-0 left-0 right-0 w-full h-[40%]" 
+          viewBox="0 0 400 160" 
+          preserveAspectRatio="none"
+        >
+          <path
+            d="M0,80 Q100,40 200,80 T400,80 L400,160 L0,160 Z"
+            fill={primaryColor}
+          />
+          <path
+            d="M0,85 Q100,50 200,85 T400,85"
+            fill="none"
+            stroke={secondaryColor}
+            strokeWidth="2"
+          />
+          <path
+            d="M0,100 Q150,70 300,100 T400,90 L400,160 L0,160 Z"
+            fill={primaryColor}
+            opacity="0.8"
+          />
+        </svg>
+      );
+    }
+    return (
+      <svg 
+        className="absolute top-0 left-0 right-0 w-full h-[25%]" 
+        viewBox="0 0 400 100" 
+        preserveAspectRatio="none"
+      >
+        <path
+          d="M0,0 L400,0 L400,60 Q300,90 200,60 T0,60 Z"
+          fill={primaryColor}
+        />
+        <path
+          d="M0,65 Q100,95 200,65 T400,65"
+          fill="none"
+          stroke={secondaryColor}
+          strokeWidth="2"
+        />
+      </svg>
+    );
+  },
+  
+  geometric: (primaryColor: string, secondaryColor: string, position: 'bottom' | 'top') => {
+    if (position === 'bottom') {
+      return (
+        <svg 
+          className="absolute bottom-0 left-0 right-0 w-full h-[40%]" 
+          viewBox="0 0 400 160" 
+          preserveAspectRatio="none"
+        >
+          <path
+            d="M0,100 L80,60 L160,90 L240,50 L320,80 L400,40 L400,160 L0,160 Z"
+            fill={primaryColor}
+          />
+          <path
+            d="M0,105 L80,65 L160,95 L240,55 L320,85 L400,45"
+            fill="none"
+            stroke={secondaryColor}
+            strokeWidth="2"
+          />
+          <path
+            d="M0,120 L100,90 L200,110 L300,80 L400,100 L400,160 L0,160 Z"
+            fill={primaryColor}
+            opacity="0.8"
+          />
+        </svg>
+      );
+    }
+    return (
+      <svg 
+        className="absolute top-0 left-0 right-0 w-full h-[25%]" 
+        viewBox="0 0 400 100" 
+        preserveAspectRatio="none"
+      >
+        <path
+          d="M0,0 L400,0 L400,50 L320,70 L240,40 L160,60 L80,30 L0,50 Z"
+          fill={primaryColor}
+        />
+        <path
+          d="M0,55 L80,35 L160,65 L240,45 L320,75 L400,55"
+          fill="none"
+          stroke={secondaryColor}
+          strokeWidth="2"
+        />
+      </svg>
+    );
+  },
+  
+  lines: (primaryColor: string, secondaryColor: string, position: 'bottom' | 'top') => {
+    if (position === 'bottom') {
+      return (
+        <svg 
+          className="absolute bottom-0 left-0 right-0 w-full h-[40%]" 
+          viewBox="0 0 400 160" 
+          preserveAspectRatio="none"
+        >
+          <rect x="0" y="80" width="400" height="80" fill={primaryColor} />
+          <line x1="0" y1="80" x2="400" y2="80" stroke={secondaryColor} strokeWidth="3" />
+          <line x1="0" y1="90" x2="400" y2="90" stroke={secondaryColor} strokeWidth="1" opacity="0.5" />
+          <line x1="0" y1="100" x2="400" y2="100" stroke={secondaryColor} strokeWidth="1" opacity="0.3" />
+          {/* Diagonal accent lines */}
+          {[0, 50, 100, 150, 200, 250, 300, 350].map((x) => (
+            <line 
+              key={x}
+              x1={x} y1="160" x2={x + 40} y2="80" 
+              stroke={secondaryColor} 
+              strokeWidth="0.5" 
+              opacity="0.2"
+            />
+          ))}
+        </svg>
+      );
+    }
+    return (
+      <svg 
+        className="absolute top-0 left-0 right-0 w-full h-[25%]" 
+        viewBox="0 0 400 100" 
+        preserveAspectRatio="none"
+      >
+        <rect x="0" y="0" width="400" height="60" fill={primaryColor} />
+        <line x1="0" y1="60" x2="400" y2="60" stroke={secondaryColor} strokeWidth="3" />
+        <line x1="0" y1="50" x2="400" y2="50" stroke={secondaryColor} strokeWidth="1" opacity="0.5" />
+        <line x1="0" y1="40" x2="400" y2="40" stroke={secondaryColor} strokeWidth="1" opacity="0.3" />
+        {[0, 50, 100, 150, 200, 250, 300, 350].map((x) => (
+          <line 
+            key={x}
+            x1={x} y1="0" x2={x + 40} y2="60" 
+            stroke={secondaryColor} 
+            strokeWidth="0.5" 
+            opacity="0.2"
+          />
+        ))}
+      </svg>
+    );
+  },
+  
+  diagonal: (primaryColor: string, secondaryColor: string, position: 'bottom' | 'top') => {
+    if (position === 'bottom') {
+      return (
+        <svg 
+          className="absolute bottom-0 left-0 right-0 w-full h-[40%]" 
+          viewBox="0 0 400 160" 
+          preserveAspectRatio="none"
+        >
+          <path
+            d="M0,120 L400,60 L400,160 L0,160 Z"
+            fill={primaryColor}
+          />
+          <path
+            d="M0,110 L400,50"
+            fill="none"
+            stroke={secondaryColor}
+            strokeWidth="2"
+          />
+          <path
+            d="M0,140 L400,80 L400,160 L0,160 Z"
+            fill={primaryColor}
+            opacity="0.8"
+          />
+        </svg>
+      );
+    }
+    return (
+      <svg 
+        className="absolute top-0 left-0 right-0 w-full h-[25%]" 
+        viewBox="0 0 400 100" 
+        preserveAspectRatio="none"
+      >
+        <path
+          d="M0,0 L400,0 L400,40 L0,80 Z"
+          fill={primaryColor}
+        />
+        <path
+          d="M0,85 L400,45"
+          fill="none"
+          stroke={secondaryColor}
+          strokeWidth="2"
+        />
+      </svg>
+    );
+  },
+};
+
 export function CertificatePreview({ config }: CertificatePreviewProps) {
   const primaryColor = config.primary_color || '#1E3A5F';
   const secondaryColor = config.secondary_color || '#D4AF37';
   const textColor = config.text_color || '#1E3A5F';
   const backgroundColor = config.background_color || '#FFFFFF';
+  const frontWaveStyle = (config.front_wave_style || 'curves') as keyof typeof WaveStyles;
+  const backWaveStyle = (config.back_wave_style || 'curves') as keyof typeof WaveStyles;
+  const showFrontWaves = config.show_front_waves !== false;
+  const showBackWaves = config.show_back_waves !== false;
 
   // Sample data for preview
   const sampleData = {
@@ -51,6 +248,11 @@ export function CertificatePreview({ config }: CertificatePreviewProps) {
     date: new Date().toLocaleDateString('pt-BR'),
     score: 9.5,
     code: 'ABC1-DEF2-GHI3',
+  };
+
+  const renderWave = (style: keyof typeof WaveStyles, position: 'bottom' | 'top') => {
+    const waveRenderer = WaveStyles[style] || WaveStyles.curves;
+    return waveRenderer(primaryColor, secondaryColor, position);
   };
 
   return (
@@ -66,7 +268,7 @@ export function CertificatePreview({ config }: CertificatePreviewProps) {
         <div className="relative">
           <p className="text-xs text-muted-foreground mb-2 text-center">Frente</p>
           <motion.div
-            key={`${primaryColor}-${secondaryColor}-${backgroundColor}`}
+            key={`${primaryColor}-${secondaryColor}-${backgroundColor}-${frontWaveStyle}-${showFrontWaves}`}
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3 }}
@@ -82,30 +284,7 @@ export function CertificatePreview({ config }: CertificatePreviewProps) {
             />
             
             {/* Decorative wave at bottom */}
-            <svg 
-              className="absolute bottom-0 left-0 right-0 w-full h-[40%]" 
-              viewBox="0 0 400 160" 
-              preserveAspectRatio="none"
-            >
-              {/* Background wave */}
-              <path
-                d="M0,80 Q100,40 200,80 T400,80 L400,160 L0,160 Z"
-                fill={primaryColor}
-              />
-              {/* Gold accent wave */}
-              <path
-                d="M0,85 Q100,50 200,85 T400,85"
-                fill="none"
-                stroke={secondaryColor}
-                strokeWidth="2"
-              />
-              {/* Lighter overlay wave */}
-              <path
-                d="M0,100 Q150,70 300,100 T400,90 L400,160 L0,160 Z"
-                fill={primaryColor}
-                opacity="0.8"
-              />
-            </svg>
+            {showFrontWaves && renderWave(frontWaveStyle, 'bottom')}
 
             {/* Left Badge */}
             <div className="absolute top-4 left-4 z-20">
@@ -279,7 +458,7 @@ export function CertificatePreview({ config }: CertificatePreviewProps) {
           <div className="relative">
             <p className="text-xs text-muted-foreground mb-2 text-center">Verso</p>
             <motion.div
-              key={`back-${primaryColor}-${secondaryColor}`}
+              key={`back-${primaryColor}-${secondaryColor}-${backWaveStyle}-${showBackWaves}`}
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3, delay: 0.1 }}
@@ -292,23 +471,8 @@ export function CertificatePreview({ config }: CertificatePreviewProps) {
                 style={{ border: `2px solid ${secondaryColor}` }}
               />
 
-              {/* Decorative top wave (inverted) */}
-              <svg 
-                className="absolute top-0 left-0 right-0 w-full h-[25%]" 
-                viewBox="0 0 400 100" 
-                preserveAspectRatio="none"
-              >
-                <path
-                  d="M0,0 L400,0 L400,60 Q300,90 200,60 T0,60 Z"
-                  fill={primaryColor}
-                />
-                <path
-                  d="M0,65 Q100,95 200,65 T400,65"
-                  fill="none"
-                  stroke={secondaryColor}
-                  strokeWidth="2"
-                />
-              </svg>
+              {/* Decorative top wave */}
+              {showBackWaves && renderWave(backWaveStyle, 'top')}
 
               {/* Main Content */}
               <div className="relative z-10 h-full flex flex-col items-center justify-center px-6 py-8">

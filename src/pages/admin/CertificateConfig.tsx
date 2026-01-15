@@ -61,6 +61,10 @@ interface CertificateConfigData {
   right_badge_url: string | null;
   left_badge_text: string | null;
   right_badge_text: string | null;
+  front_wave_style: string | null;
+  back_wave_style: string | null;
+  show_front_waves: boolean | null;
+  show_back_waves: boolean | null;
 }
 
 export default function CertificateConfig() {
@@ -854,6 +858,146 @@ export default function CertificateConfig() {
                     <SelectItem value="none">Sem Borda</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+
+              {/* Wave Decorations Section */}
+              <div className="border-t pt-6 mt-6">
+                <h3 className="font-medium mb-4">Ondas Decorativas</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Configure o estilo das ondas decorativas na frente e verso do certificado
+                </p>
+
+                <div className="grid gap-6 sm:grid-cols-2">
+                  {/* Front Waves */}
+                  <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>Ondas na Frente</Label>
+                        <p className="text-xs text-muted-foreground">
+                          Mostrar ondas decorativas na parte inferior
+                        </p>
+                      </div>
+                      <Switch
+                        checked={config.show_front_waves ?? true}
+                        onCheckedChange={(checked) => updateConfig('show_front_waves', checked)}
+                      />
+                    </div>
+                    
+                    {config.show_front_waves !== false && (
+                      <div className="space-y-2">
+                        <Label htmlFor="front_wave_style">Estilo da Onda</Label>
+                        <Select
+                          value={config.front_wave_style || 'curves'}
+                          onValueChange={(value) => updateConfig('front_wave_style', value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione um estilo" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="curves">
+                              <div className="flex items-center gap-2">
+                                <svg className="w-6 h-4" viewBox="0 0 24 16">
+                                  <path d="M0,8 Q6,4 12,8 T24,8" fill="none" stroke="currentColor" strokeWidth="2"/>
+                                </svg>
+                                Curvas Suaves
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="geometric">
+                              <div className="flex items-center gap-2">
+                                <svg className="w-6 h-4" viewBox="0 0 24 16">
+                                  <path d="M0,12 L6,4 L12,10 L18,2 L24,8" fill="none" stroke="currentColor" strokeWidth="2"/>
+                                </svg>
+                                Geométrico
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="lines">
+                              <div className="flex items-center gap-2">
+                                <svg className="w-6 h-4" viewBox="0 0 24 16">
+                                  <line x1="0" y1="8" x2="24" y2="8" stroke="currentColor" strokeWidth="2"/>
+                                  <line x1="0" y1="12" x2="24" y2="12" stroke="currentColor" strokeWidth="1" opacity="0.5"/>
+                                </svg>
+                                Linhas Retas
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="diagonal">
+                              <div className="flex items-center gap-2">
+                                <svg className="w-6 h-4" viewBox="0 0 24 16">
+                                  <path d="M0,14 L24,4" fill="none" stroke="currentColor" strokeWidth="2"/>
+                                </svg>
+                                Diagonal
+                              </div>
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Back Waves */}
+                  <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label>Ondas no Verso</Label>
+                        <p className="text-xs text-muted-foreground">
+                          Mostrar ondas decorativas na parte superior
+                        </p>
+                      </div>
+                      <Switch
+                        checked={config.show_back_waves ?? true}
+                        onCheckedChange={(checked) => updateConfig('show_back_waves', checked)}
+                      />
+                    </div>
+                    
+                    {config.show_back_waves !== false && (
+                      <div className="space-y-2">
+                        <Label htmlFor="back_wave_style">Estilo da Onda</Label>
+                        <Select
+                          value={config.back_wave_style || 'curves'}
+                          onValueChange={(value) => updateConfig('back_wave_style', value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione um estilo" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="curves">
+                              <div className="flex items-center gap-2">
+                                <svg className="w-6 h-4" viewBox="0 0 24 16">
+                                  <path d="M0,8 Q6,4 12,8 T24,8" fill="none" stroke="currentColor" strokeWidth="2"/>
+                                </svg>
+                                Curvas Suaves
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="geometric">
+                              <div className="flex items-center gap-2">
+                                <svg className="w-6 h-4" viewBox="0 0 24 16">
+                                  <path d="M0,12 L6,4 L12,10 L18,2 L24,8" fill="none" stroke="currentColor" strokeWidth="2"/>
+                                </svg>
+                                Geométrico
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="lines">
+                              <div className="flex items-center gap-2">
+                                <svg className="w-6 h-4" viewBox="0 0 24 16">
+                                  <line x1="0" y1="8" x2="24" y2="8" stroke="currentColor" strokeWidth="2"/>
+                                  <line x1="0" y1="12" x2="24" y2="12" stroke="currentColor" strokeWidth="1" opacity="0.5"/>
+                                </svg>
+                                Linhas Retas
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="diagonal">
+                              <div className="flex items-center gap-2">
+                                <svg className="w-6 h-4" viewBox="0 0 24 16">
+                                  <path d="M0,14 L24,4" fill="none" stroke="currentColor" strokeWidth="2"/>
+                                </svg>
+                                Diagonal
+                              </div>
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
 
               {/* Color Preview */}

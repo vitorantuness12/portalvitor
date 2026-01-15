@@ -414,6 +414,9 @@ export const CertificatePreviewPdf = ({ config }: PreviewPdfProps) => {
     <Document>
       {/* Front Page */}
       <Page size="A4" orientation="landscape" style={styles.page}>
+        {/* Bottom Waves - rendered first to be behind content */}
+        {showFrontWaves && renderBottomWave(frontWaveStyle, primaryColor, secondaryColor)}
+
         {/* Border frame */}
         <View style={styles.borderFrame} />
 
@@ -492,19 +495,16 @@ export const CertificatePreviewPdf = ({ config }: PreviewPdfProps) => {
             <Text style={styles.footerLabel}>{config.signature_name || 'Assinatura'}</Text>
           </View>
         </View>
-
-        {/* Bottom Waves */}
-        {showFrontWaves && renderBottomWave(frontWaveStyle, primaryColor, secondaryColor)}
       </Page>
 
       {/* Back Page */}
       {config.show_back_side !== false && (
         <Page size="A4" orientation="landscape" style={styles.page}>
+          {/* Top Waves - rendered first to be behind content */}
+          {showBackWaves && renderTopWave(backWaveStyle, primaryColor, secondaryColor)}
+
           {/* Border frame */}
           <View style={styles.borderFrame} />
-
-          {/* Top Waves */}
-          {showBackWaves && renderTopWave(backWaveStyle, primaryColor, secondaryColor)}
 
           {/* Content */}
           <View style={styles.backContent}>

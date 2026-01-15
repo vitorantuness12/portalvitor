@@ -54,7 +54,7 @@ function SidebarContent({ openTicketsCount }: { openTicketsCount: number }) {
             <GraduationCap className="h-6 w-6 text-primary-foreground" />
           </div>
           <div>
-            <span className="font-display font-bold">EduPlataforma</span>
+            <span className="font-display font-bold">Formar Ensino</span>
             <p className="text-xs text-muted-foreground">Painel Admin</p>
           </div>
         </Link>

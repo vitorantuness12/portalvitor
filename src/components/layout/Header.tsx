@@ -59,7 +59,7 @@ export function Header() {
             <div className="hero-gradient rounded-lg p-2">
               <GraduationCap className="h-6 w-6 text-primary-foreground" />
             </div>
-            <span className="text-xl font-display font-bold">EduPlataforma</span>
+            <span className="text-xl font-display font-bold">Formar Ensino</span>
           </Link>
 
           {/* Desktop Navigation */}

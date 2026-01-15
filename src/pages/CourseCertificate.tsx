@@ -150,52 +150,106 @@ interface CertificateDocProps {
   duration: number;
   score: number;
   certificateCode: string;
+  config?: CertificateConfigType;
 }
 
-const CertificateDoc = ({ studentName, courseName, completionDate, duration, score, certificateCode }: CertificateDocProps) => (
-  <Document>
-    <Page size="A4" orientation="landscape" style={styles.page}>
-      <View style={styles.container}>
-        <View style={styles.innerBorder}>
-          <View style={styles.header}>
-            <Text style={styles.logo}>Formar Ensino</Text>
-            <Text style={styles.title}>Certificado de Conclusão</Text>
-            <Text style={styles.subtitle}>Curso Livre Online</Text>
-          </View>
-          
-          <View style={styles.body}>
-            <Text style={styles.certifyText}>Certificamos que</Text>
-            <Text style={styles.studentName}>{studentName}</Text>
-            <Text style={styles.completedText}>concluiu com êxito o curso</Text>
-            <Text style={styles.courseName}>{courseName}</Text>
+interface CertificateConfigType {
+  institution_name: string;
+  institution_subtitle: string | null;
+  institution_logo_url: string | null;
+  front_title: string;
+  front_subtitle: string | null;
+  front_completion_text: string | null;
+  front_hours_text: string | null;
+  front_date_text: string | null;
+  front_score_text: string | null;
+  back_title: string | null;
+  back_content: string | null;
+  back_validation_text: string | null;
+  back_validation_url: string | null;
+  signature_name: string | null;
+  signature_title: string | null;
+  signature_image_url: string | null;
+  primary_color: string | null;
+  secondary_color: string | null;
+  text_color: string | null;
+  background_color: string | null;
+  show_qr_code: boolean | null;
+  show_back_side: boolean | null;
+}
+
+const CertificateDoc = ({ studentName, courseName, completionDate, duration, score, certificateCode, config }: CertificateDocProps) => {
+  const primaryColor = config?.primary_color || '#2563EB';
+  const textColor = config?.text_color || '#1E293B';
+  const institutionName = config?.institution_name || 'Formar Ensino';
+  const frontTitle = config?.front_title || 'Certificado de Conclusão';
+  const frontSubtitle = config?.front_subtitle || 'Certificamos que';
+  const completionText = config?.front_completion_text || 'concluiu com êxito o curso';
+  const validationUrl = config?.back_validation_url || 'formarensino.com.br/validar-certificado';
+
+  return (
+    <Document>
+      <Page size="A4" orientation="landscape" style={styles.page}>
+        <View style={[styles.container, { borderColor: primaryColor }]}>
+          <View style={[styles.innerBorder, { borderColor: `${primaryColor}40` }]}>
+            <View style={styles.header}>
+              {config?.institution_logo_url && (
+                <Image src={config.institution_logo_url} style={{ width: 60, height: 60, marginBottom: 10 }} />
+              )}
+              <Text style={[styles.logo, { color: primaryColor }]}>{institutionName}</Text>
+              <Text style={[styles.title, { color: textColor }]}>{frontTitle}</Text>
+              <Text style={styles.subtitle}>{config?.institution_subtitle || 'Curso Livre Online'}</Text>
+            </View>
             
-            <View style={styles.details}>
-              <View style={styles.detailItem}>
-                <Text style={styles.detailLabel}>Carga Horária</Text>
-                <Text style={styles.detailValue}>{duration} horas</Text>
-              </View>
-              <View style={styles.detailItem}>
-                <Text style={styles.detailLabel}>Nota Final</Text>
-                <Text style={styles.detailValue}>{score.toFixed(1)}</Text>
-              </View>
-              <View style={styles.detailItem}>
-                <Text style={styles.detailLabel}>Data de Conclusão</Text>
-                <Text style={styles.detailValue}>{completionDate}</Text>
+            <View style={styles.body}>
+              <Text style={styles.certifyText}>{frontSubtitle}</Text>
+              <Text style={[styles.studentName, { color: textColor }]}>{studentName}</Text>
+              <Text style={styles.completedText}>{completionText}</Text>
+              <Text style={[styles.courseName, { color: primaryColor }]}>{courseName}</Text>
+              
+              <View style={styles.details}>
+                <View style={styles.detailItem}>
+                  <Text style={styles.detailLabel}>{config?.front_hours_text || 'Carga Horária'}</Text>
+                  <Text style={[styles.detailValue, { color: textColor }]}>{duration} horas</Text>
+                </View>
+                <View style={styles.detailItem}>
+                  <Text style={styles.detailLabel}>{config?.front_score_text || 'Nota Final'}</Text>
+                  <Text style={[styles.detailValue, { color: textColor }]}>{score.toFixed(1)}</Text>
+                </View>
+                <View style={styles.detailItem}>
+                  <Text style={styles.detailLabel}>{config?.front_date_text || 'Data de Conclusão'}</Text>
+                  <Text style={[styles.detailValue, { color: textColor }]}>{completionDate}</Text>
+                </View>
               </View>
             </View>
-          </View>
-          
-          <View style={styles.footer}>
-            <Text style={styles.code}>Código de Validação: {certificateCode}</Text>
-            <Text style={styles.validationText}>
-              Valide este certificado em: eduplatform.com/validar/{certificateCode}
-            </Text>
+            
+            {/* Signature */}
+            <View style={{ alignItems: 'center', marginTop: 20 }}>
+              {config?.signature_image_url && (
+                <Image src={config.signature_image_url} style={{ width: 100, height: 40, marginBottom: 5 }} />
+              )}
+              <View style={{ borderTop: '1px solid #CBD5E1', width: 150, paddingTop: 5, alignItems: 'center' }}>
+                <Text style={{ fontSize: 10, fontFamily: 'Montserrat', fontWeight: 700, color: textColor }}>
+                  {config?.signature_name || 'Diretor(a) Acadêmico(a)'}
+                </Text>
+                <Text style={{ fontSize: 8, color: '#64748B' }}>
+                  {config?.signature_title || institutionName}
+                </Text>
+              </View>
+            </View>
+            
+            <View style={styles.footer}>
+              <Text style={styles.code}>Código de Validação: {certificateCode}</Text>
+              <Text style={styles.validationText}>
+                {config?.back_validation_text || 'Valide este certificado em:'} {validationUrl}
+              </Text>
+            </View>
           </View>
         </View>
-      </View>
-    </Page>
-  </Document>
-);
+      </Page>
+    </Document>
+  );
+};
 
 // Generate unique certificate code
 function generateCertificateCode(): string {
@@ -280,6 +334,20 @@ export default function CourseCertificate() {
     enabled: !!user && !!enrollment,
   });
 
+  // Fetch certificate config
+  const { data: certConfig } = useQuery({
+    queryKey: ['certificate-config'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('certificate_config')
+        .select('*')
+        .limit(1)
+        .single();
+      if (error) throw error;
+      return data as CertificateConfigType;
+    },
+  });
+
   // Create certificate mutation
   const createCertificateMutation = useMutation({
     mutationFn: async () => {
@@ -328,9 +396,10 @@ export default function CourseCertificate() {
         duration: course.duration_hours,
         score: Number(enrollment.exam_score) || 0,
         certificateCode: cert.certificate_code,
+        config: certConfig,
       });
     }
-  }, [course, enrollment, profile, existingCertificate, createCertificateMutation.data]);
+  }, [course, enrollment, profile, existingCertificate, createCertificateMutation.data, certConfig]);
 
   // Auto-generate certificate if eligible and doesn't exist
   useEffect(() => {
@@ -398,26 +467,66 @@ export default function CourseCertificate() {
             {/* Certificate Preview */}
             <Card className="mb-8 overflow-hidden">
               <CardContent className="p-0">
-                <div className="bg-gradient-to-br from-primary/5 to-primary/10 p-8">
-                  <div className="bg-white rounded-lg border-4 border-primary p-8 shadow-lg">
-                    <div className="border border-primary/30 rounded p-6 text-center">
-                      <p className="text-2xl font-display font-bold text-primary mb-2">
-                        Formar Ensino
+                <div className="bg-gradient-to-br from-primary/5 to-primary/10 p-4 sm:p-8">
+                  <div 
+                    className="rounded-lg border-4 p-4 sm:p-8 shadow-lg"
+                    style={{ 
+                      backgroundColor: certConfig?.background_color || '#FFFFFF',
+                      borderColor: certConfig?.primary_color || 'hsl(var(--primary))',
+                    }}
+                  >
+                    <div 
+                      className="border rounded p-4 sm:p-6 text-center"
+                      style={{ borderColor: `${certConfig?.primary_color || 'hsl(var(--primary))'}40` }}
+                    >
+                      {certConfig?.institution_logo_url && (
+                        <img 
+                          src={certConfig.institution_logo_url} 
+                          alt="Logo" 
+                          className="w-16 h-16 object-contain mx-auto mb-2"
+                        />
+                      )}
+                      <p 
+                        className="text-2xl font-display font-bold mb-2"
+                        style={{ color: certConfig?.primary_color || 'hsl(var(--primary))' }}
+                      >
+                        {certConfig?.institution_name || 'Formar Ensino'}
                       </p>
-                      <h2 className="text-3xl font-bold mb-1">Certificado de Conclusão</h2>
-                      <p className="text-sm text-muted-foreground mb-8">Curso Livre Online</p>
+                      <h2 
+                        className="text-2xl sm:text-3xl font-bold mb-1"
+                        style={{ color: certConfig?.text_color || 'inherit' }}
+                      >
+                        {certConfig?.front_title || 'Certificado de Conclusão'}
+                      </h2>
+                      <p className="text-sm text-muted-foreground mb-6 sm:mb-8">
+                        {certConfig?.institution_subtitle || 'Curso Livre Online'}
+                      </p>
                       
                       <p className="text-xs text-muted-foreground uppercase tracking-widest mb-2">
-                        Certificamos que
+                        {certConfig?.front_subtitle || 'Certificamos que'}
                       </p>
-                      <p className="text-2xl font-bold mb-4">{profile?.full_name}</p>
+                      <p 
+                        className="text-xl sm:text-2xl font-bold mb-4"
+                        style={{ color: certConfig?.text_color || 'inherit' }}
+                      >
+                        {profile?.full_name}
+                      </p>
                       
-                      <p className="text-xs text-muted-foreground mb-2">concluiu com êxito o curso</p>
-                      <p className="text-xl font-bold text-primary mb-6">{course.title}</p>
+                      <p className="text-xs text-muted-foreground mb-2">
+                        {certConfig?.front_completion_text || 'concluiu com êxito o curso'}
+                      </p>
+                      <p 
+                        className="text-lg sm:text-xl font-bold mb-6"
+                        style={{ color: certConfig?.primary_color || 'hsl(var(--primary))' }}
+                      >
+                        {course.title}
+                      </p>
                       
-                      <div className="flex justify-center gap-12 mb-6">
+                      <div className="flex flex-wrap justify-center gap-6 sm:gap-12 mb-6">
                         <div className="text-center">
-                          <p className="text-xs text-muted-foreground uppercase">Carga Horária</p>
+                          <p className="text-xs text-muted-foreground uppercase">
+                            {certConfig?.front_hours_text || 'Carga Horária'}
+                          </p>
                           <p className="font-bold">{course.duration_hours} horas</p>
                         </div>
                         <div className="text-center">
@@ -425,9 +534,30 @@ export default function CourseCertificate() {
                           <p className="font-bold">{Number(enrollment.exam_score).toFixed(1)}</p>
                         </div>
                         <div className="text-center">
-                          <p className="text-xs text-muted-foreground uppercase">Conclusão</p>
+                          <p className="text-xs text-muted-foreground uppercase">
+                            {certConfig?.front_date_text || 'Conclusão'}
+                          </p>
                           <p className="font-bold">
                             {new Date(enrollment.exam_completed_at || enrollment.updated_at).toLocaleDateString('pt-BR')}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Signature */}
+                      <div className="mb-4">
+                        {certConfig?.signature_image_url && (
+                          <img 
+                            src={certConfig.signature_image_url} 
+                            alt="Assinatura" 
+                            className="h-10 object-contain mx-auto mb-1"
+                          />
+                        )}
+                        <div className="border-t border-border w-40 mx-auto pt-2">
+                          <p className="text-sm font-semibold">
+                            {certConfig?.signature_name || 'Diretor(a) Acadêmico(a)'}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {certConfig?.signature_title || certConfig?.institution_name || 'Formar Ensino'}
                           </p>
                         </div>
                       </div>

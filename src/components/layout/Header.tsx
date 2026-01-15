@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { GraduationCap, Menu, X, User, LogOut, LayoutDashboard, TrendingUp, Settings, BookOpen } from 'lucide-react';
+import { Menu, X, LogOut, LayoutDashboard, TrendingUp, Settings, BookOpen } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
@@ -15,6 +15,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import logo from '@/assets/logo.png';
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -56,9 +57,7 @@ export function Header() {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <div className="hero-gradient rounded-lg p-2">
-              <GraduationCap className="h-6 w-6 text-primary-foreground" />
-            </div>
+            <img src={logo} alt="Formar Ensino" className="h-10 w-10 object-contain" />
             <span className="text-xl font-display font-bold">Formar Ensino</span>
           </Link>
 

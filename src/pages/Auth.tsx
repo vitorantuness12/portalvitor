@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, GraduationCap, ArrowLeft } from 'lucide-react';
+import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { formatPhoneBR, unformatPhone, isValidPhoneBR } from '@/lib/masks';
+import logo from '@/assets/logo.png';
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -167,9 +168,7 @@ export default function AuthPage() {
           </Link>
 
           <div className="flex items-center gap-2 mb-8">
-            <div className="hero-gradient rounded-lg p-2">
-              <GraduationCap className="h-6 w-6 text-primary-foreground" />
-            </div>
+            <img src={logo} alt="Formar Ensino" className="h-10 w-10 object-contain" />
             <span className="text-xl font-display font-bold">Formar Ensino</span>
           </div>
 

@@ -9,7 +9,6 @@ import {
   Award,
   Settings,
   LogOut,
-  GraduationCap,
   Menu,
   Sparkles,
   Layers,
@@ -22,6 +21,7 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import logo from '@/assets/logo.png';
 
 const sidebarLinks = [
   { href: '/admin', icon: LayoutDashboard, label: 'Dashboard', exact: true },
@@ -50,9 +50,7 @@ function SidebarContent({ openTicketsCount }: { openTicketsCount: number }) {
       {/* Logo */}
       <div className="p-6 border-b border-border">
         <Link to="/" className="flex items-center gap-2">
-          <div className="hero-gradient rounded-lg p-2">
-            <GraduationCap className="h-6 w-6 text-primary-foreground" />
-          </div>
+          <img src={logo} alt="Formar Ensino" className="h-10 w-10 object-contain" />
           <div>
             <span className="font-display font-bold">Formar Ensino</span>
             <p className="text-xs text-muted-foreground">Painel Admin</p>
@@ -167,9 +165,7 @@ export default function AdminLayout() {
           </SheetContent>
         </Sheet>
         <div className="flex items-center gap-2 ml-4">
-          <div className="hero-gradient rounded-lg p-1.5">
-            <GraduationCap className="h-5 w-5 text-primary-foreground" />
-          </div>
+          <img src={logo} alt="Formar Ensino" className="h-8 w-8 object-contain" />
           <span className="font-display font-bold">Admin</span>
         </div>
       </div>

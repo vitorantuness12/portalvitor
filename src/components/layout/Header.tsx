@@ -57,7 +57,7 @@ export function Header() {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <img src={logo} alt="Formar Ensino" className="h-10 w-10 object-contain" />
+            <img src={logo} alt="Formar Ensino" className="h-12 w-12 object-contain" />
             <span className="text-xl font-display font-bold">Formar Ensino</span>
           </Link>
 

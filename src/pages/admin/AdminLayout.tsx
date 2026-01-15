@@ -21,7 +21,7 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import logo from '@/assets/logo.png';
+import logo from '@/assets/icone_formar.png';
 
 const sidebarLinks = [
   { href: '/admin', icon: LayoutDashboard, label: 'Dashboard', exact: true },
@@ -32,6 +32,7 @@ const sidebarLinks = [
   { href: '/admin/usuarios', icon: Users, label: 'Usuários' },
   { href: '/admin/categorias', icon: FolderOpen, label: 'Categorias' },
   { href: '/admin/certificados', icon: Award, label: 'Certificados' },
+  { href: '/admin/config-certificado', icon: Settings, label: 'Editar Certificado' },
   { href: '/admin/suporte', icon: Headphones, label: 'Suporte', badge: true },
 ];
 

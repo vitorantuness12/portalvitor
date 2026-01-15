@@ -38,6 +38,99 @@ export type Database = {
         }
         Relationships: []
       }
+      certificate_config: {
+        Row: {
+          accent_gradient: boolean | null
+          back_content: string | null
+          back_title: string | null
+          back_validation_text: string | null
+          back_validation_url: string | null
+          background_color: string | null
+          border_style: string | null
+          created_at: string | null
+          front_completion_text: string | null
+          front_date_text: string | null
+          front_hours_text: string | null
+          front_score_text: string | null
+          front_subtitle: string | null
+          front_title: string
+          id: string
+          institution_logo_url: string | null
+          institution_name: string
+          institution_subtitle: string | null
+          primary_color: string | null
+          secondary_color: string | null
+          show_back_side: boolean | null
+          show_qr_code: boolean | null
+          signature_image_url: string | null
+          signature_name: string | null
+          signature_title: string | null
+          text_color: string | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          accent_gradient?: boolean | null
+          back_content?: string | null
+          back_title?: string | null
+          back_validation_text?: string | null
+          back_validation_url?: string | null
+          background_color?: string | null
+          border_style?: string | null
+          created_at?: string | null
+          front_completion_text?: string | null
+          front_date_text?: string | null
+          front_hours_text?: string | null
+          front_score_text?: string | null
+          front_subtitle?: string | null
+          front_title?: string
+          id?: string
+          institution_logo_url?: string | null
+          institution_name?: string
+          institution_subtitle?: string | null
+          primary_color?: string | null
+          secondary_color?: string | null
+          show_back_side?: boolean | null
+          show_qr_code?: boolean | null
+          signature_image_url?: string | null
+          signature_name?: string | null
+          signature_title?: string | null
+          text_color?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          accent_gradient?: boolean | null
+          back_content?: string | null
+          back_title?: string | null
+          back_validation_text?: string | null
+          back_validation_url?: string | null
+          background_color?: string | null
+          border_style?: string | null
+          created_at?: string | null
+          front_completion_text?: string | null
+          front_date_text?: string | null
+          front_hours_text?: string | null
+          front_score_text?: string | null
+          front_subtitle?: string | null
+          front_title?: string
+          id?: string
+          institution_logo_url?: string | null
+          institution_name?: string
+          institution_subtitle?: string | null
+          primary_color?: string | null
+          secondary_color?: string | null
+          show_back_side?: boolean | null
+          show_qr_code?: boolean | null
+          signature_image_url?: string | null
+          signature_name?: string | null
+          signature_title?: string | null
+          text_color?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       certificates: {
         Row: {
           certificate_code: string

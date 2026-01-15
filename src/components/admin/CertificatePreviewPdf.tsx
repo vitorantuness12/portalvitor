@@ -1,4 +1,4 @@
-import { Document, Page, Text, View, StyleSheet, Font, Image, Svg, Path, Line, Rect } from '@react-pdf/renderer';
+import { Document, Page, Text, View, StyleSheet, Font, Image, Svg, Path, Line, Rect, G } from '@react-pdf/renderer';
 
 // Register fonts
 Font.register({
@@ -7,11 +7,6 @@ Font.register({
     { src: 'https://fonts.gstatic.com/s/montserrat/v26/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCtr6Ew-.ttf', fontWeight: 400 },
     { src: 'https://fonts.gstatic.com/s/montserrat/v26/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCuM70w-.ttf', fontWeight: 700 },
   ],
-});
-
-Font.register({
-  family: 'Georgia',
-  src: 'https://fonts.cdnfonts.com/s/14903/georgia.woff',
 });
 
 interface CertificateConfigData {
@@ -53,60 +48,121 @@ interface PreviewPdfProps {
   config: CertificateConfigData;
 }
 
-// Wave path generators for PDF
-const getWavePath = (style: string, position: 'bottom' | 'top', width: number, height: number) => {
-  if (position === 'bottom') {
-    switch (style) {
-      case 'geometric':
-        return `M0,${height * 0.6} L${width * 0.2},${height * 0.35} L${width * 0.4},${height * 0.55} L${width * 0.6},${height * 0.3} L${width * 0.8},${height * 0.5} L${width},${height * 0.25} L${width},${height} L0,${height} Z`;
-      case 'lines':
-        return `M0,${height * 0.5} L${width},${height * 0.5} L${width},${height} L0,${height} Z`;
-      case 'diagonal':
-        return `M0,${height * 0.75} L${width},${height * 0.35} L${width},${height} L0,${height} Z`;
-      case 'curves':
-      default:
-        return `M0,${height * 0.5} Q${width * 0.25},${height * 0.25} ${width * 0.5},${height * 0.5} T${width},${height * 0.5} L${width},${height} L0,${height} Z`;
-    }
-  } else {
-    switch (style) {
-      case 'geometric':
-        return `M0,0 L${width},0 L${width},${height * 0.5} L${width * 0.8},${height * 0.7} L${width * 0.6},${height * 0.4} L${width * 0.4},${height * 0.6} L${width * 0.2},${height * 0.35} L0,${height * 0.5} Z`;
-      case 'lines':
-        return `M0,0 L${width},0 L${width},${height * 0.6} L0,${height * 0.6} Z`;
-      case 'diagonal':
-        return `M0,0 L${width},0 L${width},${height * 0.4} L0,${height * 0.8} Z`;
-      case 'curves':
-      default:
-        return `M0,0 L${width},0 L${width},${height * 0.6} Q${width * 0.75},${height * 0.9} ${width * 0.5},${height * 0.6} T0,${height * 0.6} Z`;
-    }
+// Constants for A4 landscape
+const PAGE_WIDTH = 842;
+const PAGE_HEIGHT = 595;
+const WAVE_VIEWBOX_WIDTH = 400;
+const WAVE_BOTTOM_VIEWBOX_HEIGHT = 160;
+const WAVE_TOP_VIEWBOX_HEIGHT = 100;
+
+// Wave SVG components that match the visual preview exactly
+const WaveBottomCurves = ({ primaryColor, secondaryColor }: { primaryColor: string; secondaryColor: string }) => (
+  <Svg viewBox={`0 0 ${WAVE_VIEWBOX_WIDTH} ${WAVE_BOTTOM_VIEWBOX_HEIGHT}`} preserveAspectRatio="none" style={{ position: 'absolute', bottom: 0, left: 0, width: PAGE_WIDTH, height: PAGE_HEIGHT * 0.35 }}>
+    <Path d="M0,80 Q100,40 200,80 T400,80 L400,160 L0,160 Z" fill={primaryColor} />
+    <Path d="M0,85 Q100,50 200,85 T400,85" fill="none" stroke={secondaryColor} strokeWidth={2} />
+    <Path d="M0,100 Q150,70 300,100 T400,90 L400,160 L0,160 Z" fill={primaryColor} opacity={0.8} />
+  </Svg>
+);
+
+const WaveBottomGeometric = ({ primaryColor, secondaryColor }: { primaryColor: string; secondaryColor: string }) => (
+  <Svg viewBox={`0 0 ${WAVE_VIEWBOX_WIDTH} ${WAVE_BOTTOM_VIEWBOX_HEIGHT}`} preserveAspectRatio="none" style={{ position: 'absolute', bottom: 0, left: 0, width: PAGE_WIDTH, height: PAGE_HEIGHT * 0.35 }}>
+    <Path d="M0,100 L80,60 L160,90 L240,50 L320,80 L400,40 L400,160 L0,160 Z" fill={primaryColor} />
+    <Path d="M0,105 L80,65 L160,95 L240,55 L320,85 L400,45" fill="none" stroke={secondaryColor} strokeWidth={2} />
+    <Path d="M0,120 L100,90 L200,110 L300,80 L400,100 L400,160 L0,160 Z" fill={primaryColor} opacity={0.8} />
+  </Svg>
+);
+
+const WaveBottomLines = ({ primaryColor, secondaryColor }: { primaryColor: string; secondaryColor: string }) => (
+  <Svg viewBox={`0 0 ${WAVE_VIEWBOX_WIDTH} ${WAVE_BOTTOM_VIEWBOX_HEIGHT}`} preserveAspectRatio="none" style={{ position: 'absolute', bottom: 0, left: 0, width: PAGE_WIDTH, height: PAGE_HEIGHT * 0.35 }}>
+    <Rect x={0} y={80} width={400} height={80} fill={primaryColor} />
+    <Line x1={0} y1={80} x2={400} y2={80} stroke={secondaryColor} strokeWidth={3} />
+    <Line x1={0} y1={90} x2={400} y2={90} stroke={secondaryColor} strokeWidth={1} opacity={0.5} />
+    <Line x1={0} y1={100} x2={400} y2={100} stroke={secondaryColor} strokeWidth={1} opacity={0.3} />
+    {/* Diagonal accent lines */}
+    <Line x1={0} y1={160} x2={40} y2={80} stroke={secondaryColor} strokeWidth={0.5} opacity={0.2} />
+    <Line x1={50} y1={160} x2={90} y2={80} stroke={secondaryColor} strokeWidth={0.5} opacity={0.2} />
+    <Line x1={100} y1={160} x2={140} y2={80} stroke={secondaryColor} strokeWidth={0.5} opacity={0.2} />
+    <Line x1={150} y1={160} x2={190} y2={80} stroke={secondaryColor} strokeWidth={0.5} opacity={0.2} />
+    <Line x1={200} y1={160} x2={240} y2={80} stroke={secondaryColor} strokeWidth={0.5} opacity={0.2} />
+    <Line x1={250} y1={160} x2={290} y2={80} stroke={secondaryColor} strokeWidth={0.5} opacity={0.2} />
+    <Line x1={300} y1={160} x2={340} y2={80} stroke={secondaryColor} strokeWidth={0.5} opacity={0.2} />
+    <Line x1={350} y1={160} x2={390} y2={80} stroke={secondaryColor} strokeWidth={0.5} opacity={0.2} />
+  </Svg>
+);
+
+const WaveBottomDiagonal = ({ primaryColor, secondaryColor }: { primaryColor: string; secondaryColor: string }) => (
+  <Svg viewBox={`0 0 ${WAVE_VIEWBOX_WIDTH} ${WAVE_BOTTOM_VIEWBOX_HEIGHT}`} preserveAspectRatio="none" style={{ position: 'absolute', bottom: 0, left: 0, width: PAGE_WIDTH, height: PAGE_HEIGHT * 0.35 }}>
+    <Path d="M0,120 L400,60 L400,160 L0,160 Z" fill={primaryColor} />
+    <Path d="M0,110 L400,50" fill="none" stroke={secondaryColor} strokeWidth={2} />
+    <Path d="M0,140 L400,80 L400,160 L0,160 Z" fill={primaryColor} opacity={0.8} />
+  </Svg>
+);
+
+const WaveTopCurves = ({ primaryColor, secondaryColor }: { primaryColor: string; secondaryColor: string }) => (
+  <Svg viewBox={`0 0 ${WAVE_VIEWBOX_WIDTH} ${WAVE_TOP_VIEWBOX_HEIGHT}`} preserveAspectRatio="none" style={{ position: 'absolute', top: 0, left: 0, width: PAGE_WIDTH, height: PAGE_HEIGHT * 0.22 }}>
+    <Path d="M0,0 L400,0 L400,60 Q300,90 200,60 T0,60 Z" fill={primaryColor} />
+    <Path d="M0,65 Q100,95 200,65 T400,65" fill="none" stroke={secondaryColor} strokeWidth={2} />
+  </Svg>
+);
+
+const WaveTopGeometric = ({ primaryColor, secondaryColor }: { primaryColor: string; secondaryColor: string }) => (
+  <Svg viewBox={`0 0 ${WAVE_VIEWBOX_WIDTH} ${WAVE_TOP_VIEWBOX_HEIGHT}`} preserveAspectRatio="none" style={{ position: 'absolute', top: 0, left: 0, width: PAGE_WIDTH, height: PAGE_HEIGHT * 0.22 }}>
+    <Path d="M0,0 L400,0 L400,50 L320,70 L240,40 L160,60 L80,30 L0,50 Z" fill={primaryColor} />
+    <Path d="M0,55 L80,35 L160,65 L240,45 L320,75 L400,55" fill="none" stroke={secondaryColor} strokeWidth={2} />
+  </Svg>
+);
+
+const WaveTopLines = ({ primaryColor, secondaryColor }: { primaryColor: string; secondaryColor: string }) => (
+  <Svg viewBox={`0 0 ${WAVE_VIEWBOX_WIDTH} ${WAVE_TOP_VIEWBOX_HEIGHT}`} preserveAspectRatio="none" style={{ position: 'absolute', top: 0, left: 0, width: PAGE_WIDTH, height: PAGE_HEIGHT * 0.22 }}>
+    <Rect x={0} y={0} width={400} height={60} fill={primaryColor} />
+    <Line x1={0} y1={60} x2={400} y2={60} stroke={secondaryColor} strokeWidth={3} />
+    <Line x1={0} y1={50} x2={400} y2={50} stroke={secondaryColor} strokeWidth={1} opacity={0.5} />
+    <Line x1={0} y1={40} x2={400} y2={40} stroke={secondaryColor} strokeWidth={1} opacity={0.3} />
+    {/* Diagonal accent lines */}
+    <Line x1={0} y1={0} x2={40} y2={60} stroke={secondaryColor} strokeWidth={0.5} opacity={0.2} />
+    <Line x1={50} y1={0} x2={90} y2={60} stroke={secondaryColor} strokeWidth={0.5} opacity={0.2} />
+    <Line x1={100} y1={0} x2={140} y2={60} stroke={secondaryColor} strokeWidth={0.5} opacity={0.2} />
+    <Line x1={150} y1={0} x2={190} y2={60} stroke={secondaryColor} strokeWidth={0.5} opacity={0.2} />
+    <Line x1={200} y1={0} x2={240} y2={60} stroke={secondaryColor} strokeWidth={0.5} opacity={0.2} />
+    <Line x1={250} y1={0} x2={290} y2={60} stroke={secondaryColor} strokeWidth={0.5} opacity={0.2} />
+    <Line x1={300} y1={0} x2={340} y2={60} stroke={secondaryColor} strokeWidth={0.5} opacity={0.2} />
+    <Line x1={350} y1={0} x2={390} y2={60} stroke={secondaryColor} strokeWidth={0.5} opacity={0.2} />
+  </Svg>
+);
+
+const WaveTopDiagonal = ({ primaryColor, secondaryColor }: { primaryColor: string; secondaryColor: string }) => (
+  <Svg viewBox={`0 0 ${WAVE_VIEWBOX_WIDTH} ${WAVE_TOP_VIEWBOX_HEIGHT}`} preserveAspectRatio="none" style={{ position: 'absolute', top: 0, left: 0, width: PAGE_WIDTH, height: PAGE_HEIGHT * 0.22 }}>
+    <Path d="M0,0 L400,0 L400,40 L0,80 Z" fill={primaryColor} />
+    <Path d="M0,85 L400,45" fill="none" stroke={secondaryColor} strokeWidth={2} />
+  </Svg>
+);
+
+// Wave renderer functions
+const renderBottomWave = (style: string, primaryColor: string, secondaryColor: string) => {
+  switch (style) {
+    case 'geometric':
+      return <WaveBottomGeometric primaryColor={primaryColor} secondaryColor={secondaryColor} />;
+    case 'lines':
+      return <WaveBottomLines primaryColor={primaryColor} secondaryColor={secondaryColor} />;
+    case 'diagonal':
+      return <WaveBottomDiagonal primaryColor={primaryColor} secondaryColor={secondaryColor} />;
+    case 'curves':
+    default:
+      return <WaveBottomCurves primaryColor={primaryColor} secondaryColor={secondaryColor} />;
   }
 };
 
-const getAccentPath = (style: string, position: 'bottom' | 'top', width: number, height: number) => {
-  if (position === 'bottom') {
-    switch (style) {
-      case 'geometric':
-        return `M0,${height * 0.65} L${width * 0.2},${height * 0.4} L${width * 0.4},${height * 0.6} L${width * 0.6},${height * 0.35} L${width * 0.8},${height * 0.55} L${width},${height * 0.3}`;
-      case 'lines':
-        return `M0,${height * 0.5} L${width},${height * 0.5}`;
-      case 'diagonal':
-        return `M0,${height * 0.7} L${width},${height * 0.3}`;
-      case 'curves':
-      default:
-        return `M0,${height * 0.53} Q${width * 0.25},${height * 0.3} ${width * 0.5},${height * 0.53} T${width},${height * 0.53}`;
-    }
-  } else {
-    switch (style) {
-      case 'geometric':
-        return `M0,${height * 0.55} L${width * 0.2},${height * 0.4} L${width * 0.4},${height * 0.65} L${width * 0.6},${height * 0.45} L${width * 0.8},${height * 0.75} L${width},${height * 0.55}`;
-      case 'lines':
-        return `M0,${height * 0.6} L${width},${height * 0.6}`;
-      case 'diagonal':
-        return `M0,${height * 0.85} L${width},${height * 0.45}`;
-      case 'curves':
-      default:
-        return `M0,${height * 0.65} Q${width * 0.25},${height * 0.95} ${width * 0.5},${height * 0.65} T${width},${height * 0.65}`;
-    }
+const renderTopWave = (style: string, primaryColor: string, secondaryColor: string) => {
+  switch (style) {
+    case 'geometric':
+      return <WaveTopGeometric primaryColor={primaryColor} secondaryColor={secondaryColor} />;
+    case 'lines':
+      return <WaveTopLines primaryColor={primaryColor} secondaryColor={secondaryColor} />;
+    case 'diagonal':
+      return <WaveTopDiagonal primaryColor={primaryColor} secondaryColor={secondaryColor} />;
+    case 'curves':
+    default:
+      return <WaveTopCurves primaryColor={primaryColor} secondaryColor={secondaryColor} />;
   }
 };
 
@@ -130,10 +186,6 @@ export const CertificatePreviewPdf = ({ config }: PreviewPdfProps) => {
     code: 'ABC1-DEF2-GHI3',
   };
 
-  const pageWidth = 842; // A4 landscape width in points
-  const pageHeight = 595; // A4 landscape height in points
-  const waveHeight = pageHeight * 0.35;
-
   const styles = StyleSheet.create({
     page: {
       flexDirection: 'column',
@@ -155,13 +207,13 @@ export const CertificatePreviewPdf = ({ config }: PreviewPdfProps) => {
       alignItems: 'center',
       justifyContent: 'center',
       paddingTop: 60,
-      paddingBottom: 120,
+      paddingBottom: 140,
       paddingHorizontal: 60,
       zIndex: 10,
     },
     header: {
       alignItems: 'center',
-      marginBottom: 20,
+      marginBottom: 15,
     },
     logo: {
       width: 60,
@@ -184,25 +236,25 @@ export const CertificatePreviewPdf = ({ config }: PreviewPdfProps) => {
       marginTop: 4,
     },
     certifyText: {
-      fontSize: 12,
+      fontSize: 11,
       color: `${textColor}99`,
       letterSpacing: 1,
       textTransform: 'uppercase',
-      marginTop: 20,
+      marginTop: 15,
     },
     studentName: {
-      fontSize: 36,
-      fontFamily: 'Georgia',
+      fontSize: 34,
+      fontFamily: 'Montserrat',
       fontWeight: 700,
-      color: secondaryColor,
-      marginTop: 15,
-      marginBottom: 15,
       fontStyle: 'italic',
+      color: secondaryColor,
+      marginTop: 12,
+      marginBottom: 12,
     },
     decorativeLine: {
       flexDirection: 'row',
       alignItems: 'center',
-      marginVertical: 10,
+      marginVertical: 8,
     },
     lineSegment: {
       width: 60,
@@ -217,28 +269,28 @@ export const CertificatePreviewPdf = ({ config }: PreviewPdfProps) => {
       marginHorizontal: 10,
     },
     completionText: {
-      fontSize: 12,
+      fontSize: 11,
       color: `${textColor}80`,
-      marginTop: 10,
+      marginTop: 8,
     },
     courseName: {
-      fontSize: 20,
+      fontSize: 18,
       fontFamily: 'Montserrat',
       fontWeight: 700,
       color: primaryColor,
-      marginTop: 8,
+      marginTop: 6,
       textAlign: 'center',
     },
     institutionSubtitle: {
-      fontSize: 10,
+      fontSize: 9,
       color: `${textColor}60`,
-      marginTop: 15,
+      marginTop: 12,
       textAlign: 'center',
-      maxWidth: 400,
+      maxWidth: 380,
     },
     footer: {
       position: 'absolute',
-      bottom: 80,
+      bottom: 70,
       left: 60,
       right: 60,
       flexDirection: 'row',
@@ -266,18 +318,19 @@ export const CertificatePreviewPdf = ({ config }: PreviewPdfProps) => {
     },
     badge: {
       position: 'absolute',
-      top: 40,
+      top: 35,
       alignItems: 'center',
     },
     badgeCircle: {
-      width: 50,
-      height: 50,
-      borderRadius: 25,
+      width: 48,
+      height: 48,
+      borderRadius: 24,
       alignItems: 'center',
       justifyContent: 'center',
     },
     badgeText: {
       fontSize: 6,
+      fontFamily: 'Montserrat',
       fontWeight: 700,
       color: primaryColor,
       textTransform: 'uppercase',
@@ -288,55 +341,73 @@ export const CertificatePreviewPdf = ({ config }: PreviewPdfProps) => {
       flex: 1,
       alignItems: 'center',
       justifyContent: 'center',
-      paddingTop: 100,
+      paddingTop: 90,
       paddingBottom: 60,
       paddingHorizontal: 80,
       zIndex: 10,
     },
     backTitle: {
-      fontSize: 18,
+      fontSize: 16,
       fontFamily: 'Montserrat',
       fontWeight: 700,
       color: primaryColor,
       letterSpacing: 2,
       textTransform: 'uppercase',
-      marginBottom: 30,
+      marginBottom: 25,
     },
     backText: {
-      fontSize: 12,
+      fontSize: 11,
       color: textColor,
       textAlign: 'center',
       lineHeight: 1.6,
-      maxWidth: 500,
-      marginBottom: 30,
+      maxWidth: 480,
+      marginBottom: 25,
     },
     qrPlaceholder: {
-      width: 80,
-      height: 80,
+      width: 70,
+      height: 70,
       borderWidth: 2,
       borderColor: primaryColor,
       backgroundColor: 'white',
       alignItems: 'center',
       justifyContent: 'center',
-      marginBottom: 15,
+      marginBottom: 12,
+    },
+    qrGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      width: 50,
+      height: 50,
+    },
+    qrCell: {
+      width: 10,
+      height: 10,
     },
     validationText: {
-      fontSize: 10,
+      fontSize: 9,
       color: `${textColor}80`,
     },
     validationUrl: {
-      fontSize: 14,
+      fontSize: 13,
       fontFamily: 'Montserrat',
       fontWeight: 700,
       color: primaryColor,
-      marginTop: 5,
+      marginTop: 4,
     },
     codeText: {
-      fontSize: 12,
+      fontSize: 11,
       color: secondaryColor,
-      marginTop: 10,
+      marginTop: 8,
+    },
+    scanText: {
+      fontSize: 8,
+      color: `${textColor}80`,
+      marginBottom: 15,
     },
   });
+
+  // QR Code pattern matching the visual preview
+  const qrPattern = [0,1,2,3,4,5,9,10,14,15,19,20,21,22,23,24];
 
   return (
     <Document>
@@ -346,24 +417,24 @@ export const CertificatePreviewPdf = ({ config }: PreviewPdfProps) => {
         <View style={styles.borderFrame} />
 
         {/* Left Badge */}
-        <View style={[styles.badge, { left: 40 }]}>
+        <View style={[styles.badge, { left: 35 }]}>
           {config.left_badge_url ? (
-            <Image src={config.left_badge_url} style={{ width: 50, height: 50 }} />
+            <Image src={config.left_badge_url} style={{ width: 48, height: 48, objectFit: 'contain' }} />
           ) : (
             <View style={[styles.badgeCircle, { borderWidth: 2, borderColor: secondaryColor, backgroundColor: primaryColor }]}>
-              <Text style={{ fontSize: 20, color: secondaryColor }}>★</Text>
+              <Text style={{ fontSize: 22, color: secondaryColor }}>★</Text>
             </View>
           )}
           <Text style={styles.badgeText}>{config.left_badge_text || 'PREMIUM'}</Text>
         </View>
 
         {/* Right Badge */}
-        <View style={[styles.badge, { right: 40 }]}>
+        <View style={[styles.badge, { right: 35 }]}>
           {config.right_badge_url ? (
-            <Image src={config.right_badge_url} style={{ width: 50, height: 50 }} />
+            <Image src={config.right_badge_url} style={{ width: 48, height: 48, objectFit: 'contain' }} />
           ) : (
             <View style={[styles.badgeCircle, { backgroundColor: secondaryColor }]}>
-              <Text style={{ fontSize: 20, color: 'white' }}>★</Text>
+              <Text style={{ fontSize: 22, color: 'white' }}>★</Text>
             </View>
           )}
           <Text style={styles.badgeText}>{config.right_badge_text || 'QUALIDADE'}</Text>
@@ -422,20 +493,7 @@ export const CertificatePreviewPdf = ({ config }: PreviewPdfProps) => {
         </View>
 
         {/* Bottom Waves */}
-        {showFrontWaves && (
-          <Svg style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: waveHeight }}>
-            <Path
-              d={getWavePath(frontWaveStyle, 'bottom', pageWidth, waveHeight)}
-              fill={primaryColor}
-            />
-            <Path
-              d={getAccentPath(frontWaveStyle, 'bottom', pageWidth, waveHeight)}
-              fill="none"
-              stroke={secondaryColor}
-              strokeWidth={2}
-            />
-          </Svg>
-        )}
+        {showFrontWaves && renderBottomWave(frontWaveStyle, primaryColor, secondaryColor)}
       </Page>
 
       {/* Back Page */}
@@ -445,25 +503,12 @@ export const CertificatePreviewPdf = ({ config }: PreviewPdfProps) => {
           <View style={styles.borderFrame} />
 
           {/* Top Waves */}
-          {showBackWaves && (
-            <Svg style={{ position: 'absolute', top: 0, left: 0, right: 0, height: waveHeight * 0.7 }}>
-              <Path
-                d={getWavePath(backWaveStyle, 'top', pageWidth, waveHeight * 0.7)}
-                fill={primaryColor}
-              />
-              <Path
-                d={getAccentPath(backWaveStyle, 'top', pageWidth, waveHeight * 0.7)}
-                fill="none"
-                stroke={secondaryColor}
-                strokeWidth={2}
-              />
-            </Svg>
-          )}
+          {showBackWaves && renderTopWave(backWaveStyle, primaryColor, secondaryColor)}
 
           {/* Content */}
           <View style={styles.backContent}>
             {config.institution_logo_url && (
-              <Image src={config.institution_logo_url} style={{ width: 50, height: 50, marginBottom: 20 }} />
+              <Image src={config.institution_logo_url} style={{ width: 50, height: 50, marginBottom: 15, objectFit: 'contain' }} />
             )}
 
             <Text style={styles.backTitle}>
@@ -477,13 +522,23 @@ export const CertificatePreviewPdf = ({ config }: PreviewPdfProps) => {
             {config.show_qr_code !== false && (
               <>
                 <View style={styles.qrPlaceholder}>
-                  <Text style={{ fontSize: 8, color: primaryColor }}>QR Code</Text>
+                  <View style={styles.qrGrid}>
+                    {Array.from({ length: 25 }).map((_, i) => (
+                      <View 
+                        key={i} 
+                        style={[
+                          styles.qrCell, 
+                          { backgroundColor: qrPattern.includes(i) ? primaryColor : 'transparent' }
+                        ]} 
+                      />
+                    ))}
+                  </View>
                 </View>
-                <Text style={{ fontSize: 8, color: `${textColor}80` }}>Escaneie para validar</Text>
+                <Text style={styles.scanText}>Escaneie para validar</Text>
               </>
             )}
 
-            <Text style={[styles.validationText, { marginTop: 20 }]}>
+            <Text style={styles.validationText}>
               {config.back_validation_text || 'Para validar este certificado, acesse:'}
             </Text>
             <Text style={styles.validationUrl}>

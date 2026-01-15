@@ -219,6 +219,11 @@ export function SupportChat() {
                 <Headphones className="h-4 w-4 mr-2" />
                 Falar com Humano
               </Button>
+              {!user && (
+                <p className="text-xs text-muted-foreground text-center mt-1">
+                  Faça login para abrir um ticket de suporte
+                </p>
+              )}
             </div>
 
             {/* Input */}

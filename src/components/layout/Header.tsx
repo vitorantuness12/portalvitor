@@ -16,6 +16,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import logo from '@/assets/icone_formar.png';
+import logoText from '@/assets/logo_text.png';
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -58,7 +59,7 @@ export function Header() {
         <div className="flex h-16 items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
             <img src={logo} alt="Formar Ensino" className="h-12 w-12 object-contain" />
-            <span className="text-xl font-display font-bold">Formar Ensino</span>
+            <img src={logoText} alt="Formar Ensino" className="h-8 object-contain hidden sm:block" />
           </Link>
 
           {/* Desktop Navigation */}

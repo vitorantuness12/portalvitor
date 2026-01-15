@@ -248,22 +248,24 @@ export default function StudentDashboard() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
             >
-              <Card className="h-full">
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Certificados</p>
-                      <p className="text-2xl sm:text-3xl font-bold">{stats.certificates}</p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        conquistados
-                      </p>
+              <Link to="/meus-certificados">
+                <Card className="h-full hover:shadow-md transition-shadow cursor-pointer group">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Certificados</p>
+                        <p className="text-2xl sm:text-3xl font-bold">{stats.certificates}</p>
+                        <p className="text-xs text-muted-foreground mt-1 group-hover:text-primary transition-colors">
+                          Ver todos →
+                        </p>
+                      </div>
+                      <div className="p-3 bg-amber-500/10 rounded-lg group-hover:bg-amber-500/20 transition-colors">
+                        <Award className="h-5 w-5 sm:h-6 sm:w-6 text-amber-500" />
+                      </div>
                     </div>
-                    <div className="p-3 bg-amber-500/10 rounded-lg">
-                      <Award className="h-5 w-5 sm:h-6 sm:w-6 text-amber-500" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </Link>
             </motion.div>
           </div>
 

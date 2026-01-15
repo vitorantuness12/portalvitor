@@ -98,7 +98,7 @@ export function TestimonialsSection() {
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-lg truncate">{testimonial.name}</h3>
+                  <h3 className="font-display font-semibold text-lg tracking-tight truncate">{testimonial.name}</h3>
                   <p className="text-sm text-muted-foreground truncate">
                     {testimonial.course}
                   </p>
@@ -115,7 +115,7 @@ export function TestimonialsSection() {
                 
                 {/* Score badge */}
                 <div className="flex flex-col items-center">
-                  <div className={`text-2xl font-bold ${testimonial.score >= 9.5 ? 'text-emerald-500' : testimonial.score >= 8 ? 'text-primary' : 'text-amber-500'}`}>
+                  <div className={`font-display text-2xl font-bold tracking-tight ${testimonial.score >= 9.5 ? 'text-emerald-500' : testimonial.score >= 8 ? 'text-primary' : 'text-amber-500'}`}>
                     {testimonial.score.toFixed(1)}
                   </div>
                   <span className="text-[10px] text-muted-foreground uppercase tracking-wide">Nota</span>
@@ -168,7 +168,7 @@ export function TestimonialsSection() {
               className="flex flex-col items-center p-4 rounded-xl bg-card border border-border"
             >
               <stat.icon className="h-5 w-5 text-primary mb-2" />
-              <span className="text-2xl sm:text-3xl font-bold">{stat.value}</span>
+              <span className="font-display text-2xl sm:text-3xl font-bold tracking-tight">{stat.value}</span>
               <span className="text-xs sm:text-sm text-muted-foreground text-center">{stat.label}</span>
             </div>
           ))}

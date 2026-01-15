@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Mail, Phone, MapPin } from 'lucide-react';
-import logo from '@/assets/logo.png';
+import logo from '@/assets/icone_formar.png';
+import logoText from '@/assets/logo_text.png';
 
 export function Footer() {
   return (
@@ -10,8 +11,8 @@ export function Footer() {
           {/* Brand */}
           <div className="space-y-4">
             <Link to="/" className="flex items-center gap-2">
-              <img src={logo} alt="Formar Ensino" className="h-10 w-10 object-contain" />
-              <span className="text-xl font-display font-bold">Formar Ensino</span>
+              <img src={logo} alt="Formar Ensino" className="h-12 w-12 object-contain" />
+              <img src={logoText} alt="Formar Ensino" className="h-8 object-contain" />
             </Link>
             <p className="text-sm text-muted-foreground">
               Transformando vidas através da educação online de qualidade.

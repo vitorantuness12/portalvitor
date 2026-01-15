@@ -84,9 +84,10 @@ export function SupportChat() {
     if (!user) {
       toast({
         title: 'Faça login',
-        description: 'Você precisa estar logado para abrir um ticket.',
+        description: 'Você precisa estar logado para abrir um ticket de suporte.',
         variant: 'destructive',
       });
+      navigate('/auth');
       return;
     }
 
@@ -126,8 +127,6 @@ export function SupportChat() {
       sendMessage();
     }
   };
-
-  if (!user) return null;
 
   return (
     <>

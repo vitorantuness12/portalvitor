@@ -199,6 +199,7 @@
 }
 
 /* Hide Lovable badge */
+aside#lovable-badge,
 a[href*="lovable.dev"],
 iframe[src*="lovable.dev"],
 div[style*="Edit with Lovable"],

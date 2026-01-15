@@ -11,8 +11,11 @@ import {
   RotateCcw,
   Settings2,
   Award,
-  PenTool
+  PenTool,
+  PanelRightClose,
+  PanelRightOpen
 } from 'lucide-react';
+import { CertificatePreview } from '@/components/admin/CertificatePreview';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -59,6 +62,7 @@ export default function CertificateConfig() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [uploading, setUploading] = useState<'logo' | 'signature' | null>(null);
+  const [showPreview, setShowPreview] = useState(true);
 
   const [config, setConfig] = useState<Partial<CertificateConfigData>>({});
 
@@ -196,6 +200,14 @@ export default function CertificateConfig() {
           </p>
         </div>
         <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            size="icon"
+            onClick={() => setShowPreview(!showPreview)}
+            title={showPreview ? 'Ocultar Preview' : 'Mostrar Preview'}
+          >
+            {showPreview ? <PanelRightClose className="h-4 w-4" /> : <PanelRightOpen className="h-4 w-4" />}
+          </Button>
           <Button variant="outline" onClick={resetToDefaults}>
             <RotateCcw className="h-4 w-4 mr-2" />
             Restaurar Padrão
@@ -211,29 +223,31 @@ export default function CertificateConfig() {
         </div>
       </div>
 
-      <Tabs defaultValue="institution" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5 h-auto">
-          <TabsTrigger value="institution" className="flex items-center gap-2 py-2">
-            <Settings2 className="h-4 w-4" />
-            <span className="hidden sm:inline">Instituição</span>
-          </TabsTrigger>
-          <TabsTrigger value="front" className="flex items-center gap-2 py-2">
-            <FileText className="h-4 w-4" />
-            <span className="hidden sm:inline">Frente</span>
-          </TabsTrigger>
-          <TabsTrigger value="back" className="flex items-center gap-2 py-2">
-            <FileText className="h-4 w-4" />
-            <span className="hidden sm:inline">Verso</span>
-          </TabsTrigger>
-          <TabsTrigger value="signature" className="flex items-center gap-2 py-2">
-            <PenTool className="h-4 w-4" />
-            <span className="hidden sm:inline">Assinatura</span>
-          </TabsTrigger>
-          <TabsTrigger value="style" className="flex items-center gap-2 py-2">
-            <Palette className="h-4 w-4" />
-            <span className="hidden sm:inline">Estilo</span>
-          </TabsTrigger>
-        </TabsList>
+      <div className={`grid gap-6 ${showPreview ? 'lg:grid-cols-[1fr,350px]' : ''}`}>
+        <div className="space-y-6">
+          <Tabs defaultValue="institution" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5 h-auto">
+              <TabsTrigger value="institution" className="flex items-center gap-2 py-2">
+                <Settings2 className="h-4 w-4" />
+                <span className="hidden sm:inline">Instituição</span>
+              </TabsTrigger>
+              <TabsTrigger value="front" className="flex items-center gap-2 py-2">
+                <FileText className="h-4 w-4" />
+                <span className="hidden sm:inline">Frente</span>
+              </TabsTrigger>
+              <TabsTrigger value="back" className="flex items-center gap-2 py-2">
+                <FileText className="h-4 w-4" />
+                <span className="hidden sm:inline">Verso</span>
+              </TabsTrigger>
+              <TabsTrigger value="signature" className="flex items-center gap-2 py-2">
+                <PenTool className="h-4 w-4" />
+                <span className="hidden sm:inline">Assinatura</span>
+              </TabsTrigger>
+              <TabsTrigger value="style" className="flex items-center gap-2 py-2">
+                <Palette className="h-4 w-4" />
+                <span className="hidden sm:inline">Estilo</span>
+              </TabsTrigger>
+            </TabsList>
 
         {/* Institution Tab */}
         <TabsContent value="institution">
@@ -707,7 +721,16 @@ export default function CertificateConfig() {
             </CardContent>
           </Card>
         </TabsContent>
-      </Tabs>
+          </Tabs>
+        </div>
+
+        {/* Certificate Preview */}
+        {showPreview && (
+          <div className="hidden lg:block">
+            <CertificatePreview config={config} />
+          </div>
+        )}
+      </div>
     </div>
   );
 }

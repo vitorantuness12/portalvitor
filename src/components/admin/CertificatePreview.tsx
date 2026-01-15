@@ -1,6 +1,9 @@
 import { motion } from 'framer-motion';
-import { Eye, Award, Star } from 'lucide-react';
+import { Eye, Award, Star, Download, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import { CertificatePreviewPdf } from './CertificatePreviewPdf';
 
 interface CertificateConfigData {
   institution_name?: string;
@@ -561,6 +564,33 @@ export function CertificatePreview({ config }: CertificatePreviewProps) {
             </motion.div>
           </div>
         )}
+
+        {/* Download PDF Button */}
+        <PDFDownloadLink
+          document={<CertificatePreviewPdf config={config} />}
+          fileName="preview-certificado.pdf"
+          className="w-full"
+        >
+          {({ loading }) => (
+            <Button 
+              variant="outline" 
+              className="w-full"
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Gerando PDF...
+                </>
+              ) : (
+                <>
+                  <Download className="h-4 w-4 mr-2" />
+                  Baixar Preview em PDF
+                </>
+              )}
+            </Button>
+          )}
+        </PDFDownloadLink>
 
         <p className="text-[10px] text-muted-foreground text-center">
           * Preview ilustrativo. O certificado final será gerado em PDF A4 paisagem.

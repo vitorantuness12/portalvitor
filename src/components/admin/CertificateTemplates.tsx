@@ -175,68 +175,80 @@ export function CertificateTemplates({ selectedTemplate, onSelectTemplate }: Cer
               )}
               
               <CardContent className="p-0">
-                {/* Mini Preview */}
+                {/* Mini Preview with wave design */}
                 <div 
-                  className="aspect-[1.5/1] p-3 relative"
+                  className="aspect-[1.5/1] relative overflow-hidden"
                   style={{ backgroundColor: preview.background_color }}
                 >
+                  {/* Gold border */}
                   <div 
-                    className="w-full h-full rounded-sm flex flex-col items-center justify-center p-2"
-                    style={{
-                      border: preview.border_style === 'ornate' 
-                        ? `3px double ${preview.primary_color}`
-                        : preview.border_style === 'modern'
-                        ? `2px solid ${preview.primary_color}`
-                        : `1px solid ${preview.primary_color}`,
-                    }}
+                    className="absolute inset-1.5 rounded-sm pointer-events-none"
+                    style={{ border: `1px solid ${preview.secondary_color}` }}
+                  />
+                  
+                  {/* Wave decoration at bottom */}
+                  <svg 
+                    className="absolute bottom-0 left-0 right-0 w-full h-[40%]" 
+                    viewBox="0 0 100 40" 
+                    preserveAspectRatio="none"
                   >
-                    {/* Mini Header */}
-                    <div 
-                      className="w-8 h-1 rounded mb-1"
-                      style={{
-                        background: preview.accent_gradient
-                          ? `linear-gradient(135deg, ${preview.primary_color}, ${preview.secondary_color})`
-                          : preview.primary_color,
-                      }}
+                    <path
+                      d="M0,20 Q25,10 50,20 T100,20 L100,40 L0,40 Z"
+                      fill={preview.primary_color}
                     />
-                    
-                    {/* Title placeholder */}
-                    <div 
-                      className="w-16 h-1.5 rounded mb-2"
-                      style={{ backgroundColor: preview.text_color }}
+                    <path
+                      d="M0,22 Q25,12 50,22 T100,22"
+                      fill="none"
+                      stroke={preview.secondary_color}
+                      strokeWidth="0.5"
                     />
-                    
-                    {/* Name placeholder */}
+                  </svg>
+                  
+                  {/* Left badge placeholder */}
+                  <div 
+                    className="absolute top-2 left-2 w-4 h-4 rounded-full flex items-center justify-center"
+                    style={{ 
+                      border: `1px solid ${preview.secondary_color}`,
+                      backgroundColor: preview.primary_color,
+                    }}
+                  />
+                  
+                  {/* Right badge placeholder */}
+                  <div 
+                    className="absolute top-2 right-2 w-4 h-4 rounded-full"
+                    style={{ backgroundColor: preview.secondary_color }}
+                  />
+                  
+                  {/* Content */}
+                  <div className="relative z-10 flex flex-col items-center justify-center h-full px-4 pb-8 pt-4">
+                    {/* Title */}
                     <div 
-                      className="w-20 h-2 rounded mb-1"
-                      style={{ 
-                        background: preview.accent_gradient
-                          ? `linear-gradient(135deg, ${preview.primary_color}, ${preview.secondary_color})`
-                          : preview.primary_color,
-                      }}
+                      className="w-12 h-1 rounded mb-0.5"
+                      style={{ backgroundColor: preview.primary_color }}
                     />
-                    
-                    {/* Course placeholder */}
                     <div 
-                      className="w-14 h-1 rounded mb-2"
+                      className="w-8 h-0.5 rounded mb-2"
                       style={{ backgroundColor: `${preview.text_color}60` }}
                     />
                     
-                    {/* Details row */}
-                    <div className="flex gap-2">
-                      <div 
-                        className="w-6 h-0.5 rounded"
-                        style={{ backgroundColor: `${preview.text_color}40` }}
-                      />
-                      <div 
-                        className="w-6 h-0.5 rounded"
-                        style={{ backgroundColor: `${preview.text_color}40` }}
-                      />
-                      <div 
-                        className="w-6 h-0.5 rounded"
-                        style={{ backgroundColor: `${preview.text_color}40` }}
-                      />
+                    {/* Name - gold/secondary */}
+                    <div 
+                      className="w-16 h-1.5 rounded mb-1"
+                      style={{ backgroundColor: preview.secondary_color }}
+                    />
+                    
+                    {/* Decorative line */}
+                    <div className="flex items-center gap-1 mb-1">
+                      <div className="w-4 h-[1px]" style={{ backgroundColor: preview.secondary_color }} />
+                      <div className="w-1 h-1 rounded-full" style={{ backgroundColor: preview.secondary_color }} />
+                      <div className="w-4 h-[1px]" style={{ backgroundColor: preview.secondary_color }} />
                     </div>
+                    
+                    {/* Course */}
+                    <div 
+                      className="w-14 h-1 rounded"
+                      style={{ backgroundColor: preview.primary_color }}
+                    />
                   </div>
                 </div>
                 

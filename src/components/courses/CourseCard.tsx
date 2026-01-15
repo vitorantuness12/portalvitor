@@ -73,7 +73,7 @@ export function CourseCard({
 
       <div className="p-4 sm:p-5 space-y-3 sm:space-y-4">
         <div className="space-y-1.5 sm:space-y-2">
-          <h3 className="font-semibold text-base sm:text-lg line-clamp-2 group-hover:text-primary transition-colors">
+          <h3 className="font-display font-semibold text-base sm:text-lg leading-tight tracking-tight line-clamp-2 group-hover:text-primary transition-colors">
             {title}
           </h3>
           {shortDescription && (
@@ -94,7 +94,7 @@ export function CourseCard({
         </div>
 
         <div className="flex items-center justify-between pt-2 border-t border-border gap-2">
-          <span className="text-lg sm:text-xl font-bold text-primary">
+          <span className="font-display text-lg sm:text-xl font-bold tracking-tight text-primary">
             {formatPrice(price)}
           </span>
           <Link to={`/curso/${id}`}>

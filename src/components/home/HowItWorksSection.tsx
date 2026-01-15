@@ -96,7 +96,7 @@ export function HowItWorksSection() {
                     </div>
                   )}
 
-                  <h3 className="font-semibold text-lg mb-2">{step.title}</h3>
+                  <h3 className="font-display font-semibold text-lg tracking-tight mb-2">{step.title}</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
                     {step.description}
                   </p>
@@ -136,7 +136,7 @@ export function HowItWorksSection() {
                         <CheckCircle className="h-4 w-4 text-emerald-500" />
                       )}
                     </div>
-                    <h3 className="font-semibold text-base mb-1">{step.title}</h3>
+                    <h3 className="font-display font-semibold text-base tracking-tight mb-1">{step.title}</h3>
                     <p className="text-sm text-muted-foreground">
                       {step.description}
                     </p>

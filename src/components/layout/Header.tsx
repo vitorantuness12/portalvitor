@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Menu, X, LogOut, LayoutDashboard, TrendingUp, Settings, BookOpen } from 'lucide-react';
+import { Menu, X, LogOut, LayoutDashboard, TrendingUp, Settings, BookOpen, Award } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
@@ -115,6 +115,12 @@ export function Header() {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
+                    <Link to="/meus-certificados" className="cursor-pointer">
+                      <Award className="mr-2 h-4 w-4" />
+                      Meus Certificados
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
                     <Link to="/perfil" className="cursor-pointer">
                       <Settings className="mr-2 h-4 w-4" />
                       Editar Perfil
@@ -204,6 +210,16 @@ export function Header() {
                     }}
                   >
                     Meus Cursos
+                  </button>
+                  <button
+                    type="button"
+                    className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors text-left"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      navigate('/meus-certificados');
+                    }}
+                  >
+                    Meus Certificados
                   </button>
                   <Link
                     to="/perfil"

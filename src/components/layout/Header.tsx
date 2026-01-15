@@ -57,9 +57,9 @@ export function Header() {
     >
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <img src={logo} alt="Formar Ensino" className="h-10 w-10 sm:h-12 sm:w-12 object-contain" />
-            <img src={logoText} alt="Formar Ensino" className="h-6 sm:h-8 object-contain hidden xs:block" />
+          <Link to="/" className="flex items-center gap-1.5 sm:gap-2">
+            <img src={logo} alt="Formar Ensino" className="h-9 w-9 sm:h-12 sm:w-12 object-contain" />
+            <img src={logoText} alt="Formar Ensino" className="h-5 sm:h-8 object-contain" />
           </Link>
 
           {/* Desktop Navigation */}

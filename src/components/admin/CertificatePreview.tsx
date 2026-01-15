@@ -85,21 +85,39 @@ export function CertificatePreview({ config }: CertificatePreviewProps) {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.2 }}
-            className="aspect-[1.414/1] rounded-lg overflow-hidden shadow-lg"
+            className="aspect-[1.414/1] rounded-lg overflow-hidden shadow-lg relative"
             style={{ backgroundColor }}
           >
+            {/* Decorative wave at bottom */}
+            <div 
+              className="absolute bottom-0 left-0 right-0 h-[35%] z-0"
+              style={{
+                background: `linear-gradient(180deg, transparent 0%, ${primaryColor} 50%)`,
+                clipPath: 'ellipse(80% 100% at 50% 100%)',
+              }}
+            />
+            
+            {/* Gold accent line */}
+            <div 
+              className="absolute bottom-[25%] left-0 right-0 h-[2px] z-10"
+              style={{
+                background: `linear-gradient(90deg, transparent, ${secondaryColor}, transparent)`,
+              }}
+            />
+            
+            {/* Main content */}
             <div
-              className="w-full h-full p-3"
+              className="w-full h-full p-3 relative z-20"
               style={{
                 border: borderStyles.outer,
-                borderColor: primaryColor,
+                borderColor: secondaryColor,
               }}
             >
               <div
-                className="w-full h-full p-3 flex flex-col items-center justify-between"
+                className="w-full h-full p-3 flex flex-col items-center justify-between relative"
                 style={{
                   border: borderStyles.inner,
-                  borderColor: `${primaryColor}40`,
+                  borderColor: `${secondaryColor}60`,
                 }}
               >
                 {/* Header */}
@@ -112,27 +130,21 @@ export function CertificatePreview({ config }: CertificatePreviewProps) {
                     />
                   )}
                   <p
-                    className="text-[10px] font-bold"
-                    style={{
-                      color: showGradient ? primaryColor : primaryColor,
-                      background: showGradient
-                        ? `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`
-                        : undefined,
-                      WebkitBackgroundClip: showGradient ? 'text' : undefined,
-                      WebkitTextFillColor: showGradient ? 'transparent' : undefined,
-                    }}
+                    className="text-[10px] font-bold tracking-wider"
+                    style={{ color: primaryColor }}
                   >
                     {config.institution_name || 'Formar Ensino'}
                   </p>
                   <p
-                    className="text-[7px] font-bold mt-0.5"
+                    className="text-[8px] font-bold mt-1 tracking-widest uppercase"
                     style={{ color: textColor }}
                   >
                     {config.front_title || 'CERTIFICADO DE CONCLUSÃO'}
                   </p>
-                  <p className="text-[5px] text-gray-500">
-                    {config.institution_subtitle || 'Curso Livre Online'}
-                  </p>
+                  <div 
+                    className="w-16 h-[1px] mx-auto mt-1"
+                    style={{ backgroundColor: secondaryColor }}
+                  />
                 </div>
 
                 {/* Body */}
@@ -141,8 +153,11 @@ export function CertificatePreview({ config }: CertificatePreviewProps) {
                     {config.front_subtitle || 'Certificamos que'}
                   </p>
                   <p
-                    className="text-[9px] font-bold mb-1"
-                    style={{ color: textColor }}
+                    className="text-[10px] font-bold mb-1"
+                    style={{ 
+                      color: secondaryColor,
+                      fontStyle: 'italic',
+                    }}
                   >
                     {sampleData.studentName}
                   </p>
@@ -157,7 +172,7 @@ export function CertificatePreview({ config }: CertificatePreviewProps) {
                   </p>
 
                   {/* Details */}
-                  <div className="flex justify-center gap-3 mt-1">
+                  <div className="flex justify-center gap-4 mt-2">
                     <div className="text-center">
                       <p className="text-[4px] text-gray-400 uppercase">
                         {config.front_hours_text || 'Carga Horária'}
@@ -186,34 +201,32 @@ export function CertificatePreview({ config }: CertificatePreviewProps) {
                 </div>
 
                 {/* Signature */}
-                <div className="text-center">
-                  {config.signature_image_url && (
-                    <img
-                      src={config.signature_image_url}
-                      alt="Assinatura"
-                      className="w-12 h-4 object-contain mx-auto mb-0.5"
-                    />
-                  )}
-                  <div
-                    className="border-t pt-0.5 px-4"
-                    style={{ borderColor: '#CBD5E1' }}
-                  >
-                    <p className="text-[5px] font-bold" style={{ color: textColor }}>
-                      {config.signature_name || 'Diretor(a) Acadêmico(a)'}
-                    </p>
-                    <p className="text-[4px] text-gray-500">
-                      {config.signature_title || config.institution_name || 'Formar Ensino'}
-                    </p>
+                <div className="text-center relative z-30">
+                  <div className="flex justify-center gap-8">
+                    <div>
+                      {config.signature_image_url && (
+                        <img
+                          src={config.signature_image_url}
+                          alt="Assinatura"
+                          className="w-12 h-4 object-contain mx-auto mb-0.5"
+                        />
+                      )}
+                      <div
+                        className="border-t pt-0.5 px-4"
+                        style={{ borderColor: secondaryColor }}
+                      >
+                        <p className="text-[5px] font-bold" style={{ color: textColor }}>
+                          {config.signature_name || 'Diretor(a)'}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                {/* Footer */}
-                <div className="text-center mt-1 pt-1 border-t w-full" style={{ borderColor: '#E2E8F0' }}>
-                  <p className="text-[4px] text-gray-400">
+                {/* Footer with code */}
+                <div className="text-center mt-1 relative z-30">
+                  <p className="text-[4px]" style={{ color: `${primaryColor}80` }}>
                     Código: {sampleData.code}
-                  </p>
-                  <p className="text-[3px] text-gray-400">
-                    {config.back_validation_text || 'Valide em:'} {config.back_validation_url || 'formarensino.com.br/validar'}
                   </p>
                 </div>
               </div>

@@ -6,6 +6,8 @@ Font.register({
   fonts: [
     { src: 'https://fonts.gstatic.com/s/montserrat/v26/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCtr6Ew-.ttf', fontWeight: 400 },
     { src: 'https://fonts.gstatic.com/s/montserrat/v26/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCuM70w-.ttf', fontWeight: 700 },
+    { src: 'https://fonts.gstatic.com/s/montserrat/v26/JTUFjIg1_i6t8kCHKm459Wx7xQYXK0vOoz6jq6R9WXV0poK5.ttf', fontWeight: 400, fontStyle: 'italic' },
+    { src: 'https://fonts.gstatic.com/s/montserrat/v26/JTUFjIg1_i6t8kCHKm459Wx7xQYXK0vOoz6jq_p6WXV0poK5.ttf', fontWeight: 700, fontStyle: 'italic' },
   ],
 });
 
@@ -246,7 +248,6 @@ export const CertificatePreviewPdf = ({ config }: PreviewPdfProps) => {
       fontSize: 34,
       fontFamily: 'Montserrat',
       fontWeight: 700,
-      fontStyle: 'italic',
       color: secondaryColor,
       marginTop: 12,
       marginBottom: 12,

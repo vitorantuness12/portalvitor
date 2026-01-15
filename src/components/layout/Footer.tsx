@@ -6,13 +6,13 @@ import logoText from '@/assets/logo_text.png';
 export function Footer() {
   return (
     <footer className="bg-card border-t border-border">
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+      <div className="container mx-auto px-4 py-8 sm:py-12">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
           {/* Brand */}
-          <div className="space-y-4">
+          <div className="col-span-2 sm:col-span-2 md:col-span-1 space-y-4">
             <Link to="/" className="flex items-center gap-2">
-              <img src={logo} alt="Formar Ensino" className="h-12 w-12 object-contain" />
-              <img src={logoText} alt="Formar Ensino" className="h-8 object-contain" />
+              <img src={logo} alt="Formar Ensino" className="h-10 w-10 sm:h-12 sm:w-12 object-contain" />
+              <img src={logoText} alt="Formar Ensino" className="h-6 sm:h-8 object-contain" />
             </Link>
             <p className="text-sm text-muted-foreground">
               Transformando vidas através da educação online de qualidade.

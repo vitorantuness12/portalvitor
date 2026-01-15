@@ -58,7 +58,11 @@ export type Database = {
           institution_logo_url: string | null
           institution_name: string
           institution_subtitle: string | null
+          left_badge_text: string | null
+          left_badge_url: string | null
           primary_color: string | null
+          right_badge_text: string | null
+          right_badge_url: string | null
           secondary_color: string | null
           show_back_side: boolean | null
           show_qr_code: boolean | null
@@ -88,7 +92,11 @@ export type Database = {
           institution_logo_url?: string | null
           institution_name?: string
           institution_subtitle?: string | null
+          left_badge_text?: string | null
+          left_badge_url?: string | null
           primary_color?: string | null
+          right_badge_text?: string | null
+          right_badge_url?: string | null
           secondary_color?: string | null
           show_back_side?: boolean | null
           show_qr_code?: boolean | null
@@ -118,7 +126,11 @@ export type Database = {
           institution_logo_url?: string | null
           institution_name?: string
           institution_subtitle?: string | null
+          left_badge_text?: string | null
+          left_badge_url?: string | null
           primary_color?: string | null
+          right_badge_text?: string | null
+          right_badge_url?: string | null
           secondary_color?: string | null
           show_back_side?: boolean | null
           show_qr_code?: boolean | null

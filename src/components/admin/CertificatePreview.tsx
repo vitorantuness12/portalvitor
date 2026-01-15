@@ -1,6 +1,5 @@
 import { motion } from 'framer-motion';
-import { Eye, RotateCw } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Eye, Award, Star } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface CertificateConfigData {
@@ -28,6 +27,10 @@ interface CertificateConfigData {
   border_style?: string | null;
   show_qr_code?: boolean | null;
   show_back_side?: boolean | null;
+  left_badge_url?: string | null;
+  right_badge_url?: string | null;
+  left_badge_text?: string | null;
+  right_badge_text?: string | null;
 }
 
 interface CertificatePreviewProps {
@@ -35,29 +38,10 @@ interface CertificatePreviewProps {
 }
 
 export function CertificatePreview({ config }: CertificatePreviewProps) {
-  const primaryColor = config.primary_color || '#3B82F6';
-  const secondaryColor = config.secondary_color || '#7C3AED';
-  const textColor = config.text_color || '#1F2937';
+  const primaryColor = config.primary_color || '#1E3A5F';
+  const secondaryColor = config.secondary_color || '#D4AF37';
+  const textColor = config.text_color || '#1E3A5F';
   const backgroundColor = config.background_color || '#FFFFFF';
-  const showGradient = config.accent_gradient ?? true;
-
-  const getBorderStyles = () => {
-    switch (config.border_style) {
-      case 'simple':
-        return { outer: '2px solid', inner: 'none' };
-      case 'ornate':
-        return { outer: '4px double', inner: '2px solid' };
-      case 'modern':
-        return { outer: '3px solid', inner: '1px dashed' };
-      case 'none':
-        return { outer: 'none', inner: 'none' };
-      case 'elegant':
-      default:
-        return { outer: '3px solid', inner: '1px solid' };
-    }
-  };
-
-  const borderStyles = getBorderStyles();
 
   // Sample data for preview
   const sampleData = {
@@ -82,151 +66,207 @@ export function CertificatePreview({ config }: CertificatePreviewProps) {
         <div className="relative">
           <p className="text-xs text-muted-foreground mb-2 text-center">Frente</p>
           <motion.div
+            key={`${primaryColor}-${secondaryColor}-${backgroundColor}`}
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.2 }}
-            className="aspect-[1.414/1] rounded-lg overflow-hidden shadow-lg relative"
+            transition={{ duration: 0.3 }}
+            className="aspect-[1.414/1] rounded-lg overflow-hidden shadow-xl relative"
             style={{ backgroundColor }}
           >
+            {/* Gold outer border */}
+            <div 
+              className="absolute inset-2 rounded pointer-events-none"
+              style={{ 
+                border: `2px solid ${secondaryColor}`,
+              }}
+            />
+            
             {/* Decorative wave at bottom */}
-            <div 
-              className="absolute bottom-0 left-0 right-0 h-[35%] z-0"
-              style={{
-                background: `linear-gradient(180deg, transparent 0%, ${primaryColor} 50%)`,
-                clipPath: 'ellipse(80% 100% at 50% 100%)',
-              }}
-            />
-            
-            {/* Gold accent line */}
-            <div 
-              className="absolute bottom-[25%] left-0 right-0 h-[2px] z-10"
-              style={{
-                background: `linear-gradient(90deg, transparent, ${secondaryColor}, transparent)`,
-              }}
-            />
-            
-            {/* Main content */}
-            <div
-              className="w-full h-full p-3 relative z-20"
-              style={{
-                border: borderStyles.outer,
-                borderColor: secondaryColor,
-              }}
+            <svg 
+              className="absolute bottom-0 left-0 right-0 w-full h-[40%]" 
+              viewBox="0 0 400 160" 
+              preserveAspectRatio="none"
             >
-              <div
-                className="w-full h-full p-3 flex flex-col items-center justify-between relative"
-                style={{
-                  border: borderStyles.inner,
-                  borderColor: `${secondaryColor}60`,
-                }}
+              {/* Background wave */}
+              <path
+                d="M0,80 Q100,40 200,80 T400,80 L400,160 L0,160 Z"
+                fill={primaryColor}
+              />
+              {/* Gold accent wave */}
+              <path
+                d="M0,85 Q100,50 200,85 T400,85"
+                fill="none"
+                stroke={secondaryColor}
+                strokeWidth="2"
+              />
+              {/* Lighter overlay wave */}
+              <path
+                d="M0,100 Q150,70 300,100 T400,90 L400,160 L0,160 Z"
+                fill={primaryColor}
+                opacity="0.8"
+              />
+            </svg>
+
+            {/* Left Badge */}
+            <div className="absolute top-4 left-4 z-20">
+              {config.left_badge_url ? (
+                <img 
+                  src={config.left_badge_url} 
+                  alt="Badge" 
+                  className="w-8 h-8 object-contain"
+                />
+              ) : (
+                <div 
+                  className="w-8 h-8 rounded-full flex items-center justify-center border-2"
+                  style={{ 
+                    borderColor: secondaryColor,
+                    background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}dd)`,
+                  }}
+                >
+                  <Award className="w-4 h-4" style={{ color: secondaryColor }} />
+                </div>
+              )}
+              <p 
+                className="text-[4px] text-center mt-0.5 font-bold uppercase"
+                style={{ color: primaryColor }}
               >
-                {/* Header */}
-                <div className="text-center">
-                  {config.institution_logo_url && (
-                    <img
-                      src={config.institution_logo_url}
-                      alt="Logo"
-                      className="w-8 h-8 object-contain mx-auto mb-1"
-                    />
-                  )}
+                {config.left_badge_text || 'PREMIUM'}
+              </p>
+            </div>
+
+            {/* Right Badge */}
+            <div className="absolute top-4 right-4 z-20">
+              {config.right_badge_url ? (
+                <img 
+                  src={config.right_badge_url} 
+                  alt="Badge" 
+                  className="w-8 h-8 object-contain"
+                />
+              ) : (
+                <div 
+                  className="w-8 h-8 rounded-full flex items-center justify-center"
+                  style={{ 
+                    background: `linear-gradient(135deg, ${secondaryColor}, ${secondaryColor}cc)`,
+                    boxShadow: `0 2px 8px ${secondaryColor}40`,
+                  }}
+                >
+                  <Star className="w-4 h-4 text-white fill-white" />
+                </div>
+              )}
+              <p 
+                className="text-[4px] text-center mt-0.5 font-bold uppercase"
+                style={{ color: primaryColor }}
+              >
+                {config.right_badge_text || 'QUALIDADE'}
+              </p>
+            </div>
+
+            {/* Main Content */}
+            <div className="relative z-10 h-full flex flex-col items-center pt-6 pb-16 px-6">
+              {/* Header */}
+              <div className="text-center mb-2">
+                {config.institution_logo_url && (
+                  <img
+                    src={config.institution_logo_url}
+                    alt="Logo"
+                    className="w-10 h-10 object-contain mx-auto mb-1"
+                  />
+                )}
+                
+                {/* Title */}
+                <div className="mb-2">
                   <p
-                    className="text-[10px] font-bold tracking-wider"
+                    className="text-[12px] font-bold tracking-[0.2em] uppercase"
                     style={{ color: primaryColor }}
                   >
-                    {config.institution_name || 'Formar Ensino'}
+                    {(config.front_title || 'CERTIFICADO').split(' ')[0]}
                   </p>
                   <p
-                    className="text-[8px] font-bold mt-1 tracking-widest uppercase"
+                    className="text-[6px] tracking-[0.15em] uppercase -mt-0.5"
                     style={{ color: textColor }}
                   >
-                    {config.front_title || 'CERTIFICADO DE CONCLUSÃO'}
+                    {(config.front_title || 'CERTIFICADO DE CONCLUSÃO').split(' ').slice(1).join(' ') || 'DE CONCLUSÃO'}
                   </p>
+                </div>
+                
+                {/* Subtitle */}
+                <p 
+                  className="text-[5px] uppercase tracking-wider"
+                  style={{ color: `${textColor}99` }}
+                >
+                  {config.front_subtitle || 'Este certificado é orgulhosamente concedido a'}
+                </p>
+              </div>
+
+              {/* Student Name */}
+              <div className="text-center my-2 flex-1 flex flex-col justify-center">
+                <p
+                  className="text-[14px] font-bold italic"
+                  style={{ 
+                    color: secondaryColor,
+                    textShadow: '0 1px 2px rgba(0,0,0,0.1)',
+                    fontFamily: 'Georgia, serif',
+                  }}
+                >
+                  {sampleData.studentName}
+                </p>
+                
+                {/* Decorative line */}
+                <div className="flex items-center justify-center gap-2 my-1">
+                  <div className="w-8 h-[1px]" style={{ backgroundColor: secondaryColor }} />
+                  <div className="w-1 h-1 rounded-full" style={{ backgroundColor: secondaryColor }} />
+                  <div className="w-8 h-[1px]" style={{ backgroundColor: secondaryColor }} />
+                </div>
+
+                {/* Course info */}
+                <p 
+                  className="text-[5px] mb-1"
+                  style={{ color: `${textColor}80` }}
+                >
+                  {config.front_completion_text || 'pela conclusão com êxito do curso'}
+                </p>
+                <p
+                  className="text-[7px] font-bold"
+                  style={{ color: primaryColor }}
+                >
+                  {sampleData.courseName}
+                </p>
+
+                {/* Description text */}
+                <p 
+                  className="text-[4px] mt-1 max-w-[80%] mx-auto leading-relaxed"
+                  style={{ color: `${textColor}60` }}
+                >
+                  {config.institution_subtitle || 'Certificado emitido após conclusão de todas as atividades e aprovação na avaliação final.'}
+                </p>
+              </div>
+
+              {/* Footer with signature and date */}
+              <div className="flex justify-between items-end w-full px-4 relative z-20">
+                <div className="text-center">
                   <div 
-                    className="w-16 h-[1px] mx-auto mt-1"
-                    style={{ backgroundColor: secondaryColor }}
+                    className="w-12 border-t mb-0.5"
+                    style={{ borderColor: textColor }}
                   />
+                  <p className="text-[5px]" style={{ color: textColor }}>
+                    {config.front_date_text || 'Data'}
+                  </p>
                 </div>
 
-                {/* Body */}
-                <div className="text-center flex-1 flex flex-col justify-center py-2">
-                  <p className="text-[5px] text-gray-500 uppercase tracking-wider mb-1">
-                    {config.front_subtitle || 'Certificamos que'}
-                  </p>
-                  <p
-                    className="text-[10px] font-bold mb-1"
-                    style={{ 
-                      color: secondaryColor,
-                      fontStyle: 'italic',
-                    }}
-                  >
-                    {sampleData.studentName}
-                  </p>
-                  <p className="text-[5px] text-gray-500">
-                    {config.front_completion_text || 'concluiu com êxito o curso'}
-                  </p>
-                  <p
-                    className="text-[7px] font-bold my-1"
-                    style={{ color: primaryColor }}
-                  >
-                    {sampleData.courseName}
-                  </p>
-
-                  {/* Details */}
-                  <div className="flex justify-center gap-4 mt-2">
-                    <div className="text-center">
-                      <p className="text-[4px] text-gray-400 uppercase">
-                        {config.front_hours_text || 'Carga Horária'}
-                      </p>
-                      <p className="text-[5px] font-bold" style={{ color: textColor }}>
-                        {sampleData.duration}h
-                      </p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-[4px] text-gray-400 uppercase">
-                        {config.front_score_text || 'Nota'}
-                      </p>
-                      <p className="text-[5px] font-bold" style={{ color: textColor }}>
-                        {sampleData.score}
-                      </p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-[4px] text-gray-400 uppercase">
-                        {config.front_date_text || 'Data'}
-                      </p>
-                      <p className="text-[5px] font-bold" style={{ color: textColor }}>
-                        {sampleData.date}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Signature */}
-                <div className="text-center relative z-30">
-                  <div className="flex justify-center gap-8">
-                    <div>
-                      {config.signature_image_url && (
-                        <img
-                          src={config.signature_image_url}
-                          alt="Assinatura"
-                          className="w-12 h-4 object-contain mx-auto mb-0.5"
-                        />
-                      )}
-                      <div
-                        className="border-t pt-0.5 px-4"
-                        style={{ borderColor: secondaryColor }}
-                      >
-                        <p className="text-[5px] font-bold" style={{ color: textColor }}>
-                          {config.signature_name || 'Diretor(a)'}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Footer with code */}
-                <div className="text-center mt-1 relative z-30">
-                  <p className="text-[4px]" style={{ color: `${primaryColor}80` }}>
-                    Código: {sampleData.code}
+                <div className="text-center">
+                  {config.signature_image_url && (
+                    <img
+                      src={config.signature_image_url}
+                      alt="Assinatura"
+                      className="w-14 h-5 object-contain mx-auto mb-0.5"
+                    />
+                  )}
+                  <div 
+                    className="w-16 border-t mb-0.5"
+                    style={{ borderColor: textColor }}
+                  />
+                  <p className="text-[5px]" style={{ color: textColor }}>
+                    {config.signature_name || 'Assinatura'}
                   </p>
                 </div>
               </div>
@@ -239,92 +279,119 @@ export function CertificatePreview({ config }: CertificatePreviewProps) {
           <div className="relative">
             <p className="text-xs text-muted-foreground mb-2 text-center">Verso</p>
             <motion.div
+              key={`back-${primaryColor}-${secondaryColor}`}
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.2, delay: 0.1 }}
-              className="aspect-[1.414/1] rounded-lg overflow-hidden shadow-lg"
+              transition={{ duration: 0.3, delay: 0.1 }}
+              className="aspect-[1.414/1] rounded-lg overflow-hidden shadow-xl relative"
               style={{ backgroundColor }}
             >
-              <div
-                className="w-full h-full p-3"
-                style={{
-                  border: borderStyles.outer,
-                  borderColor: primaryColor,
-                }}
+              {/* Gold border */}
+              <div 
+                className="absolute inset-2 rounded pointer-events-none"
+                style={{ border: `2px solid ${secondaryColor}` }}
+              />
+
+              {/* Decorative top wave (inverted) */}
+              <svg 
+                className="absolute top-0 left-0 right-0 w-full h-[25%]" 
+                viewBox="0 0 400 100" 
+                preserveAspectRatio="none"
               >
-                <div
-                  className="w-full h-full p-3 flex flex-col items-center justify-center"
-                  style={{
-                    border: borderStyles.inner,
-                    borderColor: `${primaryColor}40`,
-                  }}
+                <path
+                  d="M0,0 L400,0 L400,60 Q300,90 200,60 T0,60 Z"
+                  fill={primaryColor}
+                />
+                <path
+                  d="M0,65 Q100,95 200,65 T400,65"
+                  fill="none"
+                  stroke={secondaryColor}
+                  strokeWidth="2"
+                />
+              </svg>
+
+              {/* Main Content */}
+              <div className="relative z-10 h-full flex flex-col items-center justify-center px-6 py-8">
+                {/* Logo */}
+                {config.institution_logo_url && (
+                  <img
+                    src={config.institution_logo_url}
+                    alt="Logo"
+                    className="w-8 h-8 object-contain mb-2"
+                  />
+                )}
+
+                {/* Title */}
+                <p
+                  className="text-[8px] font-bold tracking-wider uppercase mb-3"
+                  style={{ color: primaryColor }}
                 >
-                  {/* Back Header */}
-                  <div className="text-center mb-2">
-                    {config.institution_logo_url && (
-                      <img
-                        src={config.institution_logo_url}
-                        alt="Logo"
-                        className="w-6 h-6 object-contain mx-auto mb-1"
-                      />
-                    )}
-                    <p
-                      className="text-[7px] font-bold"
-                      style={{ color: textColor }}
+                  {config.back_title || 'INFORMAÇÕES DO CERTIFICADO'}
+                </p>
+
+                {/* Content */}
+                <div 
+                  className="text-center max-w-[85%] mb-4"
+                  style={{ color: textColor }}
+                >
+                  <p className="text-[5px] leading-relaxed">
+                    {config.back_content || 'Este certificado é válido em todo território nacional como curso livre, conforme a Lei nº 9.394/96 e Decreto Presidencial nº 5.154/04.'}
+                  </p>
+                </div>
+
+                {/* QR Code Placeholder */}
+                {config.show_qr_code !== false && (
+                  <div className="mb-3">
+                    <div
+                      className="w-12 h-12 rounded flex items-center justify-center"
+                      style={{ 
+                        backgroundColor: 'white',
+                        border: `2px solid ${primaryColor}`,
+                      }}
                     >
-                      {config.back_title || 'INFORMAÇÕES DO CERTIFICADO'}
-                    </p>
-                  </div>
-
-                  {/* Back Content */}
-                  <div className="text-center max-w-[90%]">
-                    <p className="text-[5px] text-gray-600 leading-relaxed">
-                      {config.back_content ||
-                        'Este certificado é válido em todo território nacional como curso livre, conforme a Lei nº 9.394/96 e Decreto Presidencial nº 5.154/04.'}
-                    </p>
-                  </div>
-
-                  {/* QR Code Placeholder */}
-                  {config.show_qr_code !== false && (
-                    <div className="mt-3">
-                      <div
-                        className="w-10 h-10 border-2 rounded flex items-center justify-center"
-                        style={{ borderColor: primaryColor }}
-                      >
-                        <div className="grid grid-cols-4 gap-0.5">
-                          {Array.from({ length: 16 }).map((_, i) => (
-                            <div
-                              key={i}
-                              className="w-1.5 h-1.5"
-                              style={{
-                                backgroundColor:
-                                  Math.random() > 0.4 ? primaryColor : 'transparent',
-                              }}
-                            />
-                          ))}
-                        </div>
+                      <div className="grid grid-cols-5 gap-0.5 p-1">
+                        {Array.from({ length: 25 }).map((_, i) => (
+                          <div
+                            key={i}
+                            className="w-1.5 h-1.5"
+                            style={{
+                              backgroundColor: [0,1,2,3,4,5,9,10,14,15,19,20,21,22,23,24].includes(i) 
+                                ? primaryColor 
+                                : 'transparent',
+                            }}
+                          />
+                        ))}
                       </div>
-                      <p className="text-[4px] text-gray-400 mt-1 text-center">
-                        Escaneie para validar
-                      </p>
                     </div>
-                  )}
-
-                  {/* Validation Info */}
-                  <div className="mt-3 text-center">
-                    <p className="text-[4px] text-gray-400">
-                      {config.back_validation_text || 'Para validar este certificado, acesse:'}
-                    </p>
-                    <p
-                      className="text-[5px] font-medium"
-                      style={{ color: primaryColor }}
+                    <p 
+                      className="text-[4px] text-center mt-1"
+                      style={{ color: `${textColor}80` }}
                     >
-                      {config.back_validation_url || 'formarensino.com.br/validar'}
-                    </p>
-                    <p className="text-[4px] text-gray-400 mt-1">
-                      Código: {sampleData.code}
+                      Escaneie para validar
                     </p>
                   </div>
+                )}
+
+                {/* Validation Info */}
+                <div className="text-center">
+                  <p 
+                    className="text-[4px]"
+                    style={{ color: `${textColor}80` }}
+                  >
+                    {config.back_validation_text || 'Para validar este certificado, acesse:'}
+                  </p>
+                  <p
+                    className="text-[6px] font-bold"
+                    style={{ color: primaryColor }}
+                  >
+                    {config.back_validation_url || 'formarensino.com.br/validar'}
+                  </p>
+                  <p 
+                    className="text-[5px] mt-1"
+                    style={{ color: secondaryColor }}
+                  >
+                    Código: {sampleData.code}
+                  </p>
                 </div>
               </div>
             </motion.div>

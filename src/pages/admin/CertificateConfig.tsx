@@ -13,9 +13,11 @@ import {
   Award,
   PenTool,
   PanelRightClose,
-  PanelRightOpen
+  PanelRightOpen,
+  LayoutTemplate
 } from 'lucide-react';
 import { CertificatePreview } from '@/components/admin/CertificatePreview';
+import { CertificateTemplates, certificateTemplates, CertificateTemplate } from '@/components/admin/CertificateTemplates';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -63,6 +65,7 @@ export default function CertificateConfig() {
   const queryClient = useQueryClient();
   const [uploading, setUploading] = useState<'logo' | 'signature' | null>(null);
   const [showPreview, setShowPreview] = useState(true);
+  const [selectedTemplate, setSelectedTemplate] = useState<string | undefined>();
 
   const [config, setConfig] = useState<Partial<CertificateConfigData>>({});
 
@@ -88,6 +91,26 @@ export default function CertificateConfig() {
 
   const updateConfig = (field: keyof CertificateConfigData, value: any) => {
     setConfig(prev => ({ ...prev, [field]: value }));
+  };
+
+  const applyTemplate = (template: CertificateTemplate) => {
+    setSelectedTemplate(template.id);
+    setConfig(prev => ({
+      ...prev,
+      ...template.config,
+      // Preserve user's institution info and images
+      institution_name: prev.institution_name || template.config.institution_name,
+      institution_subtitle: prev.institution_subtitle || template.config.institution_subtitle,
+      institution_logo_url: prev.institution_logo_url,
+      signature_image_url: prev.signature_image_url,
+      signature_name: prev.signature_name,
+      signature_title: prev.signature_title,
+      back_validation_url: prev.back_validation_url,
+    }));
+    toast({
+      title: `Template "${template.name}" aplicado!`,
+      description: 'As configurações foram atualizadas. Personalize conforme necessário.',
+    });
   };
 
   const saveMutation = useMutation({
@@ -225,8 +248,12 @@ export default function CertificateConfig() {
 
       <div className={`grid gap-6 ${showPreview ? 'lg:grid-cols-[1fr,350px]' : ''}`}>
         <div className="space-y-6">
-          <Tabs defaultValue="institution" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5 h-auto">
+          <Tabs defaultValue="templates" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6 h-auto">
+              <TabsTrigger value="templates" className="flex items-center gap-2 py-2">
+                <LayoutTemplate className="h-4 w-4" />
+                <span className="hidden sm:inline">Templates</span>
+              </TabsTrigger>
               <TabsTrigger value="institution" className="flex items-center gap-2 py-2">
                 <Settings2 className="h-4 w-4" />
                 <span className="hidden sm:inline">Instituição</span>
@@ -248,6 +275,24 @@ export default function CertificateConfig() {
                 <span className="hidden sm:inline">Estilo</span>
               </TabsTrigger>
             </TabsList>
+
+            {/* Templates Tab */}
+            <TabsContent value="templates">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Templates Pré-definidos</CardTitle>
+                  <CardDescription>
+                    Escolha um template como ponto de partida e personalize conforme necessário
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <CertificateTemplates 
+                    selectedTemplate={selectedTemplate}
+                    onSelectTemplate={applyTemplate}
+                  />
+                </CardContent>
+              </Card>
+            </TabsContent>
 
         {/* Institution Tab */}
         <TabsContent value="institution">

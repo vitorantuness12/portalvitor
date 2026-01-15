@@ -35,7 +35,7 @@ serve(async (req) => {
       `- ${c.title}: ${c.short_description || c.description?.substring(0, 200)}. Duração: ${c.duration_hours}h. Nível: ${c.level}. Preço: R$ ${c.price}`
     ).join("\n") || "Nenhum curso disponível no momento.";
 
-    const systemPrompt = `Você é um assistente de suporte da plataforma de cursos online. Seja sempre educado, prestativo e objetivo.
+    const systemPrompt = `Você é um assistente de suporte da Formar Ensino, plataforma de cursos online. Seja sempre educado, prestativo e objetivo.
 
 Informações sobre a plataforma:
 - Os alunos podem se matricular em cursos, estudar o conteúdo, fazer exercícios e provas

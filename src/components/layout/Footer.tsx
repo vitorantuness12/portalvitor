@@ -12,7 +12,7 @@ export function Footer() {
               <div className="hero-gradient rounded-lg p-2">
                 <GraduationCap className="h-6 w-6 text-primary-foreground" />
               </div>
-              <span className="text-xl font-display font-bold">EduPlataforma</span>
+              <span className="text-xl font-display font-bold">Formar Ensino</span>
             </Link>
             <p className="text-sm text-muted-foreground">
               Transformando vidas através da educação online de qualidade.
@@ -75,7 +75,7 @@ export function Footer() {
             <ul className="space-y-3">
               <li className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Mail className="h-4 w-4" />
-                contato@eduplataforma.com
+                contato@formarensino.com.br
               </li>
               <li className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Phone className="h-4 w-4" />
@@ -91,7 +91,7 @@ export function Footer() {
 
         <div className="border-t border-border mt-8 pt-8 text-center">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} EduPlataforma. Todos os direitos reservados.
+            © {new Date().getFullYear()} Formar Ensino. Todos os direitos reservados.
           </p>
         </div>
       </div>

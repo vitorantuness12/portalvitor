@@ -158,7 +158,7 @@ const CertificateDoc = ({ studentName, courseName, completionDate, duration, sco
       <View style={styles.container}>
         <View style={styles.innerBorder}>
           <View style={styles.header}>
-            <Text style={styles.logo}>EduPlatform</Text>
+            <Text style={styles.logo}>Formar Ensino</Text>
             <Text style={styles.title}>Certificado de Conclusão</Text>
             <Text style={styles.subtitle}>Curso Livre Online</Text>
           </View>
@@ -402,7 +402,7 @@ export default function CourseCertificate() {
                   <div className="bg-white rounded-lg border-4 border-primary p-8 shadow-lg">
                     <div className="border border-primary/30 rounded p-6 text-center">
                       <p className="text-2xl font-display font-bold text-primary mb-2">
-                        EduPlatform
+                        Formar Ensino
                       </p>
                       <h2 className="text-3xl font-bold mb-1">Certificado de Conclusão</h2>
                       <p className="text-sm text-muted-foreground mb-8">Curso Livre Online</p>

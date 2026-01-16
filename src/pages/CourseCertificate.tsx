@@ -165,7 +165,9 @@ interface CertificateConfigType {
   show_qr_code: boolean | null;
   show_back_side: boolean | null;
   front_wave_style?: string | null;
+  back_wave_style?: string | null;
   show_front_waves?: boolean | null;
+  show_back_waves?: boolean | null;
 }
 
 const CertificateDoc = ({ studentName, courseName, completionDate, duration, score, certificateCode, config }: CertificateDocProps) => {
@@ -179,7 +181,12 @@ const CertificateDoc = ({ studentName, courseName, completionDate, duration, sco
   const completionText = config?.front_completion_text || 'concluiu com êxito o curso';
   const validationUrl = config?.back_validation_url || 'formarensino.com.br/validar-certificado';
   const frontWaveStyle = config?.front_wave_style || 'curves';
+  const backWaveStyle = config?.back_wave_style || 'curves';
   const showFrontWaves = config?.show_front_waves !== false;
+  const showBackWaves = config?.show_back_waves !== false;
+  
+  // QR Code pattern
+  const qrPattern = [0,1,2,3,4,5,9,10,14,15,19,20,21,22,23,24];
 
   const styles = StyleSheet.create({
     page: {
@@ -337,15 +344,84 @@ const CertificateDoc = ({ studentName, courseName, completionDate, duration, sco
       fontSize: 9,
       color: `${textColor}80`,
     },
-    validationUrl: {
+    validationUrlText: {
       fontSize: 8,
       color: `${textColor}60`,
       marginTop: 2,
+    },
+    // Back page styles
+    backContent: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingTop: 90,
+      paddingBottom: 60,
+      paddingHorizontal: 80,
+      zIndex: 10,
+    },
+    backTitle: {
+      fontSize: 16,
+      fontFamily: 'Montserrat',
+      fontWeight: 700,
+      color: primaryColor,
+      letterSpacing: 2,
+      textTransform: 'uppercase',
+      marginBottom: 25,
+    },
+    backText: {
+      fontSize: 11,
+      color: textColor,
+      textAlign: 'center',
+      lineHeight: 1.6,
+      maxWidth: 480,
+      marginBottom: 25,
+    },
+    qrPlaceholder: {
+      width: 70,
+      height: 70,
+      borderWidth: 2,
+      borderColor: primaryColor,
+      backgroundColor: 'white',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: 12,
+    },
+    qrGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      width: 50,
+      height: 50,
+    },
+    qrCell: {
+      width: 10,
+      height: 10,
+    },
+    backValidationText: {
+      fontSize: 9,
+      color: `${textColor}80`,
+    },
+    backValidationUrl: {
+      fontSize: 13,
+      fontFamily: 'Montserrat',
+      fontWeight: 700,
+      color: primaryColor,
+      marginTop: 4,
+    },
+    codeText: {
+      fontSize: 11,
+      color: secondaryColor,
+      marginTop: 8,
+    },
+    scanText: {
+      fontSize: 8,
+      color: `${textColor}80`,
+      marginBottom: 15,
     },
   });
 
   return (
     <Document>
+      {/* Front Page */}
       <Page size="A4" orientation="landscape" style={styles.page}>
         {/* Decorative waves - rendered first (behind content) */}
         {showFrontWaves && renderBottomWave(frontWaveStyle, primaryColor, secondaryColor)}
@@ -415,11 +491,64 @@ const CertificateDoc = ({ studentName, courseName, completionDate, duration, sco
         {/* Validation footer */}
         <View style={styles.validationFooter}>
           <Text style={styles.validationCode}>Código de Validação: {certificateCode}</Text>
-          <Text style={styles.validationUrl}>
+          <Text style={styles.validationUrlText}>
             {config?.back_validation_text || 'Valide este certificado em:'} {validationUrl}
           </Text>
         </View>
       </Page>
+
+      {/* Back Page */}
+      {config?.show_back_side !== false && (
+        <Page size="A4" orientation="landscape" style={styles.page}>
+          {/* Top Waves - rendered first to be behind content */}
+          {showBackWaves && renderTopWave(backWaveStyle, primaryColor, secondaryColor)}
+
+          {/* Border frame */}
+          <View style={styles.borderFrame} />
+
+          {/* Content */}
+          <View style={styles.backContent}>
+            {config?.institution_logo_url && (
+              <Image src={config.institution_logo_url} style={{ width: 50, height: 50, marginBottom: 15, objectFit: 'contain' }} />
+            )}
+
+            <Text style={styles.backTitle}>
+              {config?.back_title || 'INFORMAÇÕES DO CERTIFICADO'}
+            </Text>
+
+            <Text style={styles.backText}>
+              {config?.back_content || 'Este certificado é válido em todo território nacional como curso livre, conforme a Lei nº 9.394/96 e Decreto Presidencial nº 5.154/04.'}
+            </Text>
+
+            {config?.show_qr_code !== false && (
+              <>
+                <View style={styles.qrPlaceholder}>
+                  <View style={styles.qrGrid}>
+                    {Array.from({ length: 25 }).map((_, i) => (
+                      <View 
+                        key={i} 
+                        style={[
+                          styles.qrCell, 
+                          { backgroundColor: qrPattern.includes(i) ? primaryColor : 'transparent' }
+                        ]} 
+                      />
+                    ))}
+                  </View>
+                </View>
+                <Text style={styles.scanText}>Escaneie para validar</Text>
+              </>
+            )}
+
+            <Text style={styles.backValidationText}>
+              {config?.back_validation_text || 'Para validar este certificado, acesse:'}
+            </Text>
+            <Text style={styles.backValidationUrl}>
+              {validationUrl}
+            </Text>
+            <Text style={styles.codeText}>Código: {certificateCode}</Text>
+          </View>
+        </Page>
+      )}
     </Document>
   );
 };

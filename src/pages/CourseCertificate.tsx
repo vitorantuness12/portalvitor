@@ -10,8 +10,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Document, Page, Text, View, StyleSheet, PDFDownloadLink, Font, Image, Svg, Path, Line, Rect } from '@react-pdf/renderer';
+import QRCode from 'qrcode';
 
 // Register fonts
 Font.register({
@@ -138,6 +139,7 @@ interface CertificateDocProps {
   duration: number;
   score: number;
   certificateCode: string;
+  qrCodeDataUrl?: string;
   config?: CertificateConfigType;
 }
 
@@ -170,7 +172,7 @@ interface CertificateConfigType {
   show_back_waves?: boolean | null;
 }
 
-const CertificateDoc = ({ studentName, courseName, completionDate, duration, score, certificateCode, config }: CertificateDocProps) => {
+const CertificateDoc = ({ studentName, courseName, completionDate, duration, score, certificateCode, qrCodeDataUrl, config }: CertificateDocProps) => {
   const primaryColor = config?.primary_color || '#1E3A5F';
   const secondaryColor = config?.secondary_color || '#D4AF37';
   const textColor = config?.text_color || '#1E3A5F';
@@ -184,9 +186,6 @@ const CertificateDoc = ({ studentName, courseName, completionDate, duration, sco
   const backWaveStyle = config?.back_wave_style || 'curves';
   const showFrontWaves = config?.show_front_waves !== false;
   const showBackWaves = config?.show_back_waves !== false;
-  
-  // QR Code pattern
-  const qrPattern = [0,1,2,3,4,5,9,10,14,15,19,20,21,22,23,24];
 
   const styles = StyleSheet.create({
     page: {
@@ -376,26 +375,6 @@ const CertificateDoc = ({ studentName, courseName, completionDate, duration, sco
       maxWidth: 480,
       marginBottom: 25,
     },
-    qrPlaceholder: {
-      width: 70,
-      height: 70,
-      borderWidth: 2,
-      borderColor: primaryColor,
-      backgroundColor: 'white',
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginBottom: 12,
-    },
-    qrGrid: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      width: 50,
-      height: 50,
-    },
-    qrCell: {
-      width: 10,
-      height: 10,
-    },
     backValidationText: {
       fontSize: 9,
       color: `${textColor}80`,
@@ -520,21 +499,12 @@ const CertificateDoc = ({ studentName, courseName, completionDate, duration, sco
               {config?.back_content || 'Este certificado é válido em todo território nacional como curso livre, conforme a Lei nº 9.394/96 e Decreto Presidencial nº 5.154/04.'}
             </Text>
 
-            {config?.show_qr_code !== false && (
+            {config?.show_qr_code !== false && qrCodeDataUrl && (
               <>
-                <View style={styles.qrPlaceholder}>
-                  <View style={styles.qrGrid}>
-                    {Array.from({ length: 25 }).map((_, i) => (
-                      <View 
-                        key={i} 
-                        style={[
-                          styles.qrCell, 
-                          { backgroundColor: qrPattern.includes(i) ? primaryColor : 'transparent' }
-                        ]} 
-                      />
-                    ))}
-                  </View>
-                </View>
+                <Image 
+                  src={qrCodeDataUrl} 
+                  style={{ width: 80, height: 80, marginBottom: 12 }} 
+                />
                 <Text style={styles.scanText}>Escaneie para validar</Text>
               </>
             )}
@@ -687,20 +657,44 @@ export default function CourseCertificate() {
     },
   });
 
-  // Prepare certificate data
+  // Prepare certificate data with QR code
   useEffect(() => {
-    if (course && enrollment && profile && (existingCertificate || createCertificateMutation.data)) {
-      const cert = existingCertificate || createCertificateMutation.data;
-      setCertificateData({
-        studentName: profile.full_name,
-        courseName: course.title,
-        completionDate: new Date(enrollment.exam_completed_at || enrollment.updated_at).toLocaleDateString('pt-BR'),
-        duration: course.duration_hours,
-        score: Number(enrollment.exam_score) || 0,
-        certificateCode: cert.certificate_code,
-        config: certConfig,
-      });
-    }
+    const prepareCertificateData = async () => {
+      if (course && enrollment && profile && (existingCertificate || createCertificateMutation.data)) {
+        const cert = existingCertificate || createCertificateMutation.data;
+        
+        // Generate QR code for validation URL
+        const baseUrl = window.location.origin;
+        const validationUrl = `${baseUrl}/validar-certificado?codigo=${cert.certificate_code}`;
+        
+        let qrCodeDataUrl: string | undefined;
+        try {
+          qrCodeDataUrl = await QRCode.toDataURL(validationUrl, {
+            width: 200,
+            margin: 1,
+            color: {
+              dark: certConfig?.primary_color || '#1E3A5F',
+              light: '#FFFFFF',
+            },
+          });
+        } catch (err) {
+          console.error('Error generating QR code:', err);
+        }
+        
+        setCertificateData({
+          studentName: profile.full_name,
+          courseName: course.title,
+          completionDate: new Date(enrollment.exam_completed_at || enrollment.updated_at).toLocaleDateString('pt-BR'),
+          duration: course.duration_hours,
+          score: Number(enrollment.exam_score) || 0,
+          certificateCode: cert.certificate_code,
+          qrCodeDataUrl,
+          config: certConfig,
+        });
+      }
+    };
+    
+    prepareCertificateData();
   }, [course, enrollment, profile, existingCertificate, createCertificateMutation.data, certConfig]);
 
   // Auto-generate certificate if eligible and doesn't exist

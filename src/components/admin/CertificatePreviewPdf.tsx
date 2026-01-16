@@ -57,9 +57,9 @@ const WAVE_VIEWBOX_WIDTH = 400;
 const WAVE_BOTTOM_VIEWBOX_HEIGHT = 160;
 const WAVE_TOP_VIEWBOX_HEIGHT = 100;
 
-// Wave SVG components that match the visual preview exactly
+// Wave SVG components that match the visual preview exactly - reduced size to avoid overlap
 const WaveBottomCurves = ({ primaryColor, secondaryColor }: { primaryColor: string; secondaryColor: string }) => (
-  <Svg viewBox={`0 0 ${WAVE_VIEWBOX_WIDTH} ${WAVE_BOTTOM_VIEWBOX_HEIGHT}`} preserveAspectRatio="none" style={{ position: 'absolute', bottom: 0, left: 0, width: PAGE_WIDTH, height: PAGE_HEIGHT * 0.35 }}>
+  <Svg viewBox={`0 0 ${WAVE_VIEWBOX_WIDTH} ${WAVE_BOTTOM_VIEWBOX_HEIGHT}`} preserveAspectRatio="none" style={{ position: 'absolute', bottom: 0, left: 0, width: PAGE_WIDTH, height: PAGE_HEIGHT * 0.18 }}>
     <Path d="M0,80 Q100,40 200,80 T400,80 L400,160 L0,160 Z" fill={primaryColor} />
     <Path d="M0,85 Q100,50 200,85 T400,85" fill="none" stroke={secondaryColor} strokeWidth={2} />
     <Path d="M0,100 Q150,70 300,100 T400,90 L400,160 L0,160 Z" fill={primaryColor} opacity={0.8} />
@@ -67,7 +67,7 @@ const WaveBottomCurves = ({ primaryColor, secondaryColor }: { primaryColor: stri
 );
 
 const WaveBottomGeometric = ({ primaryColor, secondaryColor }: { primaryColor: string; secondaryColor: string }) => (
-  <Svg viewBox={`0 0 ${WAVE_VIEWBOX_WIDTH} ${WAVE_BOTTOM_VIEWBOX_HEIGHT}`} preserveAspectRatio="none" style={{ position: 'absolute', bottom: 0, left: 0, width: PAGE_WIDTH, height: PAGE_HEIGHT * 0.35 }}>
+  <Svg viewBox={`0 0 ${WAVE_VIEWBOX_WIDTH} ${WAVE_BOTTOM_VIEWBOX_HEIGHT}`} preserveAspectRatio="none" style={{ position: 'absolute', bottom: 0, left: 0, width: PAGE_WIDTH, height: PAGE_HEIGHT * 0.18 }}>
     <Path d="M0,100 L80,60 L160,90 L240,50 L320,80 L400,40 L400,160 L0,160 Z" fill={primaryColor} />
     <Path d="M0,105 L80,65 L160,95 L240,55 L320,85 L400,45" fill="none" stroke={secondaryColor} strokeWidth={2} />
     <Path d="M0,120 L100,90 L200,110 L300,80 L400,100 L400,160 L0,160 Z" fill={primaryColor} opacity={0.8} />
@@ -75,7 +75,7 @@ const WaveBottomGeometric = ({ primaryColor, secondaryColor }: { primaryColor: s
 );
 
 const WaveBottomLines = ({ primaryColor, secondaryColor }: { primaryColor: string; secondaryColor: string }) => (
-  <Svg viewBox={`0 0 ${WAVE_VIEWBOX_WIDTH} ${WAVE_BOTTOM_VIEWBOX_HEIGHT}`} preserveAspectRatio="none" style={{ position: 'absolute', bottom: 0, left: 0, width: PAGE_WIDTH, height: PAGE_HEIGHT * 0.35 }}>
+  <Svg viewBox={`0 0 ${WAVE_VIEWBOX_WIDTH} ${WAVE_BOTTOM_VIEWBOX_HEIGHT}`} preserveAspectRatio="none" style={{ position: 'absolute', bottom: 0, left: 0, width: PAGE_WIDTH, height: PAGE_HEIGHT * 0.18 }}>
     <Rect x={0} y={80} width={400} height={80} fill={primaryColor} />
     <Line x1={0} y1={80} x2={400} y2={80} stroke={secondaryColor} strokeWidth={3} />
     <Line x1={0} y1={90} x2={400} y2={90} stroke={secondaryColor} strokeWidth={1} opacity={0.5} />
@@ -93,7 +93,7 @@ const WaveBottomLines = ({ primaryColor, secondaryColor }: { primaryColor: strin
 );
 
 const WaveBottomDiagonal = ({ primaryColor, secondaryColor }: { primaryColor: string; secondaryColor: string }) => (
-  <Svg viewBox={`0 0 ${WAVE_VIEWBOX_WIDTH} ${WAVE_BOTTOM_VIEWBOX_HEIGHT}`} preserveAspectRatio="none" style={{ position: 'absolute', bottom: 0, left: 0, width: PAGE_WIDTH, height: PAGE_HEIGHT * 0.35 }}>
+  <Svg viewBox={`0 0 ${WAVE_VIEWBOX_WIDTH} ${WAVE_BOTTOM_VIEWBOX_HEIGHT}`} preserveAspectRatio="none" style={{ position: 'absolute', bottom: 0, left: 0, width: PAGE_WIDTH, height: PAGE_HEIGHT * 0.18 }}>
     <Path d="M0,120 L400,60 L400,160 L0,160 Z" fill={primaryColor} />
     <Path d="M0,110 L400,50" fill="none" stroke={secondaryColor} strokeWidth={2} />
     <Path d="M0,140 L400,80 L400,160 L0,160 Z" fill={primaryColor} opacity={0.8} />
@@ -101,21 +101,21 @@ const WaveBottomDiagonal = ({ primaryColor, secondaryColor }: { primaryColor: st
 );
 
 const WaveTopCurves = ({ primaryColor, secondaryColor }: { primaryColor: string; secondaryColor: string }) => (
-  <Svg viewBox={`0 0 ${WAVE_VIEWBOX_WIDTH} ${WAVE_TOP_VIEWBOX_HEIGHT}`} preserveAspectRatio="none" style={{ position: 'absolute', top: 0, left: 0, width: PAGE_WIDTH, height: PAGE_HEIGHT * 0.22 }}>
+  <Svg viewBox={`0 0 ${WAVE_VIEWBOX_WIDTH} ${WAVE_TOP_VIEWBOX_HEIGHT}`} preserveAspectRatio="none" style={{ position: 'absolute', top: 0, left: 0, width: PAGE_WIDTH, height: PAGE_HEIGHT * 0.12 }}>
     <Path d="M0,0 L400,0 L400,60 Q300,90 200,60 T0,60 Z" fill={primaryColor} />
     <Path d="M0,65 Q100,95 200,65 T400,65" fill="none" stroke={secondaryColor} strokeWidth={2} />
   </Svg>
 );
 
 const WaveTopGeometric = ({ primaryColor, secondaryColor }: { primaryColor: string; secondaryColor: string }) => (
-  <Svg viewBox={`0 0 ${WAVE_VIEWBOX_WIDTH} ${WAVE_TOP_VIEWBOX_HEIGHT}`} preserveAspectRatio="none" style={{ position: 'absolute', top: 0, left: 0, width: PAGE_WIDTH, height: PAGE_HEIGHT * 0.22 }}>
+  <Svg viewBox={`0 0 ${WAVE_VIEWBOX_WIDTH} ${WAVE_TOP_VIEWBOX_HEIGHT}`} preserveAspectRatio="none" style={{ position: 'absolute', top: 0, left: 0, width: PAGE_WIDTH, height: PAGE_HEIGHT * 0.12 }}>
     <Path d="M0,0 L400,0 L400,50 L320,70 L240,40 L160,60 L80,30 L0,50 Z" fill={primaryColor} />
     <Path d="M0,55 L80,35 L160,65 L240,45 L320,75 L400,55" fill="none" stroke={secondaryColor} strokeWidth={2} />
   </Svg>
 );
 
 const WaveTopLines = ({ primaryColor, secondaryColor }: { primaryColor: string; secondaryColor: string }) => (
-  <Svg viewBox={`0 0 ${WAVE_VIEWBOX_WIDTH} ${WAVE_TOP_VIEWBOX_HEIGHT}`} preserveAspectRatio="none" style={{ position: 'absolute', top: 0, left: 0, width: PAGE_WIDTH, height: PAGE_HEIGHT * 0.22 }}>
+  <Svg viewBox={`0 0 ${WAVE_VIEWBOX_WIDTH} ${WAVE_TOP_VIEWBOX_HEIGHT}`} preserveAspectRatio="none" style={{ position: 'absolute', top: 0, left: 0, width: PAGE_WIDTH, height: PAGE_HEIGHT * 0.12 }}>
     <Rect x={0} y={0} width={400} height={60} fill={primaryColor} />
     <Line x1={0} y1={60} x2={400} y2={60} stroke={secondaryColor} strokeWidth={3} />
     <Line x1={0} y1={50} x2={400} y2={50} stroke={secondaryColor} strokeWidth={1} opacity={0.5} />
@@ -133,7 +133,7 @@ const WaveTopLines = ({ primaryColor, secondaryColor }: { primaryColor: string; 
 );
 
 const WaveTopDiagonal = ({ primaryColor, secondaryColor }: { primaryColor: string; secondaryColor: string }) => (
-  <Svg viewBox={`0 0 ${WAVE_VIEWBOX_WIDTH} ${WAVE_TOP_VIEWBOX_HEIGHT}`} preserveAspectRatio="none" style={{ position: 'absolute', top: 0, left: 0, width: PAGE_WIDTH, height: PAGE_HEIGHT * 0.22 }}>
+  <Svg viewBox={`0 0 ${WAVE_VIEWBOX_WIDTH} ${WAVE_TOP_VIEWBOX_HEIGHT}`} preserveAspectRatio="none" style={{ position: 'absolute', top: 0, left: 0, width: PAGE_WIDTH, height: PAGE_HEIGHT * 0.12 }}>
     <Path d="M0,0 L400,0 L400,40 L0,80 Z" fill={primaryColor} />
     <Path d="M0,85 L400,45" fill="none" stroke={secondaryColor} strokeWidth={2} />
   </Svg>
@@ -475,6 +475,34 @@ export const CertificatePreviewPdf = ({ config }: PreviewPdfProps) => {
           </Text>
 
           <Text style={styles.courseName}>{sampleData.courseName}</Text>
+
+          {/* Course details - Carga horária, Nota, Data */}
+          <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 40, marginTop: 12 }}>
+            <View style={{ alignItems: 'center' }}>
+              <Text style={{ fontSize: 8, color: `${textColor}80`, textTransform: 'uppercase', marginBottom: 2 }}>
+                {config.front_hours_text || 'Carga Horária'}
+              </Text>
+              <Text style={{ fontSize: 12, fontFamily: 'Montserrat', fontWeight: 700, color: textColor }}>
+                {sampleData.duration} horas
+              </Text>
+            </View>
+            <View style={{ alignItems: 'center' }}>
+              <Text style={{ fontSize: 8, color: `${textColor}80`, textTransform: 'uppercase', marginBottom: 2 }}>
+                {config.front_score_text || 'Nota Final'}
+              </Text>
+              <Text style={{ fontSize: 12, fontFamily: 'Montserrat', fontWeight: 700, color: textColor }}>
+                {sampleData.score.toFixed(1)}
+              </Text>
+            </View>
+            <View style={{ alignItems: 'center' }}>
+              <Text style={{ fontSize: 8, color: `${textColor}80`, textTransform: 'uppercase', marginBottom: 2 }}>
+                {config.front_date_text || 'Data de Conclusão'}
+              </Text>
+              <Text style={{ fontSize: 12, fontFamily: 'Montserrat', fontWeight: 700, color: textColor }}>
+                {sampleData.date}
+              </Text>
+            </View>
+          </View>
 
           <Text style={styles.institutionSubtitle}>
             {config.institution_subtitle || 'Certificado emitido após conclusão de todas as atividades e aprovação na avaliação final.'}

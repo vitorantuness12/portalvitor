@@ -11,7 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useEffect, useRef, useState } from 'react';
-import { Document, Page, Text, View, StyleSheet, PDFDownloadLink, Font, Image } from '@react-pdf/renderer';
+import { Document, Page, Text, View, StyleSheet, PDFDownloadLink, Font, Image, Svg, Path, Line, Rect } from '@react-pdf/renderer';
 
 // Register fonts
 Font.register({
@@ -22,125 +22,113 @@ Font.register({
   ],
 });
 
-// PDF Styles
-const styles = StyleSheet.create({
-  page: {
-    flexDirection: 'column',
-    backgroundColor: '#FFFFFF',
-    padding: 0,
-  },
-  container: {
-    flex: 1,
-    margin: 30,
-    padding: 40,
-    border: '3px solid #2563EB',
-    borderRadius: 8,
-  },
-  innerBorder: {
-    flex: 1,
-    border: '1px solid #93C5FD',
-    borderRadius: 4,
-    padding: 30,
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  logo: {
-    fontSize: 28,
-    fontFamily: 'Montserrat',
-    fontWeight: 700,
-    color: '#2563EB',
-    marginBottom: 10,
-  },
-  title: {
-    fontSize: 32,
-    fontFamily: 'Montserrat',
-    fontWeight: 700,
-    color: '#1E293B',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#64748B',
-    textAlign: 'center',
-  },
-  body: {
-    alignItems: 'center',
-    marginVertical: 30,
-    flex: 1,
-    justifyContent: 'center',
-  },
-  certifyText: {
-    fontSize: 12,
-    color: '#64748B',
-    marginBottom: 15,
-    textTransform: 'uppercase',
-    letterSpacing: 2,
-  },
-  studentName: {
-    fontSize: 28,
-    fontFamily: 'Montserrat',
-    fontWeight: 700,
-    color: '#1E293B',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  completedText: {
-    fontSize: 12,
-    color: '#64748B',
-    marginBottom: 10,
-  },
-  courseName: {
-    fontSize: 18,
-    fontFamily: 'Montserrat',
-    fontWeight: 700,
-    color: '#2563EB',
-    marginBottom: 20,
-    textAlign: 'center',
-    maxWidth: 400,
-  },
-  details: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 40,
-    marginTop: 10,
-  },
-  detailItem: {
-    alignItems: 'center',
-  },
-  detailLabel: {
-    fontSize: 9,
-    color: '#94A3B8',
-    textTransform: 'uppercase',
-    marginBottom: 4,
-  },
-  detailValue: {
-    fontSize: 12,
-    fontFamily: 'Montserrat',
-    fontWeight: 700,
-    color: '#1E293B',
-  },
-  footer: {
-    alignItems: 'center',
-    marginTop: 30,
-    paddingTop: 20,
-    borderTop: '1px solid #E2E8F0',
-  },
-  code: {
-    fontSize: 10,
-    color: '#94A3B8',
-    marginTop: 10,
-  },
-  validationText: {
-    fontSize: 8,
-    color: '#94A3B8',
-    marginTop: 5,
-  },
-});
+// Constants for A4 landscape
+const PAGE_WIDTH = 842;
+const PAGE_HEIGHT = 595;
+const WAVE_VIEWBOX_WIDTH = 400;
+const WAVE_BOTTOM_VIEWBOX_HEIGHT = 160;
+const WAVE_TOP_VIEWBOX_HEIGHT = 100;
+
+// Wave SVG components - matching the preview styles
+const WaveBottomCurves = ({ primaryColor, secondaryColor }: { primaryColor: string; secondaryColor: string }) => (
+  <Svg viewBox={`0 0 ${WAVE_VIEWBOX_WIDTH} ${WAVE_BOTTOM_VIEWBOX_HEIGHT}`} preserveAspectRatio="none" style={{ position: 'absolute', bottom: 0, left: 0, width: PAGE_WIDTH, height: PAGE_HEIGHT * 0.18 }}>
+    <Path d="M0,80 Q100,40 200,80 T400,80 L400,160 L0,160 Z" fill={primaryColor} />
+    <Path d="M0,85 Q100,50 200,85 T400,85" fill="none" stroke={secondaryColor} strokeWidth={2} />
+    <Path d="M0,100 Q150,70 300,100 T400,90 L400,160 L0,160 Z" fill={primaryColor} opacity={0.8} />
+  </Svg>
+);
+
+const WaveBottomGeometric = ({ primaryColor, secondaryColor }: { primaryColor: string; secondaryColor: string }) => (
+  <Svg viewBox={`0 0 ${WAVE_VIEWBOX_WIDTH} ${WAVE_BOTTOM_VIEWBOX_HEIGHT}`} preserveAspectRatio="none" style={{ position: 'absolute', bottom: 0, left: 0, width: PAGE_WIDTH, height: PAGE_HEIGHT * 0.18 }}>
+    <Path d="M0,100 L80,60 L160,90 L240,50 L320,80 L400,40 L400,160 L0,160 Z" fill={primaryColor} />
+    <Path d="M0,105 L80,65 L160,95 L240,55 L320,85 L400,45" fill="none" stroke={secondaryColor} strokeWidth={2} />
+    <Path d="M0,120 L100,90 L200,110 L300,80 L400,100 L400,160 L0,160 Z" fill={primaryColor} opacity={0.8} />
+  </Svg>
+);
+
+const WaveBottomLines = ({ primaryColor, secondaryColor }: { primaryColor: string; secondaryColor: string }) => (
+  <Svg viewBox={`0 0 ${WAVE_VIEWBOX_WIDTH} ${WAVE_BOTTOM_VIEWBOX_HEIGHT}`} preserveAspectRatio="none" style={{ position: 'absolute', bottom: 0, left: 0, width: PAGE_WIDTH, height: PAGE_HEIGHT * 0.18 }}>
+    <Rect x={0} y={80} width={400} height={80} fill={primaryColor} />
+    <Line x1={0} y1={80} x2={400} y2={80} stroke={secondaryColor} strokeWidth={3} />
+    <Line x1={0} y1={90} x2={400} y2={90} stroke={secondaryColor} strokeWidth={1} opacity={0.5} />
+    <Line x1={0} y1={100} x2={400} y2={100} stroke={secondaryColor} strokeWidth={1} opacity={0.3} />
+    <Line x1={0} y1={160} x2={40} y2={80} stroke={secondaryColor} strokeWidth={0.5} opacity={0.2} />
+    <Line x1={100} y1={160} x2={140} y2={80} stroke={secondaryColor} strokeWidth={0.5} opacity={0.2} />
+    <Line x1={200} y1={160} x2={240} y2={80} stroke={secondaryColor} strokeWidth={0.5} opacity={0.2} />
+    <Line x1={300} y1={160} x2={340} y2={80} stroke={secondaryColor} strokeWidth={0.5} opacity={0.2} />
+  </Svg>
+);
+
+const WaveBottomDiagonal = ({ primaryColor, secondaryColor }: { primaryColor: string; secondaryColor: string }) => (
+  <Svg viewBox={`0 0 ${WAVE_VIEWBOX_WIDTH} ${WAVE_BOTTOM_VIEWBOX_HEIGHT}`} preserveAspectRatio="none" style={{ position: 'absolute', bottom: 0, left: 0, width: PAGE_WIDTH, height: PAGE_HEIGHT * 0.18 }}>
+    <Path d="M0,120 L400,60 L400,160 L0,160 Z" fill={primaryColor} />
+    <Path d="M0,110 L400,50" fill="none" stroke={secondaryColor} strokeWidth={2} />
+    <Path d="M0,140 L400,80 L400,160 L0,160 Z" fill={primaryColor} opacity={0.8} />
+  </Svg>
+);
+
+const WaveTopCurves = ({ primaryColor, secondaryColor }: { primaryColor: string; secondaryColor: string }) => (
+  <Svg viewBox={`0 0 ${WAVE_VIEWBOX_WIDTH} ${WAVE_TOP_VIEWBOX_HEIGHT}`} preserveAspectRatio="none" style={{ position: 'absolute', top: 0, left: 0, width: PAGE_WIDTH, height: PAGE_HEIGHT * 0.12 }}>
+    <Path d="M0,0 L400,0 L400,60 Q300,90 200,60 T0,60 Z" fill={primaryColor} />
+    <Path d="M0,65 Q100,95 200,65 T400,65" fill="none" stroke={secondaryColor} strokeWidth={2} />
+  </Svg>
+);
+
+const WaveTopGeometric = ({ primaryColor, secondaryColor }: { primaryColor: string; secondaryColor: string }) => (
+  <Svg viewBox={`0 0 ${WAVE_VIEWBOX_WIDTH} ${WAVE_TOP_VIEWBOX_HEIGHT}`} preserveAspectRatio="none" style={{ position: 'absolute', top: 0, left: 0, width: PAGE_WIDTH, height: PAGE_HEIGHT * 0.12 }}>
+    <Path d="M0,0 L400,0 L400,50 L320,70 L240,40 L160,60 L80,30 L0,50 Z" fill={primaryColor} />
+    <Path d="M0,55 L80,35 L160,65 L240,45 L320,75 L400,55" fill="none" stroke={secondaryColor} strokeWidth={2} />
+  </Svg>
+);
+
+const WaveTopLines = ({ primaryColor, secondaryColor }: { primaryColor: string; secondaryColor: string }) => (
+  <Svg viewBox={`0 0 ${WAVE_VIEWBOX_WIDTH} ${WAVE_TOP_VIEWBOX_HEIGHT}`} preserveAspectRatio="none" style={{ position: 'absolute', top: 0, left: 0, width: PAGE_WIDTH, height: PAGE_HEIGHT * 0.12 }}>
+    <Rect x={0} y={0} width={400} height={60} fill={primaryColor} />
+    <Line x1={0} y1={60} x2={400} y2={60} stroke={secondaryColor} strokeWidth={3} />
+    <Line x1={0} y1={50} x2={400} y2={50} stroke={secondaryColor} strokeWidth={1} opacity={0.5} />
+    <Line x1={0} y1={40} x2={400} y2={40} stroke={secondaryColor} strokeWidth={1} opacity={0.3} />
+    <Line x1={0} y1={0} x2={40} y2={60} stroke={secondaryColor} strokeWidth={0.5} opacity={0.2} />
+    <Line x1={100} y1={0} x2={140} y2={60} stroke={secondaryColor} strokeWidth={0.5} opacity={0.2} />
+    <Line x1={200} y1={0} x2={240} y2={60} stroke={secondaryColor} strokeWidth={0.5} opacity={0.2} />
+    <Line x1={300} y1={0} x2={340} y2={60} stroke={secondaryColor} strokeWidth={0.5} opacity={0.2} />
+  </Svg>
+);
+
+const WaveTopDiagonal = ({ primaryColor, secondaryColor }: { primaryColor: string; secondaryColor: string }) => (
+  <Svg viewBox={`0 0 ${WAVE_VIEWBOX_WIDTH} ${WAVE_TOP_VIEWBOX_HEIGHT}`} preserveAspectRatio="none" style={{ position: 'absolute', top: 0, left: 0, width: PAGE_WIDTH, height: PAGE_HEIGHT * 0.12 }}>
+    <Path d="M0,0 L400,0 L400,40 L0,80 Z" fill={primaryColor} />
+    <Path d="M0,85 L400,45" fill="none" stroke={secondaryColor} strokeWidth={2} />
+  </Svg>
+);
+
+// Wave renderer functions
+const renderBottomWave = (style: string, primaryColor: string, secondaryColor: string) => {
+  switch (style) {
+    case 'geometric':
+      return <WaveBottomGeometric primaryColor={primaryColor} secondaryColor={secondaryColor} />;
+    case 'lines':
+      return <WaveBottomLines primaryColor={primaryColor} secondaryColor={secondaryColor} />;
+    case 'diagonal':
+      return <WaveBottomDiagonal primaryColor={primaryColor} secondaryColor={secondaryColor} />;
+    case 'curves':
+    default:
+      return <WaveBottomCurves primaryColor={primaryColor} secondaryColor={secondaryColor} />;
+  }
+};
+
+const renderTopWave = (style: string, primaryColor: string, secondaryColor: string) => {
+  switch (style) {
+    case 'geometric':
+      return <WaveTopGeometric primaryColor={primaryColor} secondaryColor={secondaryColor} />;
+    case 'lines':
+      return <WaveTopLines primaryColor={primaryColor} secondaryColor={secondaryColor} />;
+    case 'diagonal':
+      return <WaveTopDiagonal primaryColor={primaryColor} secondaryColor={secondaryColor} />;
+    case 'curves':
+    default:
+      return <WaveTopCurves primaryColor={primaryColor} secondaryColor={secondaryColor} />;
+  }
+};
 
 // Certificate PDF Document Component
 interface CertificateDocProps {
@@ -176,75 +164,260 @@ interface CertificateConfigType {
   background_color: string | null;
   show_qr_code: boolean | null;
   show_back_side: boolean | null;
+  front_wave_style?: string | null;
+  show_front_waves?: boolean | null;
 }
 
 const CertificateDoc = ({ studentName, courseName, completionDate, duration, score, certificateCode, config }: CertificateDocProps) => {
-  const primaryColor = config?.primary_color || '#2563EB';
-  const textColor = config?.text_color || '#1E293B';
+  const primaryColor = config?.primary_color || '#1E3A5F';
+  const secondaryColor = config?.secondary_color || '#D4AF37';
+  const textColor = config?.text_color || '#1E3A5F';
+  const backgroundColor = config?.background_color || '#FFFFFF';
   const institutionName = config?.institution_name || 'Formar Ensino';
   const frontTitle = config?.front_title || 'Certificado de Conclusão';
   const frontSubtitle = config?.front_subtitle || 'Certificamos que';
   const completionText = config?.front_completion_text || 'concluiu com êxito o curso';
   const validationUrl = config?.back_validation_url || 'formarensino.com.br/validar-certificado';
+  const frontWaveStyle = config?.front_wave_style || 'curves';
+  const showFrontWaves = config?.show_front_waves !== false;
+
+  const styles = StyleSheet.create({
+    page: {
+      flexDirection: 'column',
+      backgroundColor: backgroundColor,
+      position: 'relative',
+    },
+    borderFrame: {
+      position: 'absolute',
+      top: 20,
+      left: 20,
+      right: 20,
+      bottom: 20,
+      borderWidth: 2,
+      borderColor: secondaryColor,
+      borderRadius: 4,
+    },
+    content: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingTop: 60,
+      paddingBottom: 140,
+      paddingHorizontal: 60,
+      zIndex: 10,
+    },
+    header: {
+      alignItems: 'center',
+      marginBottom: 15,
+    },
+    logo: {
+      width: 60,
+      height: 60,
+      marginBottom: 10,
+    },
+    mainTitle: {
+      fontSize: 32,
+      fontFamily: 'Montserrat',
+      fontWeight: 700,
+      color: primaryColor,
+      letterSpacing: 4,
+      textTransform: 'uppercase',
+    },
+    subtitle: {
+      fontSize: 14,
+      color: textColor,
+      letterSpacing: 2,
+      textTransform: 'uppercase',
+      marginTop: 4,
+    },
+    certifyText: {
+      fontSize: 11,
+      color: `${textColor}99`,
+      letterSpacing: 1,
+      textTransform: 'uppercase',
+      marginTop: 15,
+    },
+    studentName: {
+      fontSize: 34,
+      fontFamily: 'Montserrat',
+      fontWeight: 700,
+      color: secondaryColor,
+      marginTop: 12,
+      marginBottom: 12,
+    },
+    decorativeLine: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginVertical: 8,
+    },
+    lineSegment: {
+      width: 60,
+      height: 1,
+      backgroundColor: secondaryColor,
+    },
+    lineDot: {
+      width: 6,
+      height: 6,
+      borderRadius: 3,
+      backgroundColor: secondaryColor,
+      marginHorizontal: 10,
+    },
+    completionText: {
+      fontSize: 11,
+      color: `${textColor}80`,
+      marginTop: 8,
+    },
+    courseName: {
+      fontSize: 18,
+      fontFamily: 'Montserrat',
+      fontWeight: 700,
+      color: primaryColor,
+      marginTop: 6,
+      textAlign: 'center',
+    },
+    detailsRow: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      gap: 50,
+      marginTop: 20,
+    },
+    detailItem: {
+      alignItems: 'center',
+    },
+    detailLabel: {
+      fontSize: 8,
+      color: `${textColor}80`,
+      textTransform: 'uppercase',
+      letterSpacing: 1,
+      marginBottom: 3,
+    },
+    detailValue: {
+      fontSize: 12,
+      fontFamily: 'Montserrat',
+      fontWeight: 700,
+      color: textColor,
+    },
+    footer: {
+      position: 'absolute',
+      bottom: 70,
+      left: 60,
+      right: 60,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-end',
+      zIndex: 20,
+    },
+    footerItem: {
+      alignItems: 'center',
+    },
+    footerLine: {
+      width: 100,
+      height: 1,
+      backgroundColor: textColor,
+      marginBottom: 5,
+    },
+    footerLabel: {
+      fontSize: 10,
+      color: textColor,
+    },
+    signatureImage: {
+      width: 100,
+      height: 35,
+      marginBottom: 5,
+    },
+    validationFooter: {
+      position: 'absolute',
+      bottom: 30,
+      left: 0,
+      right: 0,
+      alignItems: 'center',
+      zIndex: 25,
+    },
+    validationCode: {
+      fontSize: 9,
+      color: `${textColor}80`,
+    },
+    validationUrl: {
+      fontSize: 8,
+      color: `${textColor}60`,
+      marginTop: 2,
+    },
+  });
 
   return (
     <Document>
       <Page size="A4" orientation="landscape" style={styles.page}>
-        <View style={[styles.container, { borderColor: primaryColor }]}>
-          <View style={[styles.innerBorder, { borderColor: `${primaryColor}40` }]}>
-            <View style={styles.header}>
-              {config?.institution_logo_url && (
-                <Image src={config.institution_logo_url} style={{ width: 60, height: 60, marginBottom: 10 }} />
-              )}
-              <Text style={[styles.logo, { color: primaryColor }]}>{institutionName}</Text>
-              <Text style={[styles.title, { color: textColor }]}>{frontTitle}</Text>
-              <Text style={styles.subtitle}>{config?.institution_subtitle || 'Curso Livre Online'}</Text>
+        {/* Decorative waves - rendered first (behind content) */}
+        {showFrontWaves && renderBottomWave(frontWaveStyle, primaryColor, secondaryColor)}
+        
+        {/* Border frame */}
+        <View style={styles.borderFrame} />
+
+        {/* Main content */}
+        <View style={styles.content}>
+          <View style={styles.header}>
+            {config?.institution_logo_url && (
+              <Image src={config.institution_logo_url} style={styles.logo} />
+            )}
+            <Text style={styles.mainTitle}>{frontTitle}</Text>
+            <Text style={styles.subtitle}>{config?.institution_subtitle || 'Curso Livre Online'}</Text>
+          </View>
+
+          <Text style={styles.certifyText}>{frontSubtitle}</Text>
+          <Text style={styles.studentName}>{studentName}</Text>
+
+          {/* Decorative line */}
+          <View style={styles.decorativeLine}>
+            <View style={styles.lineSegment} />
+            <View style={styles.lineDot} />
+            <View style={styles.lineSegment} />
+          </View>
+
+          <Text style={styles.completionText}>{completionText}</Text>
+          <Text style={styles.courseName}>{courseName}</Text>
+
+          {/* Course details */}
+          <View style={styles.detailsRow}>
+            <View style={styles.detailItem}>
+              <Text style={styles.detailLabel}>{config?.front_hours_text || 'Carga Horária'}</Text>
+              <Text style={styles.detailValue}>{duration} horas</Text>
             </View>
-            
-            <View style={styles.body}>
-              <Text style={styles.certifyText}>{frontSubtitle}</Text>
-              <Text style={[styles.studentName, { color: textColor }]}>{studentName}</Text>
-              <Text style={styles.completedText}>{completionText}</Text>
-              <Text style={[styles.courseName, { color: primaryColor }]}>{courseName}</Text>
-              
-              <View style={styles.details}>
-                <View style={styles.detailItem}>
-                  <Text style={styles.detailLabel}>{config?.front_hours_text || 'Carga Horária'}</Text>
-                  <Text style={[styles.detailValue, { color: textColor }]}>{duration} horas</Text>
-                </View>
-                <View style={styles.detailItem}>
-                  <Text style={styles.detailLabel}>{config?.front_score_text || 'Nota Final'}</Text>
-                  <Text style={[styles.detailValue, { color: textColor }]}>{score.toFixed(1)}</Text>
-                </View>
-                <View style={styles.detailItem}>
-                  <Text style={styles.detailLabel}>{config?.front_date_text || 'Data de Conclusão'}</Text>
-                  <Text style={[styles.detailValue, { color: textColor }]}>{completionDate}</Text>
-                </View>
-              </View>
+            <View style={styles.detailItem}>
+              <Text style={styles.detailLabel}>{config?.front_score_text || 'Nota Final'}</Text>
+              <Text style={styles.detailValue}>{score.toFixed(1)}</Text>
             </View>
-            
-            {/* Signature */}
-            <View style={{ alignItems: 'center', marginTop: 20 }}>
-              {config?.signature_image_url && (
-                <Image src={config.signature_image_url} style={{ width: 100, height: 40, marginBottom: 5 }} />
-              )}
-              <View style={{ borderTop: '1px solid #CBD5E1', width: 150, paddingTop: 5, alignItems: 'center' }}>
-                <Text style={{ fontSize: 10, fontFamily: 'Montserrat', fontWeight: 700, color: textColor }}>
-                  {config?.signature_name || 'Diretor(a) Acadêmico(a)'}
-                </Text>
-                <Text style={{ fontSize: 8, color: '#64748B' }}>
-                  {config?.signature_title || institutionName}
-                </Text>
-              </View>
-            </View>
-            
-            <View style={styles.footer}>
-              <Text style={styles.code}>Código de Validação: {certificateCode}</Text>
-              <Text style={styles.validationText}>
-                {config?.back_validation_text || 'Valide este certificado em:'} {validationUrl}
-              </Text>
+            <View style={styles.detailItem}>
+              <Text style={styles.detailLabel}>{config?.front_date_text || 'Data de Conclusão'}</Text>
+              <Text style={styles.detailValue}>{completionDate}</Text>
             </View>
           </View>
+        </View>
+
+        {/* Footer with signature */}
+        <View style={styles.footer}>
+          <View style={styles.footerItem}>
+            <View style={styles.footerLine} />
+            <Text style={styles.footerLabel}>Data</Text>
+          </View>
+          <View style={styles.footerItem}>
+            {config?.signature_image_url && (
+              <Image src={config.signature_image_url} style={styles.signatureImage} />
+            )}
+            <View style={styles.footerLine} />
+            <Text style={styles.footerLabel}>{config?.signature_name || 'Diretor(a) Acadêmico(a)'}</Text>
+          </View>
+          <View style={styles.footerItem}>
+            <View style={styles.footerLine} />
+            <Text style={styles.footerLabel}>{institutionName}</Text>
+          </View>
+        </View>
+
+        {/* Validation footer */}
+        <View style={styles.validationFooter}>
+          <Text style={styles.validationCode}>Código de Validação: {certificateCode}</Text>
+          <Text style={styles.validationUrl}>
+            {config?.back_validation_text || 'Valide este certificado em:'} {validationUrl}
+          </Text>
         </View>
       </Page>
     </Document>

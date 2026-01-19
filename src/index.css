@@ -28,7 +28,7 @@
     --primary: 20 100% 57%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 219 81% 31%;
+    --secondary: 220 14% 17%;
     --secondary-foreground: 0 0% 100%;
 
     --muted: 0 0% 96%;
@@ -47,8 +47,8 @@
     --radius: 0.75rem;
 
     /* Custom design tokens - Formak brand */
-    --hero-gradient: linear-gradient(135deg, hsl(20, 100%, 57%) 0%, hsl(219, 81%, 31%) 100%);
-    --hero-gradient-hover: linear-gradient(135deg, hsl(20, 100%, 52%) 0%, hsl(219, 81%, 26%) 100%);
+    --hero-gradient: linear-gradient(135deg, hsl(20, 100%, 57%) 0%, hsl(20, 100%, 45%) 100%);
+    --hero-gradient-hover: linear-gradient(135deg, hsl(20, 100%, 52%) 0%, hsl(20, 100%, 40%) 100%);
     --card-shadow: 0 4px 24px -4px hsla(20, 100%, 57%, 0.12);
     --card-shadow-hover: 0 12px 40px -8px hsla(20, 100%, 57%, 0.2);
     --glass-bg: hsla(0, 0%, 100%, 0.8);
@@ -61,7 +61,7 @@
 
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 0 0% 12%;
-    --sidebar-primary: 219 81% 31%;
+    --sidebar-primary: 220 14% 17%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 0 0% 96%;
     --sidebar-accent-foreground: 0 0% 12%;
@@ -82,7 +82,7 @@
     --primary: 20 100% 57%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 219 81% 31%;
+    --secondary: 220 14% 30%;
     --secondary-foreground: 0 0% 100%;
 
     --muted: 0 0% 18%;
@@ -103,7 +103,7 @@
 
     --sidebar-background: 0 0% 10%;
     --sidebar-foreground: 0 0% 96%;
-    --sidebar-primary: 219 81% 31%;
+    --sidebar-primary: 220 14% 30%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 0 0% 15%;
     --sidebar-accent-foreground: 0 0% 96%;

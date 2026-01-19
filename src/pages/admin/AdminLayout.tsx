@@ -21,7 +21,7 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import logo from '@/assets/icone_formar.png';
+import logo from '@/assets/icone_formak.png';
 
 const sidebarLinks = [
   { href: '/admin', icon: LayoutDashboard, label: 'Dashboard', exact: true },

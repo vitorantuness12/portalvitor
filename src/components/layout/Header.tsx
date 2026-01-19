@@ -15,7 +15,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import logo from '@/assets/icone_formar.png';
+import logo from '@/assets/icone_formak.png';
 import logoText from '@/assets/logo_text.png';
 
 export function Header() {

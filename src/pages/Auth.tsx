@@ -168,8 +168,8 @@ export default function AuthPage() {
           </Link>
 
           <div className="flex items-center gap-2 mb-8">
-            <img src={logo} alt="Formar Ensino" className="h-10 w-10 object-contain" />
-            <span className="text-xl font-display font-bold">Formar Ensino</span>
+            <img src={logo} alt="Formak" className="h-10 w-10 object-contain" />
+            <span className="text-xl font-display font-bold">Formak</span>
           </div>
 
           <motion.div

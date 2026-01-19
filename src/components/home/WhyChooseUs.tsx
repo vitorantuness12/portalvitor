@@ -46,7 +46,7 @@ export function WhyChooseUs() {
         >
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold mb-4">
             Por que escolher a{' '}
-            <span className="hero-gradient-text">Formar Ensino</span>?
+            <span className="hero-gradient-text">Formak</span>?
           </h2>
           <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
             Oferecemos a melhor experiência de aprendizado online com qualidade comprovada.

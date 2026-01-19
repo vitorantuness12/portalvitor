@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { formatPhoneBR, unformatPhone, isValidPhoneBR } from '@/lib/masks';
-import logo from '@/assets/logo.png';
+import logo from '@/assets/icone_formak.png';
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),

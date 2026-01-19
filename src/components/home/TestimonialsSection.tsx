@@ -74,7 +74,7 @@ export function TestimonialsSection() {
         </motion.div>
 
         {/* Testimonials Grid */}
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
           {testimonials.map((testimonial, index) => (
             <motion.div
               key={testimonial.id}
@@ -82,24 +82,24 @@ export function TestimonialsSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
-              className="group relative bg-card rounded-2xl border border-border p-6 hover:shadow-lg hover:border-primary/30 transition-all duration-300"
+              className="group relative bg-card rounded-2xl border border-border p-4 sm:p-6 hover:shadow-lg hover:border-primary/30 transition-all duration-300"
             >
               {/* Quote icon */}
-              <div className="absolute top-4 right-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                <Quote className="h-12 w-12 text-primary" />
+              <div className="absolute top-3 right-3 sm:top-4 sm:right-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                <Quote className="h-8 w-8 sm:h-12 sm:w-12 text-primary" />
               </div>
 
               {/* Header with avatar and info */}
-              <div className="flex items-start gap-4 mb-4">
-                <Avatar className="h-14 w-14 border-2 border-primary/20">
+              <div className="flex items-start gap-3 sm:gap-4 mb-3 sm:mb-4">
+                <Avatar className="h-10 w-10 sm:h-14 sm:w-14 border-2 border-primary/20 flex-shrink-0">
                   <AvatarImage src={testimonial.avatar} alt={testimonial.name} />
-                  <AvatarFallback className="bg-primary text-primary-foreground">
+                  <AvatarFallback className="bg-primary text-primary-foreground text-xs sm:text-base">
                     {testimonial.name.split(' ').map(n => n[0]).join('')}
                   </AvatarFallback>
                 </Avatar>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-display font-semibold text-lg tracking-tight truncate">{testimonial.name}</h3>
-                  <p className="text-sm text-muted-foreground truncate">
+                <div className="flex-1 min-w-0 overflow-hidden">
+                  <h3 className="font-display font-semibold text-sm sm:text-lg tracking-tight truncate">{testimonial.name}</h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground truncate">
                     {testimonial.course}
                   </p>
                   {/* Stars rating */}
@@ -107,28 +107,28 @@ export function TestimonialsSection() {
                     {[...Array(5)].map((_, i) => (
                       <Star
                         key={i}
-                        className="h-3.5 w-3.5 fill-amber-400 text-amber-400"
+                        className="h-3 w-3 sm:h-3.5 sm:w-3.5 fill-amber-400 text-amber-400"
                       />
                     ))}
                   </div>
                 </div>
                 
                 {/* Score badge */}
-                <div className="flex flex-col items-center">
-                  <div className={`font-display text-2xl font-bold tracking-tight ${testimonial.score >= 9.5 ? 'text-emerald-500' : testimonial.score >= 8 ? 'text-primary' : 'text-amber-500'}`}>
+                <div className="flex flex-col items-center flex-shrink-0">
+                  <div className={`font-display text-lg sm:text-2xl font-bold tracking-tight ${testimonial.score >= 9.5 ? 'text-emerald-500' : testimonial.score >= 8 ? 'text-primary' : 'text-amber-500'}`}>
                     {testimonial.score.toFixed(1)}
                   </div>
-                  <span className="text-[10px] text-muted-foreground uppercase tracking-wide">Nota</span>
+                  <span className="text-[9px] sm:text-[10px] text-muted-foreground uppercase tracking-wide">Nota</span>
                 </div>
               </div>
 
               {/* Testimonial text */}
-              <p className="text-muted-foreground mb-4 line-clamp-3">
+              <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4 line-clamp-2 sm:line-clamp-3">
                 "{testimonial.testimonial}"
               </p>
 
               {/* Badges */}
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5 sm:gap-2">
                 {testimonial.badges.map((badgeKey) => {
                   const badge = badges[badgeKey as keyof typeof badges];
                   if (!badge) return null;
@@ -137,10 +137,10 @@ export function TestimonialsSection() {
                     <Badge
                       key={badgeKey}
                       variant="secondary"
-                      className="gap-1.5 py-1 px-2.5 bg-background"
+                      className="gap-1 sm:gap-1.5 py-0.5 sm:py-1 px-1.5 sm:px-2.5 bg-background text-[10px] sm:text-xs"
                     >
-                      <Icon className={`h-3.5 w-3.5 ${badge.color}`} />
-                      <span className="text-xs">{badge.label}</span>
+                      <Icon className={`h-3 w-3 sm:h-3.5 sm:w-3.5 ${badge.color}`} />
+                      <span className="hidden xs:inline">{badge.label}</span>
                     </Badge>
                   );
                 })}

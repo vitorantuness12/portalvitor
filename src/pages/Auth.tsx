@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { formatPhoneBR, unformatPhone, isValidPhoneBR } from '@/lib/masks';
+import { supabase } from '@/integrations/supabase/client';
 import logo from '@/assets/icone_formak.png';
 
 const loginSchema = z.object({
@@ -104,9 +105,9 @@ export default function AuthPage() {
 
         toast({
           title: 'Conta criada com sucesso!',
-          description: 'Você já pode acessar a plataforma.',
+          description: 'Vamos personalizar sua experiência.',
         });
-        navigate('/meus-cursos');
+        navigate('/onboarding');
       } else {
         const result = loginSchema.safeParse(formData);
         if (!result.success) {
@@ -144,7 +145,19 @@ export default function AuthPage() {
           title: 'Bem-vindo de volta!',
           description: 'Login realizado com sucesso.',
         });
-        navigate('/meus-cursos');
+        
+        // Check if user completed onboarding
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('onboarding_completed')
+          .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+          .maybeSingle();
+        
+        if (profile && !profile.onboarding_completed) {
+          navigate('/onboarding');
+        } else {
+          navigate('/meus-cursos');
+        }
       }
     } catch (error) {
       toast({

@@ -434,6 +434,7 @@ export type Database = {
           email: string
           full_name: string
           id: string
+          onboarding_completed: boolean | null
           updated_at: string | null
           user_id: string
           whatsapp: string | null
@@ -444,6 +445,7 @@ export type Database = {
           email: string
           full_name: string
           id?: string
+          onboarding_completed?: boolean | null
           updated_at?: string | null
           user_id: string
           whatsapp?: string | null
@@ -454,6 +456,7 @@ export type Database = {
           email?: string
           full_name?: string
           id?: string
+          onboarding_completed?: boolean | null
           updated_at?: string | null
           user_id?: string
           whatsapp?: string | null
@@ -548,6 +551,35 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_interests: {
+        Row: {
+          category_id: string
+          created_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_interests_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {

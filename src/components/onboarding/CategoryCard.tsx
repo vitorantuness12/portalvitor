@@ -1,0 +1,58 @@
+import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
+import { Check } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
+
+interface CategoryCardProps {
+  id: string;
+  name: string;
+  icon: string | null;
+  isSelected: boolean;
+  onToggle: (id: string) => void;
+}
+
+export function CategoryCard({ id, name, icon, isSelected, onToggle }: CategoryCardProps) {
+  // Get the icon component dynamically
+  const IconComponent = icon && (LucideIcons as any)[icon] 
+    ? (LucideIcons as any)[icon] 
+    : LucideIcons.BookOpen;
+
+  return (
+    <motion.button
+      type="button"
+      whileHover={{ scale: 1.03 }}
+      whileTap={{ scale: 0.98 }}
+      onClick={() => onToggle(id)}
+      className={cn(
+        "relative flex flex-col items-center justify-center gap-3 p-4 sm:p-6 rounded-xl border-2 transition-all duration-200",
+        isSelected
+          ? "border-primary bg-primary/10 shadow-lg shadow-primary/20"
+          : "border-border bg-card hover:border-primary/50 hover:bg-accent/50"
+      )}
+    >
+      {isSelected && (
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          className="absolute top-2 right-2 h-5 w-5 rounded-full bg-primary flex items-center justify-center"
+        >
+          <Check className="h-3 w-3 text-primary-foreground" />
+        </motion.div>
+      )}
+      
+      <div className={cn(
+        "h-12 w-12 rounded-full flex items-center justify-center transition-colors",
+        isSelected ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+      )}>
+        <IconComponent className="h-6 w-6" />
+      </div>
+      
+      <span className={cn(
+        "text-sm font-medium text-center line-clamp-2",
+        isSelected ? "text-foreground" : "text-muted-foreground"
+      )}>
+        {name}
+      </span>
+    </motion.button>
+  );
+}

@@ -11,8 +11,8 @@ export function Footer() {
           {/* Brand */}
           <div className="col-span-2 sm:col-span-2 md:col-span-1 space-y-4">
             <Link to="/" className="flex items-center gap-2">
-              <img src={logo} alt="Formar Ensino" className="h-10 w-10 sm:h-12 sm:w-12 object-contain" />
-              <img src={logoText} alt="Formar Ensino" className="h-6 sm:h-8 object-contain" />
+              <img src={logo} alt="Formak" className="h-10 w-10 sm:h-12 sm:w-12 object-contain" />
+              <img src={logoText} alt="Formak" className="h-6 sm:h-8 object-contain" />
             </Link>
             <p className="text-sm text-muted-foreground">
               Transformando vidas através da educação online de qualidade.
@@ -75,7 +75,7 @@ export function Footer() {
             <ul className="space-y-3">
               <li className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Mail className="h-4 w-4" />
-                contato@formarensino.com.br
+                contato@formak.com.br
               </li>
               <li className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Phone className="h-4 w-4" />
@@ -91,7 +91,7 @@ export function Footer() {
 
         <div className="border-t border-border mt-8 pt-8 text-center">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Formar Ensino. Todos os direitos reservados.
+            © {new Date().getFullYear()} Formak. Todos os direitos reservados.
           </p>
         </div>
       </div>

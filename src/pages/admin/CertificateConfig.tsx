@@ -191,7 +191,7 @@ export default function CertificateConfig() {
   const resetToDefaults = () => {
     setConfig({
       ...config,
-      institution_name: 'Formar Ensino',
+      institution_name: 'Formak',
       institution_subtitle: 'Educação Online de Qualidade',
       front_title: 'CERTIFICADO DE CONCLUSÃO',
       front_subtitle: 'Certificamos que',
@@ -319,7 +319,7 @@ export default function CertificateConfig() {
                     id="institution_name"
                     value={config.institution_name || ''}
                     onChange={(e) => updateConfig('institution_name', e.target.value)}
-                    placeholder="Formar Ensino"
+                    placeholder="Formak"
                   />
                 </div>
                 <div className="space-y-2">
@@ -699,7 +699,7 @@ export default function CertificateConfig() {
                     id="signature_title"
                     value={config.signature_title || ''}
                     onChange={(e) => updateConfig('signature_title', e.target.value)}
-                    placeholder="Formar Ensino"
+                    placeholder="Formak"
                   />
                 </div>
               </div>

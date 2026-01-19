@@ -51,9 +51,9 @@ function SidebarContent({ openTicketsCount }: { openTicketsCount: number }) {
       {/* Logo */}
       <div className="p-6 border-b border-border">
         <Link to="/" className="flex items-center gap-2">
-          <img src={logo} alt="Formar Ensino" className="h-10 w-10 object-contain" />
+          <img src={logo} alt="Formak" className="h-10 w-10 object-contain" />
           <div>
-            <span className="font-display font-bold">Formar Ensino</span>
+            <span className="font-display font-bold">Formak</span>
             <p className="text-xs text-muted-foreground">Painel Admin</p>
           </div>
         </Link>
@@ -166,7 +166,7 @@ export default function AdminLayout() {
           </SheetContent>
         </Sheet>
         <div className="flex items-center gap-2 ml-4">
-          <img src={logo} alt="Formar Ensino" className="h-8 w-8 object-contain" />
+          <img src={logo} alt="Formak" className="h-8 w-8 object-contain" />
           <span className="font-display font-bold">Admin</span>
         </div>
       </div>

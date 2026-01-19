@@ -24,7 +24,7 @@ export function SupportChat() {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      content: 'Olá! 👋 Sou o assistente virtual da Formar Ensino. Como posso ajudar você hoje?',
+      content: 'Olá! 👋 Sou o assistente virtual da Formak. Como posso ajudar você hoje?',
       isBot: true,
       timestamp: new Date(),
     },

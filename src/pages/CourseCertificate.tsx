@@ -173,15 +173,15 @@ interface CertificateConfigType {
 }
 
 const CertificateDoc = ({ studentName, courseName, completionDate, duration, score, certificateCode, qrCodeDataUrl, config }: CertificateDocProps) => {
-  const primaryColor = config?.primary_color || '#1E3A5F';
+  const primaryColor = config?.primary_color || '#FF7026';
   const secondaryColor = config?.secondary_color || '#D4AF37';
   const textColor = config?.text_color || '#1E3A5F';
   const backgroundColor = config?.background_color || '#FFFFFF';
-  const institutionName = config?.institution_name || 'Formar Ensino';
+  const institutionName = config?.institution_name || 'Formak';
   const frontTitle = config?.front_title || 'Certificado de Conclusão';
   const frontSubtitle = config?.front_subtitle || 'Certificamos que';
   const completionText = config?.front_completion_text || 'concluiu com êxito o curso';
-  const validationUrl = config?.back_validation_url || 'formarensino.com.br/validar-certificado';
+  const validationUrl = config?.back_validation_url || 'formak.com.br/validar-certificado';
   const frontWaveStyle = config?.front_wave_style || 'curves';
   const backWaveStyle = config?.back_wave_style || 'curves';
   const showFrontWaves = config?.show_front_waves !== false;
@@ -786,7 +786,7 @@ export default function CourseCertificate() {
                         className="text-2xl font-display font-bold mb-2"
                         style={{ color: certConfig?.primary_color || 'hsl(var(--primary))' }}
                       >
-                        {certConfig?.institution_name || 'Formar Ensino'}
+                        {certConfig?.institution_name || 'Formak'}
                       </p>
                       <h2 
                         className="text-2xl sm:text-3xl font-bold mb-1"
@@ -853,7 +853,7 @@ export default function CourseCertificate() {
                             {certConfig?.signature_name || 'Diretor(a) Acadêmico(a)'}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            {certConfig?.signature_title || certConfig?.institution_name || 'Formar Ensino'}
+                            {certConfig?.signature_title || certConfig?.institution_name || 'Formak'}
                           </p>
                         </div>
                       </div>

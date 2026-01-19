@@ -30,6 +30,7 @@ import AdminSupportTickets from "./pages/admin/SupportTickets";
 import TopicGenerator from "./pages/admin/TopicGenerator";
 import CertificateConfig from "./pages/admin/CertificateConfig";
 import NotFound from "./pages/NotFound";
+import Onboarding from "./pages/Onboarding";
 import { SupportChat } from "./components/support/SupportChat";
 
 const queryClient = new QueryClient();
@@ -48,6 +49,7 @@ function App() {
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
+                <Route path="/onboarding" element={<Onboarding />} />
                 <Route path="/cursos" element={<Courses />} />
                 <Route path="/meus-cursos" element={<MyCourses />} />
                 <Route path="/meu-progresso" element={<StudentDashboard />} />

@@ -16,7 +16,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import logo from '@/assets/icone_formak.png';
-import logoText from '@/assets/logo_text.png';
+import logoText from '@/assets/logo_formak.png';
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);

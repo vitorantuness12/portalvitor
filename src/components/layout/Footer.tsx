@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Mail, Phone, MapPin } from 'lucide-react';
 import logo from '@/assets/icone_formak.png';
-import logoText from '@/assets/logo_text.png';
+import logoText from '@/assets/logo_formak.png';
 
 export function Footer() {
   return (

@@ -155,7 +155,7 @@ export function TestimonialsSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.4 }}
-          className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-4"
+          className="mt-8 sm:mt-12 grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4"
         >
           {[
             { value: '4.9', label: 'Nota média', icon: Star },
@@ -165,11 +165,11 @@ export function TestimonialsSection() {
           ].map((stat, index) => (
             <div
               key={stat.label}
-              className="flex flex-col items-center p-4 rounded-xl bg-card border border-border"
+              className="flex flex-col items-center p-2 sm:p-4 rounded-lg sm:rounded-xl bg-card border border-border"
             >
-              <stat.icon className="h-5 w-5 text-primary mb-2" />
-              <span className="font-display text-2xl sm:text-3xl font-bold tracking-tight">{stat.value}</span>
-              <span className="text-xs sm:text-sm text-muted-foreground text-center">{stat.label}</span>
+              <stat.icon className="h-4 w-4 sm:h-5 sm:w-5 text-primary mb-1 sm:mb-2" />
+              <span className="font-display text-lg sm:text-2xl md:text-3xl font-bold tracking-tight">{stat.value}</span>
+              <span className="text-[10px] sm:text-xs md:text-sm text-muted-foreground text-center leading-tight">{stat.label}</span>
             </div>
           ))}
         </motion.div>

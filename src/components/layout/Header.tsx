@@ -58,7 +58,7 @@ export function Header() {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           <Link to="/" className="flex items-center">
-            <img src={logoText} alt="Formak" className="h-6 sm:h-9 object-contain" />
+            <img src={logoText} alt="Formak" className="h-5 sm:h-7 object-contain" />
           </Link>
 
           {/* Desktop Navigation */}

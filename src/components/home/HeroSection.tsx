@@ -2,7 +2,6 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Play, Award, Users, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import logoFormak from '@/assets/logo_formak.png';
 
 export function HeroSection() {
   return (
@@ -20,10 +19,8 @@ export function HeroSection() {
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6 }}
-            className="space-y-6"
+            className="space-y-8"
           >
-            <img src={logoFormak} alt="Formak" className="h-10 sm:h-14 object-contain" />
-            
             <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium">
               <Award className="h-4 w-4" />
               Cursos com certificado reconhecido

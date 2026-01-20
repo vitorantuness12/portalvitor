@@ -61,48 +61,52 @@ export function OnboardingStep3({ onComplete, isCompleting }: OnboardingStep3Pro
 
   return (
     <motion.div
-      initial={{ opacity: 0, x: 20 }}
+      initial={{ opacity: 0, x: 50 }}
       animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
-      className="flex flex-col items-center text-center px-4"
+      exit={{ opacity: 0, x: -50 }}
+      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      className="flex flex-col items-center text-center px-4 w-full"
     >
       <motion.div
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         transition={{ delay: 0.2, type: "spring" }}
-        className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mb-6"
+        className="h-14 w-14 sm:h-16 sm:w-16 rounded-full bg-primary/10 flex items-center justify-center mb-4 sm:mb-6"
       >
-        <Rocket className="h-8 w-8 text-primary" />
+        <Rocket className="h-7 w-7 sm:h-8 sm:w-8 text-primary" />
       </motion.div>
 
-      <h1 className="text-2xl sm:text-3xl font-display font-bold mb-2">
+      <h1 className="text-xl sm:text-2xl md:text-3xl font-display font-bold mb-2">
         Conheça a Plataforma 🚀
       </h1>
-      <p className="text-muted-foreground mb-8 max-w-md">
+      <p className="text-sm sm:text-base text-muted-foreground mb-6 sm:mb-8 max-w-md px-2">
         Veja as principais funcionalidades que preparamos para turbinar seu aprendizado.
       </p>
 
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-md px-2">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentSlide}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.3 }}
-            className="bg-card border rounded-2xl p-8 shadow-lg"
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: -20 }}
+            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            className="bg-card border rounded-2xl p-6 sm:p-8 shadow-lg"
           >
-            <div className={cn("h-20 w-20 rounded-full mx-auto mb-6 flex items-center justify-center", slide.bgColor)}>
-              <slide.icon className={cn("h-10 w-10", slide.color)} />
+            <div className={cn(
+              "h-16 w-16 sm:h-20 sm:w-20 rounded-full mx-auto mb-4 sm:mb-6 flex items-center justify-center",
+              slide.bgColor
+            )}>
+              <slide.icon className={cn("h-8 w-8 sm:h-10 sm:w-10", slide.color)} />
             </div>
             
-            <h2 className="text-xl font-bold mb-3">{slide.title}</h2>
-            <p className="text-muted-foreground">{slide.description}</p>
+            <h2 className="text-lg sm:text-xl font-bold mb-2 sm:mb-3">{slide.title}</h2>
+            <p className="text-sm sm:text-base text-muted-foreground">{slide.description}</p>
           </motion.div>
         </AnimatePresence>
 
         {/* Slide indicators */}
-        <div className="flex items-center justify-center gap-2 mt-6">
+        <div className="flex items-center justify-center gap-2 mt-5 sm:mt-6">
           {tourSlides.map((_, index) => (
             <button
               key={index}
@@ -118,13 +122,13 @@ export function OnboardingStep3({ onComplete, isCompleting }: OnboardingStep3Pro
         </div>
 
         {/* Navigation buttons */}
-        <div className="flex items-center justify-between mt-8 gap-4">
+        <div className="flex flex-col sm:flex-row items-center justify-between mt-6 sm:mt-8 gap-3 sm:gap-4">
           <Button
             variant="outline"
             size="lg"
             onClick={prevSlide}
             disabled={currentSlide === 0}
-            className="flex-1"
+            className="w-full sm:flex-1 order-2 sm:order-1"
           >
             <ChevronLeft className="h-4 w-4 mr-1" />
             Anterior
@@ -135,7 +139,7 @@ export function OnboardingStep3({ onComplete, isCompleting }: OnboardingStep3Pro
             size="lg"
             onClick={nextSlide}
             disabled={isCompleting}
-            className="flex-1"
+            className="w-full sm:flex-1 order-1 sm:order-2"
           >
             {isCompleting ? (
               "Finalizando..."

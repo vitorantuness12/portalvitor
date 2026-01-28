@@ -620,6 +620,18 @@ export default function CourseCertificate() {
     mutationFn: async () => {
       if (!user || !enrollment || !course) throw new Error('Dados incompletos');
       
+      // Check if certificate already exists for this enrollment
+      const { data: existing } = await supabase
+        .from('certificates')
+        .select('*')
+        .eq('enrollment_id', enrollment.id)
+        .maybeSingle();
+      
+      if (existing) {
+        // Certificate already exists, return it instead of creating a new one
+        return existing;
+      }
+      
       const certificateCode = generateCertificateCode();
       
       const { data, error } = await supabase
@@ -636,14 +648,21 @@ export default function CourseCertificate() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['certificate', id] });
-      toast({
-        title: 'Certificado gerado!',
-        description: 'Seu certificado está pronto para download.',
-      });
+      if (data) {
+        toast({
+          title: 'Certificado pronto!',
+          description: 'Seu certificado está pronto para download.',
+        });
+      }
     },
     onError: (error: any) => {
+      // Ignore duplicate key error silently and refetch
+      if (error.message?.includes('duplicate key')) {
+        queryClient.invalidateQueries({ queryKey: ['certificate', id] });
+        return;
+      }
       toast({
         title: 'Erro ao gerar certificado',
         description: error.message,

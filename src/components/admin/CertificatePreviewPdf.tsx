@@ -516,6 +516,14 @@ export const CertificatePreviewPdf = ({ config }: PreviewPdfProps) => {
             )}
             <View style={[styles.footerLine, { width: 120 }]} />
             <Text style={styles.footerLabel}>{config.signature_name || 'Assinatura'}</Text>
+            {config.signature_title && (
+              <Text style={{ fontSize: 8, color: `${textColor}80`, marginTop: 2 }}>{config.signature_title}</Text>
+            )}
+          </View>
+          <View style={styles.footerItem}>
+            <View style={[styles.footerLine, { width: 120 }]} />
+            <Text style={styles.footerLabel}>{sampleData.studentName}</Text>
+            <Text style={{ fontSize: 8, color: `${textColor}80`, marginTop: 2 }}>Aluno(a)</Text>
           </View>
         </View>
       </Page>

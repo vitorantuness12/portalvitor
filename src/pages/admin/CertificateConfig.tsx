@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { CertificatePreview } from '@/components/admin/CertificatePreview';
 import { CertificateTemplates, certificateTemplates, CertificateTemplate } from '@/components/admin/CertificateTemplates';
+import { DigitalSignatureGenerator } from '@/components/admin/DigitalSignatureGenerator';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -704,8 +705,25 @@ export default function CertificateConfig() {
                 </div>
               </div>
 
+              {/* Digital Signature Generator */}
+              <DigitalSignatureGenerator
+                name={config.signature_name || ''}
+                currentSignatureUrl={config.signature_image_url}
+                onGenerate={(dataUrl) => updateConfig('signature_image_url', dataUrl)}
+              />
+
+              {/* Divider */}
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-card px-2 text-muted-foreground">ou faça upload</span>
+                </div>
+              </div>
+
               <div className="space-y-2">
-                <Label>Imagem da Assinatura (opcional)</Label>
+                <Label>Imagem da Assinatura</Label>
                 <div className="flex items-start gap-4">
                   <div className="w-48 h-24 border-2 border-dashed rounded-lg flex items-center justify-center bg-muted/50 overflow-hidden">
                     {config.signature_image_url ? (

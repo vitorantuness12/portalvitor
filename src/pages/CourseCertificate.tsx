@@ -217,8 +217,7 @@ const CertificateDoc = ({ studentName, courseName, completionDate, duration, sco
       marginBottom: 15,
     },
     logo: {
-      width: 60,
-      height: 60,
+      height: 50,
       marginBottom: 10,
     },
     mainTitle: {
@@ -412,7 +411,7 @@ const CertificateDoc = ({ studentName, courseName, completionDate, duration, sco
         <View style={styles.content}>
           <View style={styles.header}>
             {config?.institution_logo_url && (
-              <Image src={config.institution_logo_url} style={styles.logo} />
+              <Image src={config.institution_logo_url} style={{ height: 50, objectFit: 'contain' }} />
             )}
             <Text style={styles.mainTitle}>{frontTitle}</Text>
             <Text style={styles.subtitle}>{config?.institution_subtitle || 'Curso Livre Online'}</Text>
@@ -450,10 +449,6 @@ const CertificateDoc = ({ studentName, courseName, completionDate, duration, sco
 
         {/* Footer with signature */}
         <View style={styles.footer}>
-          <View style={styles.footerItem}>
-            <View style={styles.footerLine} />
-            <Text style={styles.footerLabel}>Data</Text>
-          </View>
           <View style={styles.footerItem}>
             {config?.signature_image_url && (
               <Image src={config.signature_image_url} style={styles.signatureImage} />

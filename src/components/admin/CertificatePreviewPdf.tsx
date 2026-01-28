@@ -218,7 +218,6 @@ export const CertificatePreviewPdf = ({ config }: PreviewPdfProps) => {
       marginBottom: 15,
     },
     logo: {
-      width: 60,
       height: 60,
       marginBottom: 10,
     },
@@ -448,7 +447,7 @@ export const CertificatePreviewPdf = ({ config }: PreviewPdfProps) => {
         <View style={styles.content}>
           <View style={styles.header}>
             {config.institution_logo_url && (
-              <Image src={config.institution_logo_url} style={styles.logo} />
+              <Image src={config.institution_logo_url} style={{ height: 60, objectFit: 'contain' }} />
             )}
             <Text style={styles.mainTitle}>
               {(config.front_title || 'CERTIFICADO').split(' ')[0]}
@@ -512,10 +511,6 @@ export const CertificatePreviewPdf = ({ config }: PreviewPdfProps) => {
         {/* Footer */}
         <View style={styles.footer}>
           <View style={styles.footerItem}>
-            <View style={styles.footerLine} />
-            <Text style={styles.footerLabel}>{config.front_date_text || 'Data'}</Text>
-          </View>
-          <View style={styles.footerItem}>
             {config.signature_image_url && (
               <Image src={config.signature_image_url} style={styles.signatureImage} />
             )}
@@ -537,7 +532,7 @@ export const CertificatePreviewPdf = ({ config }: PreviewPdfProps) => {
           {/* Content */}
           <View style={styles.backContent}>
             {config.institution_logo_url && (
-              <Image src={config.institution_logo_url} style={{ width: 50, height: 50, marginBottom: 15, objectFit: 'contain' }} />
+              <Image src={config.institution_logo_url} style={{ height: 50, marginBottom: 15, objectFit: 'contain' }} />
             )}
 
             <Text style={styles.backTitle}>

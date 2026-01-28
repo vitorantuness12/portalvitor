@@ -490,6 +490,61 @@ export type Database = {
         }
         Relationships: []
       }
+      student_cards: {
+        Row: {
+          amount_paid: number | null
+          card_code: string
+          created_at: string
+          expires_at: string | null
+          id: string
+          issued_at: string | null
+          paid_at: string | null
+          photo_url: string | null
+          plan_type: Database["public"]["Enums"]["student_card_plan_type"]
+          shipping_address: Json | null
+          shipping_status: Database["public"]["Enums"]["shipping_status"] | null
+          status: Database["public"]["Enums"]["student_card_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_paid?: number | null
+          card_code: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          issued_at?: string | null
+          paid_at?: string | null
+          photo_url?: string | null
+          plan_type?: Database["public"]["Enums"]["student_card_plan_type"]
+          shipping_address?: Json | null
+          shipping_status?:
+            | Database["public"]["Enums"]["shipping_status"]
+            | null
+          status?: Database["public"]["Enums"]["student_card_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_paid?: number | null
+          card_code?: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          issued_at?: string | null
+          paid_at?: string | null
+          photo_url?: string | null
+          plan_type?: Database["public"]["Enums"]["student_card_plan_type"]
+          shipping_address?: Json | null
+          shipping_status?:
+            | Database["public"]["Enums"]["shipping_status"]
+            | null
+          status?: Database["public"]["Enums"]["student_card_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       support_messages: {
         Row: {
           content: string
@@ -645,6 +700,13 @@ export type Database = {
     Enums: {
       course_status: "active" | "inactive"
       enrollment_status: "in_progress" | "completed" | "failed" | "passed"
+      shipping_status: "pending" | "processing" | "shipped" | "delivered"
+      student_card_plan_type: "digital" | "printed"
+      student_card_status:
+        | "pending_payment"
+        | "active"
+        | "expired"
+        | "cancelled"
       user_role: "admin" | "student"
     }
     CompositeTypes: {
@@ -775,6 +837,14 @@ export const Constants = {
     Enums: {
       course_status: ["active", "inactive"],
       enrollment_status: ["in_progress", "completed", "failed", "passed"],
+      shipping_status: ["pending", "processing", "shipped", "delivered"],
+      student_card_plan_type: ["digital", "printed"],
+      student_card_status: [
+        "pending_payment",
+        "active",
+        "expired",
+        "cancelled",
+      ],
       user_role: ["admin", "student"],
     },
   },

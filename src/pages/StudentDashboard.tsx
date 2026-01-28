@@ -10,7 +10,8 @@ import {
   Flame,
   Trophy,
   Target,
-  ArrowRight
+  ArrowRight,
+  CreditCard
 } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
@@ -268,6 +269,38 @@ export default function StudentDashboard() {
               </Link>
             </motion.div>
           </div>
+
+          {/* Student Card Banner */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.45 }}
+            className="mb-8"
+          >
+            <Link to="/minha-carteirinha">
+              <Card className="bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20 hover:shadow-lg transition-all cursor-pointer group">
+                <CardContent className="py-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="p-3 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors">
+                        <CreditCard className="h-6 w-6 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-lg">Carteirinha de Estudante</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Sua identificação digital • Válida por 1 ano
+                        </p>
+                      </div>
+                    </div>
+                    <div className="hidden sm:flex items-center gap-2 text-primary font-medium group-hover:gap-3 transition-all">
+                      <span>Solicitar</span>
+                      <ArrowRight className="h-4 w-4" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          </motion.div>
 
           <div className="grid lg:grid-cols-3 gap-6">
             {/* Progress Overview */}

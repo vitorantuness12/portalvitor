@@ -17,6 +17,8 @@ import CourseDetail from "./pages/CourseDetail";
 import CourseStudy from "./pages/CourseStudy";
 import CourseCertificate from "./pages/CourseCertificate";
 import ValidateCertificate from "./pages/ValidateCertificate";
+import StudentCard from "./pages/StudentCard";
+import ValidateStudentCard from "./pages/ValidateStudentCard";
 import SupportTicket from "./pages/SupportTicket";
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/Dashboard";
@@ -24,6 +26,7 @@ import AdminCourses from "./pages/admin/Courses";
 import AdminUsers from "./pages/admin/Users";
 import AdminCategories from "./pages/admin/Categories";
 import AdminCertificates from "./pages/admin/Certificates";
+import AdminStudentCards from "./pages/admin/StudentCards";
 import CreateCourseAI from "./pages/admin/CreateCourseAI";
 import BulkCreateCourseAI from "./pages/admin/BulkCreateCourseAI";
 import AdminSupportTickets from "./pages/admin/SupportTickets";
@@ -59,6 +62,8 @@ function App() {
                 <Route path="/curso/:id/estudar" element={<CourseStudy />} />
                 <Route path="/curso/:id/certificado" element={<CourseCertificate />} />
                 <Route path="/validar-certificado" element={<ValidateCertificate />} />
+                <Route path="/minha-carteirinha" element={<StudentCard />} />
+                <Route path="/validar-carteirinha" element={<ValidateStudentCard />} />
                 <Route path="/suporte/:id" element={<SupportTicket />} />
 
                 {/* Admin Routes */}
@@ -72,6 +77,7 @@ function App() {
                   <Route path="criar-cursos-massa" element={<BulkCreateCourseAI />} />
                   <Route path="gerador-temas" element={<TopicGenerator />} />
                   <Route path="config-certificado" element={<CertificateConfig />} />
+                  <Route path="carteirinhas" element={<AdminStudentCards />} />
                   <Route path="suporte" element={<AdminSupportTickets />} />
                 </Route>
 

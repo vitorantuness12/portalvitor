@@ -14,6 +14,7 @@ import {
   Layers,
   Headphones,
   Lightbulb,
+  CreditCard,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -33,6 +34,7 @@ const sidebarLinks = [
   { href: '/admin/categorias', icon: FolderOpen, label: 'Categorias' },
   { href: '/admin/certificados', icon: Award, label: 'Certificados' },
   { href: '/admin/config-certificado', icon: Settings, label: 'Editar Certificado' },
+  { href: '/admin/carteirinhas', icon: CreditCard, label: 'Carteirinhas' },
   { href: '/admin/suporte', icon: Headphones, label: 'Suporte', badge: true },
 ];
 

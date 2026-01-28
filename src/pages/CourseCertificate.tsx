@@ -455,10 +455,14 @@ const CertificateDoc = ({ studentName, courseName, completionDate, duration, sco
             )}
             <View style={styles.footerLine} />
             <Text style={styles.footerLabel}>{config?.signature_name || 'Diretor(a) Acadêmico(a)'}</Text>
+            {config?.signature_title && (
+              <Text style={{ fontSize: 8, color: `${textColor}80`, marginTop: 2 }}>{config.signature_title}</Text>
+            )}
           </View>
           <View style={styles.footerItem}>
             <View style={styles.footerLine} />
-            <Text style={styles.footerLabel}>{institutionName}</Text>
+            <Text style={styles.footerLabel}>{studentName}</Text>
+            <Text style={{ fontSize: 8, color: `${textColor}80`, marginTop: 2 }}>Aluno(a)</Text>
           </View>
         </View>
 

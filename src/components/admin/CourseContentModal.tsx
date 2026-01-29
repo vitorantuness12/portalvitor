@@ -130,15 +130,15 @@ export function CourseContentModal({ open, onOpenChange, course }: CourseContent
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
-        <DialogHeader>
+      <DialogContent className="max-w-4xl h-[85vh] flex flex-col overflow-hidden">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center gap-2 pr-8">
             <BookOpen className="h-5 w-5" />
             <span className="line-clamp-1">{course.title}</span>
           </DialogTitle>
         </DialogHeader>
 
-        <Tabs defaultValue="modules" className="flex-1 flex flex-col min-h-0">
+        <Tabs defaultValue="modules" className="flex-1 flex flex-col min-h-0 overflow-hidden">
           <TabsList className="grid w-full grid-cols-3 flex-shrink-0">
             <TabsTrigger value="modules" className="flex items-center gap-2">
               <BookOpen className="h-4 w-4" />
@@ -163,7 +163,8 @@ export function CourseContentModal({ open, onOpenChange, course }: CourseContent
             </TabsTrigger>
           </TabsList>
 
-          <ScrollArea className="flex-1 mt-4 min-h-0">
+          <div className="flex-1 mt-4 overflow-hidden">
+            <ScrollArea className="h-full">
             <TabsContent value="modules" className="m-0">
               {modules.length === 0 ? (
                 <EmptyState message="Nenhum módulo foi gerado ainda para este curso." />
@@ -233,7 +234,8 @@ export function CourseContentModal({ open, onOpenChange, course }: CourseContent
                 )
               )}
             </TabsContent>
-          </ScrollArea>
+            </ScrollArea>
+          </div>
         </Tabs>
       </DialogContent>
     </Dialog>

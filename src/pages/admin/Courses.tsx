@@ -164,7 +164,7 @@ export default function AdminCourses() {
       </div>
 
       <div className="flex items-center gap-4">
-        <div className="relative flex-1 max-w-sm">
+        <div className="relative flex-1 max-w-full sm:max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Buscar cursos..."
@@ -228,53 +228,67 @@ export default function AdminCourses() {
                   {course.status === 'active' ? 'Ativo' : 'Inativo'}
                 </Badge>
               </div>
-              <div className="flex gap-2 pt-2 border-t">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex-1"
-                  onClick={() => setEditCourse(course)}
-                >
-                  <Edit className="h-4 w-4 mr-2" />
-                  Editar
-                </Button>
-                <Link to={`/curso/${course.id}`}>
-                  <Button variant="outline" size="sm">
-                    <Eye className="h-4 w-4" />
+              <div className="pt-2 border-t space-y-2">
+                {/* Linha 1: Botões principais */}
+                <div className="grid grid-cols-3 gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => setEditCourse(course)}
+                  >
+                    <Edit className="h-4 w-4 mr-1" />
+                    <span className="text-xs">Editar</span>
                   </Button>
-                </Link>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setViewContentCourse(course)}
-                  title="Ver conteúdo do curso"
-                >
-                  <BookOpenCheck className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleRegenerateContent(course.id, course.title)}
-                  disabled={regeneratingId === course.id}
-                  title="Regenerar conteúdo dos módulos"
-                >
-                  <RefreshCw className={`h-4 w-4 ${regeneratingId === course.id ? 'animate-spin' : ''}`} />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setWhatsAppCourse({ id: course.id, title: course.title })}
-                >
-                  <MessageSquare className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="text-destructive"
-                  onClick={() => setDeleteId(course.id)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                  <Link to={`/curso/${course.id}`} className="w-full">
+                    <Button variant="outline" size="sm" className="w-full">
+                      <Eye className="h-4 w-4 mr-1" />
+                      <span className="text-xs">Ver</span>
+                    </Button>
+                  </Link>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => setViewContentCourse(course)}
+                    title="Ver conteúdo do curso"
+                  >
+                    <BookOpenCheck className="h-4 w-4 mr-1" />
+                    <span className="text-xs">Conteúdo</span>
+                  </Button>
+                </div>
+                {/* Linha 2: Botões secundários */}
+                <div className="grid grid-cols-3 gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => handleRegenerateContent(course.id, course.title)}
+                    disabled={regeneratingId === course.id}
+                    title="Regenerar conteúdo dos módulos"
+                  >
+                    <RefreshCw className={`h-4 w-4 mr-1 ${regeneratingId === course.id ? 'animate-spin' : ''}`} />
+                    <span className="text-xs">Regenerar</span>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => setWhatsAppCourse({ id: course.id, title: course.title })}
+                  >
+                    <MessageSquare className="h-4 w-4 mr-1" />
+                    <span className="text-xs">WhatsApp</span>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full text-destructive hover:text-destructive"
+                    onClick={() => setDeleteId(course.id)}
+                  >
+                    <Trash2 className="h-4 w-4 mr-1" />
+                    <span className="text-xs">Excluir</span>
+                  </Button>
+                </div>
               </div>
             </div>
           ))

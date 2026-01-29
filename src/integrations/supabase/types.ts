@@ -427,6 +427,69 @@ export type Database = {
           },
         ]
       }
+      payments: {
+        Row: {
+          amount: number
+          card_brand: string | null
+          card_last_four: string | null
+          created_at: string
+          id: string
+          mercado_pago_id: string | null
+          mercado_pago_status: string | null
+          metadata: Json | null
+          paid_at: string | null
+          payment_method: string
+          pix_expiration: string | null
+          pix_qr_code: string | null
+          pix_qr_code_base64: string | null
+          reference_id: string
+          reference_type: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          card_brand?: string | null
+          card_last_four?: string | null
+          created_at?: string
+          id?: string
+          mercado_pago_id?: string | null
+          mercado_pago_status?: string | null
+          metadata?: Json | null
+          paid_at?: string | null
+          payment_method: string
+          pix_expiration?: string | null
+          pix_qr_code?: string | null
+          pix_qr_code_base64?: string | null
+          reference_id: string
+          reference_type: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          card_brand?: string | null
+          card_last_four?: string | null
+          created_at?: string
+          id?: string
+          mercado_pago_id?: string | null
+          mercado_pago_status?: string | null
+          metadata?: Json | null
+          paid_at?: string | null
+          payment_method?: string
+          pix_expiration?: string | null
+          pix_qr_code?: string | null
+          pix_qr_code_base64?: string | null
+          reference_id?: string
+          reference_type?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null

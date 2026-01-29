@@ -135,7 +135,7 @@ export default function StudentCard() {
     queryClient.invalidateQueries({ queryKey: ['student-card', user?.id] });
   };
 
-  const downloadCardSideJpg = async (side: 'front' | 'back') => {
+  const downloadCardSidePng = async (side: 'front' | 'back') => {
     if (!studentCard || !profile) return;
 
     setDownloading(true);
@@ -148,15 +148,15 @@ export default function StudentCard() {
         scale: 3,
         useCORS: true,
         allowTaint: true,
-        backgroundColor: '#ffffff',
+        backgroundColor: null,
       });
 
       const link = document.createElement('a');
-      link.download = `carteirinha-${studentCard.card_code}-${side === 'front' ? 'frente' : 'verso'}.jpg`;
-      link.href = canvas.toDataURL('image/jpeg', 0.95);
+      link.download = `carteirinha-${studentCard.card_code}-${side === 'front' ? 'frente' : 'verso'}.png`;
+      link.href = canvas.toDataURL('image/png');
       link.click();
     } catch (error) {
-      console.error('Error generating JPG:', error);
+      console.error('Error generating PNG:', error);
     } finally {
       setDownloading(false);
     }
@@ -292,7 +292,7 @@ export default function StudentCard() {
                     {studentCard.status === 'active' && (
                       <div className="grid grid-cols-2 gap-3">
                         <Button
-                          onClick={() => downloadCardSideJpg('front')}
+                          onClick={() => downloadCardSidePng('front')}
                           disabled={downloading}
                           className="w-full"
                           variant="hero"
@@ -311,7 +311,7 @@ export default function StudentCard() {
                         </Button>
 
                         <Button
-                          onClick={() => downloadCardSideJpg('back')}
+                          onClick={() => downloadCardSidePng('back')}
                           disabled={downloading}
                           className="w-full"
                           variant="hero"

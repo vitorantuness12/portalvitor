@@ -52,7 +52,7 @@ export function StudentCardPreview({
             <div className="flex items-center gap-2 mb-3">
               <img src={logo} alt="Logo" className="h-8 w-8 object-contain bg-white rounded-full p-0.5" />
               <div>
-                <h3 className="text-white font-bold text-sm leading-tight">FORMAR ENSINO</h3>
+                <h3 className="text-white font-bold text-sm leading-tight">FORMAK</h3>
                 <p className="text-white/70 text-[10px]">Carteirinha de Estudante</p>
               </div>
             </div>
@@ -91,7 +91,7 @@ export function StudentCardPreview({
 
             {/* Footer */}
             <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/20">
-              <p className="text-[9px] text-white/60">www.formarensino.com.br</p>
+              <p className="text-[9px] text-white/60">www.formak.com.br</p>
               <div className="bg-white rounded p-1">
                 <QRCodeSVG
                   value={validationUrl}
@@ -113,7 +113,7 @@ export function StudentCardPreview({
               {/* Validation Info */}
               <div className="bg-white/10 rounded-lg p-3 mb-3">
                 <p className="text-[10px] text-white/70 uppercase tracking-wide mb-1">Para validar esta carteirinha</p>
-                <p className="text-white text-xs">Acesse: formarensino.com.br/validar-carteirinha</p>
+                <p className="text-white text-xs">Acesse: formak.com.br/validar-carteirinha</p>
                 <p className="text-white font-mono text-sm mt-1">Código: {cardCode || 'CARD-XXXXXX'}</p>
               </div>
 
@@ -127,7 +127,7 @@ export function StudentCardPreview({
               {/* Footer */}
               <div className="flex items-center justify-between pt-2 border-t border-white/20">
                 <div>
-                  <p className="text-[9px] text-white/60">Formar Ensino</p>
+                  <p className="text-[9px] text-white/60">Formak</p>
                   <p className="text-[8px] text-white/40">CNPJ: XX.XXX.XXX/0001-XX</p>
                 </div>
                 <img src={logo} alt="Logo" className="h-6 w-6 object-contain opacity-50" />

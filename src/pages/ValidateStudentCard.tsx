@@ -244,7 +244,7 @@ export default function ValidateStudentCard() {
                     <div className="mt-6 pt-4 border-t flex items-center gap-3">
                       <img src={logo} alt="Logo" className="h-10 w-10 object-contain" />
                       <div>
-                        <p className="font-semibold">Formar Ensino</p>
+                        <p className="font-semibold">Formak</p>
                         <p className="text-sm text-muted-foreground">Educação Online de Qualidade</p>
                       </div>
                     </div>

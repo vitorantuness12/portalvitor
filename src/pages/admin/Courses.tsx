@@ -29,9 +29,10 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
-import { Search, MoreHorizontal, Eye, Edit, Trash2, Sparkles, MessageSquare, RefreshCw } from 'lucide-react';
+import { Search, MoreHorizontal, Eye, Edit, Trash2, Sparkles, MessageSquare, RefreshCw, BookOpenCheck } from 'lucide-react';
 import { WhatsAppBulkModal } from '@/components/admin/WhatsAppBulkModal';
 import { EditCourseModal } from '@/components/admin/EditCourseModal';
+import { CourseContentModal } from '@/components/admin/CourseContentModal';
 import { Link, useNavigate } from 'react-router-dom';
 import type { Tables } from '@/integrations/supabase/types';
 
@@ -42,6 +43,7 @@ export default function AdminCourses() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [whatsAppCourse, setWhatsAppCourse] = useState<{ id: string; title: string } | null>(null);
   const [editCourse, setEditCourse] = useState<Course | null>(null);
+  const [viewContentCourse, setViewContentCourse] = useState<Course | null>(null);
   const [regeneratingId, setRegeneratingId] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -244,6 +246,14 @@ export default function AdminCourses() {
                 <Button
                   variant="outline"
                   size="sm"
+                  onClick={() => setViewContentCourse(course)}
+                  title="Ver conteúdo do curso"
+                >
+                  <BookOpenCheck className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={() => handleRegenerateContent(course.id, course.title)}
                   disabled={regeneratingId === course.id}
                   title="Regenerar conteúdo dos módulos"
@@ -372,6 +382,10 @@ export default function AdminCourses() {
                             Visualizar
                           </Link>
                         </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setViewContentCourse(course)}>
+                          <BookOpenCheck className="h-4 w-4 mr-2" />
+                          Ver Conteúdo
+                        </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => setWhatsAppCourse({ id: course.id, title: course.title })}
                         >
@@ -437,6 +451,14 @@ export default function AdminCourses() {
           open={!!editCourse}
           onOpenChange={(open) => !open && setEditCourse(null)}
           course={editCourse}
+        />
+      )}
+
+      {viewContentCourse && (
+        <CourseContentModal
+          open={!!viewContentCourse}
+          onOpenChange={(open) => !open && setViewContentCourse(null)}
+          course={viewContentCourse}
         />
       )}
     </div>

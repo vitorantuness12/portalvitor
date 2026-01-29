@@ -10,6 +10,7 @@ import {
   XCircle,
   RefreshCw,
   Eye,
+  Wallet,
 } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
@@ -17,12 +18,19 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { useAuth } from '@/hooks/useAuth';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { StudentCardForm } from '@/components/studentCard/StudentCardForm';
 import { StudentCardPreview } from '@/components/studentCard/StudentCardPreview';
 import { StudentCardPdf, generateQRCodeDataUrl } from '@/components/studentCard/StudentCardPdf';
+import { PaymentCheckout } from '@/components/payment/PaymentCheckout';
 import { pdf } from '@react-pdf/renderer';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -83,6 +91,7 @@ export default function StudentCard() {
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [previewSide, setPreviewSide] = useState<'front' | 'back'>('front');
   const [downloading, setDownloading] = useState(false);
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -346,11 +355,20 @@ export default function StudentCard() {
                     )}
 
                     {studentCard.status === 'pending_payment' && (
-                      <div className="p-4 bg-amber-500/10 rounded-lg">
-                        <p className="text-sm text-amber-600 dark:text-amber-400">
-                          <Clock className="h-4 w-4 inline mr-2" />
-                          Aguardando confirmação do pagamento. Entre em contato conosco para mais informações.
-                        </p>
+                      <div className="space-y-3">
+                        <div className="p-4 bg-primary/10 rounded-lg">
+                          <p className="text-sm text-foreground mb-3">
+                            <Clock className="h-4 w-4 inline mr-2" />
+                            Sua carteirinha está aguardando pagamento.
+                          </p>
+                          <Button 
+                            onClick={() => setShowPaymentDialog(true)}
+                            className="w-full"
+                          >
+                            <Wallet className="h-4 w-4 mr-2" />
+                            Pagar Agora
+                          </Button>
+                        </div>
                       </div>
                     )}
                   </CardContent>
@@ -456,6 +474,28 @@ export default function StudentCard() {
             </div>
           )}
         </div>
+
+        {/* Payment Dialog */}
+        <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
+          <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Pagamento da Carteirinha</DialogTitle>
+            </DialogHeader>
+            {studentCard && (
+              <PaymentCheckout
+                referenceType="student_card"
+                referenceId={studentCard.id}
+                amount={studentCard.amount_paid || (studentCard.plan_type === 'digital' ? 29.90 : 49.90)}
+                description={`Carteirinha de Estudante - ${studentCard.plan_type === 'digital' ? 'Digital' : 'Impressa'}`}
+                onSuccess={() => {
+                  setShowPaymentDialog(false);
+                  queryClient.invalidateQueries({ queryKey: ['student-card', user?.id] });
+                }}
+                onCancel={() => setShowPaymentDialog(false)}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
       </main>
       <Footer />
     </div>

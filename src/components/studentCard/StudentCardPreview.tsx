@@ -33,17 +33,6 @@ export function StudentCardPreview({
     >
       {/* Card Container - Credit card aspect ratio */}
       <div className="aspect-[1.586/1] rounded-xl overflow-hidden shadow-xl bg-gradient-to-br from-primary via-primary to-primary/80 relative">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-            <defs>
-              <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
-                <path d="M 10 0 L 0 0 0 10" fill="none" stroke="white" strokeWidth="0.5" />
-              </pattern>
-            </defs>
-            <rect width="100" height="100" fill="url(#grid)" />
-          </svg>
-        </div>
 
         {side === 'front' ? (
           /* Front Side */

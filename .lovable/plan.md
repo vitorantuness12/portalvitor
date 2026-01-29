@@ -1,67 +1,77 @@
 
-## Otimização Mobile da Página /admin/cursos
 
-### Problemas Identificados
-Analisando o código atual, identifiquei os seguintes pontos que precisam de otimização para dispositivos móveis:
+## Adicionar Selo Dourado no Certificado PDF
 
-1. **Cards Mobile com muitos botões na mesma linha** - Os botões de ação (Editar, Ver, Conteúdo, Regenerar, WhatsApp, Excluir) estão todos em uma única linha, causando overflow ou compressão em telas pequenas
-2. **Header com botão "Criar com IA"** - O botão pode ficar apertado em telas muito pequenas
-3. **Campo de busca** - Precisa ocupar toda a largura em mobile
-4. **Modal de Conteúdo (CourseContentModal)** - Usa Dialog que não é ideal para mobile; deveria usar Drawer (slide de baixo para cima) para melhor UX
-5. **Badges e informações do curso** - Podem ficar muito comprimidos em telas pequenas
+### Problema Identificado
+O PDF do certificado baixado pelo aluno (em `CourseCertificate.tsx`) **não possui** os selos/badges dourados que aparecem no preview do admin (`CertificatePreviewPdf.tsx`). O preview mostra os badges nas posições superior esquerda e direita, mas esses elementos não foram implementados no documento final.
 
-### Solução Proposta
-
-**1. Reorganizar botões de ação no card mobile**
-- Dividir os botões em duas linhas:
-  - Linha 1: Botões principais (Editar, Ver, Ver Conteúdo)
-  - Linha 2: Botões secundários (Regenerar, WhatsApp, Excluir)
-- Usar `flex-wrap` para adaptar automaticamente
-
-**2. Usar Drawer no mobile para CourseContentModal**
-- Implementar padrão responsivo: Dialog em desktop, Drawer em mobile
-- Usar o hook `useIsMobile()` já existente para detectar o dispositivo
-- O Drawer desliza de baixo para cima, oferecendo melhor experiência tátil
-
-**3. Melhorias gerais de layout**
-- Campo de busca com largura total em mobile (`max-w-sm` só em desktop)
-- Ajustar espaçamentos e tamanhos de fonte para telas pequenas
-- Garantir que badges e informações do curso usem layout flexível
+### Solução
+Adicionar o selo dourado no canto do certificado PDF de download, utilizando a mesma estrutura já existente no preview do admin, mas aplicando ao documento real do aluno.
 
 ### Alterações Técnicas
 
-**1. `src/pages/admin/Courses.tsx`**
-- Reorganizar grid dos botões de ação no card mobile
-- Usar `grid grid-cols-3` para primeira linha de botões principais
-- Usar `grid grid-cols-3` para segunda linha de botões secundários
-- Ajustar campo de busca para `max-w-full sm:max-w-sm`
+**Arquivo: `src/pages/CourseCertificate.tsx`**
 
-**2. `src/components/admin/CourseContentModal.tsx`**
-- Importar `Drawer` components e `useIsMobile` hook
-- Renderizar condicionalmente `Drawer` (mobile) ou `Dialog` (desktop)
-- Ajustar altura do modal: `h-[90vh]` no Drawer para ocupar mais tela
-- Adicionar padding inferior seguro para área do notch em dispositivos iOS
-
-### Estrutura do Card Mobile Otimizado
-
-```text
-+--------------------------------------------+
-| [Thumbnail]  Título do Curso               |
-|              Categoria                     |
-+--------------------------------------------+
-| [Nível] [Duração] [Preço] [Status]         |
-+--------------------------------------------+
-| [Editar]    [Ver]       [Conteúdo]         |
-| [Regenerar] [WhatsApp]  [Excluir]          |
-+--------------------------------------------+
+1. Adicionar estilos para o badge/selo no `StyleSheet`:
+```typescript
+badge: {
+  position: 'absolute',
+  top: 35,
+  alignItems: 'center',
+},
+badgeCircle: {
+  width: 48,
+  height: 48,
+  borderRadius: 24,
+  alignItems: 'center',
+  justifyContent: 'center',
+},
+badgeText: {
+  fontSize: 6,
+  fontFamily: 'Montserrat',
+  fontWeight: 700,
+  textTransform: 'uppercase',
+  marginTop: 4,
+},
 ```
 
-### Comportamento Responsivo do Modal
+2. Renderizar os selos dourados na página frontal do certificado (após a borda e ondas decorativas):
+   - **Selo esquerdo**: Ícone de estrela com fundo azul e borda dourada + texto "PREMIUM"
+   - **Selo direito**: Ícone de estrela com fundo dourado + texto "QUALIDADE"
+
+3. Buscar as configurações de badges da tabela `certificate_config` para permitir customização pelo admin
+
+### Estrutura Visual do Selo
 
 ```text
-Desktop (>768px):          Mobile (≤768px):
-+-------------------+      +-------------------+
-| Dialog centrado   |      | Drawer de baixo   |
-| na tela           |      | para cima         |
-+-------------------+      +-------------------+
++------------------------------------------+
+| [★ PREMIUM]                 [★ QUALIDADE]|
+|                                          |
+|            CERTIFICADO                   |
+|          DE CONCLUSÃO                    |
+|                                          |
+|        João da Silva                     |
+|        ──────●──────                     |
+|                                          |
++------------------------------------------+
 ```
+
+### Detalhes do Design do Selo
+
+- **Selo Circular**: 48x48 pixels com borda dourada
+- **Ícone**: Estrela (★) centralizada
+- **Cores**: 
+  - Selo esquerdo: Fundo azul primário, borda e estrela douradas
+  - Selo direito: Fundo dourado sólido, estrela branca
+- **Texto**: Abaixo do selo, em maiúsculas, cor primária
+- **Posição**: Top 35px, esquerda 35px / direita 35px
+
+### Customização pelo Admin
+O sistema já possui campos na configuração do certificado para personalizar:
+- `left_badge_url` - Imagem customizada para selo esquerdo
+- `right_badge_url` - Imagem customizada para selo direito  
+- `left_badge_text` - Texto do selo esquerdo (padrão: "PREMIUM")
+- `right_badge_text` - Texto do selo direito (padrão: "QUALIDADE")
+
+Esses valores serão lidos da configuração e aplicados dinamicamente no PDF.
+

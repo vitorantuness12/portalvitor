@@ -425,8 +425,8 @@ const CertificateDoc = ({ studentName, courseName, completionDate, duration, sco
       zIndex: 30,
     },
     badgeCircle: {
-      width: 48,
-      height: 48,
+      width: 60,
+      height: 60,
       borderRadius: 24,
       alignItems: 'center',
       justifyContent: 'center',

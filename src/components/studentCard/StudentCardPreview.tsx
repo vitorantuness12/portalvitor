@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import logoWhite from '@/assets/logo_formak_white.png';
 import logo from '@/assets/logo_formak.png';
 
 interface StudentCardPreviewProps {
@@ -38,12 +39,9 @@ export function StudentCardPreview({
           /* Front Side */
           <div className="relative h-full p-4 flex flex-col">
             {/* Header */}
-            <div className="flex items-center gap-2 mb-3">
-              <img src={logo} alt="Logo" className="h-8 w-8 object-contain bg-white rounded-full p-0.5" />
-              <div>
-                <h3 className="text-white font-bold text-sm leading-tight">FORMAK</h3>
-                <p className="text-white/70 text-[10px]">Carteirinha de Estudante</p>
-              </div>
+            <div className="flex flex-col items-start mb-3">
+              <img src={logoWhite} alt="Formak" className="h-6 object-contain" />
+              <p className="text-white/90 text-[10px] mt-1 font-sans">Carteirinha de Estudante</p>
             </div>
 
             {/* Main Content */}

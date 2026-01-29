@@ -29,36 +29,18 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
     marginBottom: 12,
   },
-  logoContainer: {
-    width: 32,
-    height: 32,
-    marginRight: 8,
-    borderRadius: 16,
-    backgroundColor: 'white',
-    padding: 3,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  logo: {
-    width: 24,
-    height: 24,
+  logoImage: {
+    height: 18,
     objectFit: 'contain',
   },
-  headerText: {
-    flex: 1,
-  },
-  institutionName: {
-    color: 'white',
-    fontSize: 10,
-    fontFamily: 'Helvetica-Bold',
-  },
   subtitle: {
-    color: 'rgba(255,255,255,0.7)',
+    color: 'rgba(255,255,255,0.9)',
     fontSize: 7,
+    marginTop: 4,
     fontFamily: 'Helvetica',
   },
   mainContent: {
@@ -221,14 +203,9 @@ export function StudentCardPdf({
             {/* Header */}
             <View style={styles.header}>
               {logoUrl && (
-                <View style={styles.logoContainer}>
-                  <Image src={logoUrl} style={styles.logo} />
-                </View>
+                <Image src={logoUrl} style={styles.logoImage} />
               )}
-              <View style={styles.headerText}>
-                <Text style={styles.institutionName}>FORMAK</Text>
-                <Text style={styles.subtitle}>Carteirinha de Estudante</Text>
-              </View>
+              <Text style={styles.subtitle}>Carteirinha de Estudante</Text>
             </View>
 
             {/* Main Content */}

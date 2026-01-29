@@ -4,6 +4,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import logoWhite from '@/assets/logo_formak_white.png';
 import logo from '@/assets/logo_formak.png';
+import bandeiraBrasil from '@/assets/bandeira-brasil.png';
 
 interface StudentCardPreviewProps {
   studentName: string;
@@ -141,12 +142,7 @@ export function StudentCardPreview({
               {/* Footer */}
               <div className="flex items-center justify-between mt-auto pt-1.5 border-t border-border">
                 {/* Bandeira do Brasil */}
-                <svg className="h-4 w-6" viewBox="0 0 36 24" fill="none">
-                  <rect width="36" height="24" fill="#009739"/>
-                  <path d="M18 2L34 12L18 22L2 12L18 2Z" fill="#FEDD00"/>
-                  <circle cx="18" cy="12" r="6" fill="#002776"/>
-                  <path d="M10 12C10 12 14 15 18 15C22 15 26 12 26 12" stroke="white" strokeWidth="1"/>
-                </svg>
+                <img src={bandeiraBrasil} alt="Bandeira do Brasil" className="h-4 object-contain" />
                 {/* Logo com proporção correta */}
                 <img src={logo} alt="Logo" className="h-6 object-contain" />
               </div>

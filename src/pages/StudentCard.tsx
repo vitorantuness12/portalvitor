@@ -261,7 +261,7 @@ export default function StudentCard() {
                     <div className="space-y-4">
                       <div>
                         <p className="text-sm font-medium text-muted-foreground mb-2">Frente</p>
-                        <div id="student-card-front">
+                        <div id="student-card-front-preview" className="flex justify-center">
                           <StudentCardPreview
                             studentName={profile?.full_name || ''}
                             photoUrl={studentCard.photo_url}
@@ -274,7 +274,7 @@ export default function StudentCard() {
                       </div>
                       <div>
                         <p className="text-sm font-medium text-muted-foreground mb-2">Verso</p>
-                        <div id="student-card-back">
+                        <div id="student-card-back-preview" className="flex justify-center">
                           <StudentCardPreview
                             studentName={profile?.full_name || ''}
                             photoUrl={studentCard.photo_url}
@@ -284,6 +284,32 @@ export default function StudentCard() {
                             side="back"
                           />
                         </div>
+                      </div>
+                    </div>
+
+                    {/* Hidden export versions (no animation/transform) for clean PNG capture */}
+                    <div className="fixed -left-[10000px] top-0">
+                      <div id="student-card-front">
+                        <StudentCardPreview
+                          studentName={profile?.full_name || ''}
+                          photoUrl={studentCard.photo_url}
+                          cardCode={studentCard.card_code}
+                          expiresAt={studentCard.expires_at ? new Date(studentCard.expires_at) : undefined}
+                          validationUrl={validationUrl}
+                          side="front"
+                          exportMode
+                        />
+                      </div>
+                      <div id="student-card-back">
+                        <StudentCardPreview
+                          studentName={profile?.full_name || ''}
+                          photoUrl={studentCard.photo_url}
+                          cardCode={studentCard.card_code}
+                          expiresAt={studentCard.expires_at ? new Date(studentCard.expires_at) : undefined}
+                          validationUrl={validationUrl}
+                          side="back"
+                          exportMode
+                        />
                       </div>
                     </div>
 

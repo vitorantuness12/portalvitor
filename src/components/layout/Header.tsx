@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Menu, X, LogOut, LayoutDashboard, TrendingUp, Settings, BookOpen, Award } from 'lucide-react';
+import { Menu, X, LogOut, LayoutDashboard, TrendingUp, Settings, BookOpen, Award, IdCard } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
@@ -120,6 +120,12 @@ export function Header() {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
+                    <Link to="/minha-carteirinha" className="cursor-pointer">
+                      <IdCard className="mr-2 h-4 w-4" />
+                      Minha Carteirinha
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
                     <Link to="/perfil" className="cursor-pointer">
                       <Settings className="mr-2 h-4 w-4" />
                       Editar Perfil
@@ -219,6 +225,16 @@ export function Header() {
                     }}
                   >
                     Meus Certificados
+                  </button>
+                  <button
+                    type="button"
+                    className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors text-left"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      navigate('/minha-carteirinha');
+                    }}
+                  >
+                    Minha Carteirinha
                   </button>
                   <Link
                     to="/perfil"

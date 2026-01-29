@@ -17,7 +17,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     padding: 16,
-    backgroundColor: '#3B82F6',
+    backgroundColor: '#FF7026',
     position: 'relative',
   },
   backCard: {

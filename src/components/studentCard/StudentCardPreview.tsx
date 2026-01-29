@@ -48,7 +48,7 @@ export function StudentCardPreview({
   return (
     <Wrapper {...wrapperProps}>
       {/* Card Container - Credit card aspect ratio */}
-      <div className={cardClassName}>
+      <div className={cardClassName} style={{ fontFamily: 'Arial, sans-serif' }}>
 
         {side === 'front' ? (
           /* Front Side */
@@ -82,7 +82,7 @@ export function StudentCardPreview({
               {/* Info */}
               <div className="flex flex-col justify-center flex-1 min-w-0">
                 <p className="text-[9px] text-white/70 uppercase tracking-wide">Nome do Estudante</p>
-                <p className="text-white font-bold text-[14px] leading-[1.25] pb-[1px] truncate">
+                <p className="text-white font-bold text-[14px] leading-[1.3] truncate">
                   {studentName || 'Nome do Aluno'}
                 </p>
                 
@@ -97,12 +97,12 @@ export function StudentCardPreview({
             </div>
 
             {/* Footer */}
-            <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/20">
+            <div className="flex items-center justify-between mt-auto pt-2 border-t border-white/20">
               <p className="text-[8px] text-white/60">www.formak.com.br</p>
-              <div className="bg-white rounded p-1">
+              <div className="bg-white rounded p-0.5">
                 <QRCodeSVG
                   value={validationUrl}
-                  size={28}
+                  size={26}
                   level="L"
                   bgColor="white"
                   fgColor="#000"
@@ -129,7 +129,7 @@ export function StudentCardPreview({
               </div>
 
               {/* Footer */}
-              <div className="flex items-center justify-between pt-2 border-t border-border">
+              <div className="flex items-center justify-between mt-auto pt-2 border-t border-border">
                 <p className="text-sm font-bold text-primary">Formak</p>
                 <img src={logo} alt="Logo" className="h-6 w-6 object-contain" />
               </div>

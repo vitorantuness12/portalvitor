@@ -140,8 +140,15 @@ export function StudentCardPreview({
 
               {/* Footer */}
               <div className="flex items-center justify-between mt-auto pt-1.5 border-t border-border">
-                <p className="text-sm font-bold text-primary">Formak</p>
-                <img src={logo} alt="Logo" className="h-5 w-5 object-contain" />
+                {/* Bandeira do Brasil */}
+                <svg className="h-4 w-6" viewBox="0 0 36 24" fill="none">
+                  <rect width="36" height="24" fill="#009739"/>
+                  <path d="M18 2L34 12L18 22L2 12L18 2Z" fill="#FEDD00"/>
+                  <circle cx="18" cy="12" r="6" fill="#002776"/>
+                  <path d="M10 12C10 12 14 15 18 15C22 15 26 12 26 12" stroke="white" strokeWidth="1"/>
+                </svg>
+                {/* Logo com proporção correta */}
+                <img src={logo} alt="Logo" className="h-6 object-contain" />
               </div>
             </div>
           </div>

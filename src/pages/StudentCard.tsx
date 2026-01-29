@@ -135,50 +135,26 @@ export default function StudentCard() {
     queryClient.invalidateQueries({ queryKey: ['student-card', user?.id] });
   };
 
-  const handleDownloadPng = async () => {
+  const downloadCardSidePng = async (side: 'front' | 'back') => {
     if (!studentCard || !profile) return;
 
     setDownloading(true);
 
     try {
-      // Get both front and back card elements
-      const frontElement = document.getElementById('student-card-front');
-      const backElement = document.getElementById('student-card-back');
-      
-      if (!frontElement || !backElement) {
-        throw new Error('Card preview elements not found');
-      }
+      const el = document.getElementById(side === 'front' ? 'student-card-front' : 'student-card-back');
+      if (!el) throw new Error('Card export element not found');
 
-      // Generate front PNG
-      const frontCanvas = await html2canvas(frontElement, {
+      const canvas = await html2canvas(el, {
         scale: 3,
         useCORS: true,
         allowTaint: true,
         backgroundColor: null,
       });
 
-      // Generate back PNG
-      const backCanvas = await html2canvas(backElement, {
-        scale: 3,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: null,
-      });
-
-      // Download front
-      const frontLink = document.createElement('a');
-      frontLink.download = `carteirinha-${studentCard.card_code}-frente.png`;
-      frontLink.href = frontCanvas.toDataURL('image/png');
-      frontLink.click();
-
-      // Small delay before downloading back
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      // Download back
-      const backLink = document.createElement('a');
-      backLink.download = `carteirinha-${studentCard.card_code}-verso.png`;
-      backLink.href = backCanvas.toDataURL('image/png');
-      backLink.click();
+      const link = document.createElement('a');
+      link.download = `carteirinha-${studentCard.card_code}-${side === 'front' ? 'frente' : 'verso'}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
     } catch (error) {
       console.error('Error generating PNG:', error);
     } finally {
@@ -314,24 +290,45 @@ export default function StudentCard() {
                     </div>
 
                     {studentCard.status === 'active' && (
-                      <Button
-                        onClick={handleDownloadPng}
-                        disabled={downloading}
-                        className="w-full"
-                        variant="hero"
-                      >
-                        {downloading ? (
-                          <>
-                            <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                            Gerando PNG...
-                          </>
-                        ) : (
-                          <>
-                            <Download className="h-4 w-4 mr-2" />
-                            Baixar PNG
-                          </>
-                        )}
-                      </Button>
+                      <div className="grid grid-cols-2 gap-3">
+                        <Button
+                          onClick={() => downloadCardSidePng('front')}
+                          disabled={downloading}
+                          className="w-full"
+                          variant="hero"
+                        >
+                          {downloading ? (
+                            <>
+                              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                              Gerando...
+                            </>
+                          ) : (
+                            <>
+                              <Download className="h-4 w-4 mr-2" />
+                              Baixar Frente
+                            </>
+                          )}
+                        </Button>
+
+                        <Button
+                          onClick={() => downloadCardSidePng('back')}
+                          disabled={downloading}
+                          className="w-full"
+                          variant="hero"
+                        >
+                          {downloading ? (
+                            <>
+                              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                              Gerando...
+                            </>
+                          ) : (
+                            <>
+                              <Download className="h-4 w-4 mr-2" />
+                              Baixar Verso
+                            </>
+                          )}
+                        </Button>
+                      </div>
                     )}
                   </CardContent>
                 </Card>

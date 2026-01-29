@@ -138,8 +138,8 @@ export function CourseContentModal({ open, onOpenChange, course }: CourseContent
           </DialogTitle>
         </DialogHeader>
 
-        <Tabs defaultValue="modules" className="flex-1 flex flex-col overflow-hidden">
-          <TabsList className="grid w-full grid-cols-3">
+        <Tabs defaultValue="modules" className="flex-1 flex flex-col min-h-0">
+          <TabsList className="grid w-full grid-cols-3 flex-shrink-0">
             <TabsTrigger value="modules" className="flex items-center gap-2">
               <BookOpen className="h-4 w-4" />
               <span className="hidden sm:inline">Módulos</span>
@@ -163,7 +163,7 @@ export function CourseContentModal({ open, onOpenChange, course }: CourseContent
             </TabsTrigger>
           </TabsList>
 
-          <ScrollArea className="flex-1 mt-4">
+          <ScrollArea className="flex-1 mt-4 min-h-0">
             <TabsContent value="modules" className="m-0">
               {modules.length === 0 ? (
                 <EmptyState message="Nenhum módulo foi gerado ainda para este curso." />

@@ -32,7 +32,7 @@ export function StudentCardPreview({
       className="relative w-full max-w-[340px] mx-auto"
     >
       {/* Card Container - Credit card aspect ratio */}
-      <div className="aspect-[1.586/1] rounded-xl overflow-hidden shadow-xl bg-gradient-to-br from-primary via-primary to-primary/80 relative">
+      <div className="aspect-[1.586/1] rounded-xl overflow-hidden shadow-xl bg-gradient-to-br from-primary via-primary to-primary/80 relative font-sans">
 
         {side === 'front' ? (
           /* Front Side */

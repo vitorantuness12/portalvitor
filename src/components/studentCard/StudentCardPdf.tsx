@@ -5,6 +5,7 @@ const styles = StyleSheet.create({
   page: {
     padding: 40,
     backgroundColor: '#ffffff',
+    fontFamily: 'Helvetica',
   },
   cardContainer: {
     width: 324,
@@ -53,11 +54,12 @@ const styles = StyleSheet.create({
   institutionName: {
     color: 'white',
     fontSize: 10,
-    fontWeight: 'bold',
+    fontFamily: 'Helvetica-Bold',
   },
   subtitle: {
     color: 'rgba(255,255,255,0.7)',
     fontSize: 7,
+    fontFamily: 'Helvetica',
   },
   mainContent: {
     flexDirection: 'row',
@@ -89,17 +91,18 @@ const styles = StyleSheet.create({
     fontSize: 6,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
+    fontFamily: 'Helvetica',
   },
   value: {
     color: 'white',
     fontSize: 9,
-    fontWeight: 'bold',
+    fontFamily: 'Helvetica-Bold',
     marginBottom: 8,
   },
   codeValue: {
     color: 'white',
     fontSize: 8,
-    fontFamily: 'Courier',
+    fontFamily: 'Helvetica-Bold',
     marginBottom: 8,
   },
   footer: {
@@ -114,6 +117,7 @@ const styles = StyleSheet.create({
   footerText: {
     color: 'rgba(255,255,255,0.6)',
     fontSize: 6,
+    fontFamily: 'Helvetica',
   },
   qrCode: {
     width: 36,
@@ -137,22 +141,24 @@ const styles = StyleSheet.create({
     fontSize: 6,
     textTransform: 'uppercase',
     marginBottom: 4,
+    fontFamily: 'Helvetica',
   },
   validationText: {
     color: 'white',
     fontSize: 8,
+    fontFamily: 'Helvetica',
   },
   validationCode: {
     color: 'white',
     fontSize: 10,
-    fontFamily: 'Courier',
-    fontWeight: 'bold',
+    fontFamily: 'Helvetica-Bold',
     marginTop: 4,
   },
   terms: {
     color: '#666666',
     fontSize: 5,
     lineHeight: 1.4,
+    fontFamily: 'Helvetica',
   },
   backFooter: {
     flexDirection: 'row',
@@ -166,7 +172,7 @@ const styles = StyleSheet.create({
   backFooterText: {
     color: '#FF7026',
     fontSize: 8,
-    fontWeight: 'bold',
+    fontFamily: 'Helvetica-Bold',
   },
   backLogo: {
     width: 24,

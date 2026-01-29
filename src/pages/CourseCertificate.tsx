@@ -461,18 +461,6 @@ const CertificateDoc = ({ studentName, courseName, completionDate, duration, sco
         {/* Border frame */}
         <View style={styles.borderFrame} />
 
-        {/* Left Badge/Seal */}
-        <View style={styles.badgeLeft}>
-          {config?.left_badge_url ? (
-            <Image src={config.left_badge_url} style={styles.badgeImage} />
-          ) : (
-            <View style={[styles.badgeCircle, { backgroundColor: primaryColor, borderColor: secondaryColor }]}>
-              <BadgeStar color={secondaryColor} />
-            </View>
-          )}
-          <Text style={[styles.badgeText, { color: primaryColor }]}>{leftBadgeText}</Text>
-        </View>
-
         {/* Right Badge/Seal */}
         <View style={styles.badgeRight}>
           {config?.right_badge_url ? (
@@ -482,7 +470,6 @@ const CertificateDoc = ({ studentName, courseName, completionDate, duration, sco
               <BadgeStar color="#FFFFFF" />
             </View>
           )}
-          <Text style={[styles.badgeText, { color: primaryColor }]}>{rightBadgeText}</Text>
         </View>
         <View style={styles.content}>
           <View style={styles.header}>

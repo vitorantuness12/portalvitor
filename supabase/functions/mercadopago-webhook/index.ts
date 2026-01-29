@@ -120,7 +120,23 @@ serve(async (req) => {
             .eq("id", localPayment.reference_id);
         }
 
-        // Add more reference types here as needed (courses, etc.)
+        if (localPayment.reference_type === "course") {
+          // Create enrollment for the course
+          const { error: enrollmentError } = await supabase
+            .from("enrollments")
+            .insert({
+              user_id: localPayment.user_id,
+              course_id: localPayment.reference_id,
+              status: "in_progress",
+              progress: 0,
+            });
+
+          if (enrollmentError) {
+            console.error("Error creating enrollment:", enrollmentError);
+          } else {
+            console.log(`Enrollment created for user ${localPayment.user_id} in course ${localPayment.reference_id}`);
+          }
+        }
       }
 
       console.log("Payment updated successfully:", localPayment.id, status);

@@ -32,6 +32,7 @@ import BulkCreateCourseAI from "./pages/admin/BulkCreateCourseAI";
 import AdminSupportTickets from "./pages/admin/SupportTickets";
 import TopicGenerator from "./pages/admin/TopicGenerator";
 import CertificateConfig from "./pages/admin/CertificateConfig";
+import AdminPayments from "./pages/admin/Payments";
 import NotFound from "./pages/NotFound";
 import Onboarding from "./pages/Onboarding";
 import { SupportChat } from "./components/support/SupportChat";
@@ -77,6 +78,7 @@ function App() {
                   <Route path="criar-cursos-massa" element={<BulkCreateCourseAI />} />
                   <Route path="gerador-temas" element={<TopicGenerator />} />
                   <Route path="config-certificado" element={<CertificateConfig />} />
+                  <Route path="pagamentos" element={<AdminPayments />} />
                   <Route path="carteirinhas" element={<AdminStudentCards />} />
                   <Route path="suporte" element={<AdminSupportTickets />} />
                 </Route>

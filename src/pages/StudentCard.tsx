@@ -35,7 +35,7 @@ import { pdf } from '@react-pdf/renderer';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Skeleton } from '@/components/ui/skeleton';
-import logo from '@/assets/logo_formak.png';
+import logoWhite from '@/assets/logo_formak_white.png';
 
 type StudentCardType = {
   id: string;
@@ -150,7 +150,7 @@ export default function StudentCard() {
         : '-';
 
       // Convert logo to data URL
-      const logoResponse = await fetch(logo);
+      const logoResponse = await fetch(logoWhite);
       const logoBlob = await logoResponse.blob();
       const logoDataUrl = await new Promise<string>((resolve) => {
         const reader = new FileReader();

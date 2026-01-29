@@ -223,7 +223,7 @@ export function StudentCardPdf({
             <View style={styles.header}>
               {logoUrl && <Image src={logoUrl} style={styles.logo} />}
               <View style={styles.headerText}>
-                <Text style={styles.institutionName}>FORMAR ENSINO</Text>
+                <Text style={styles.institutionName}>FORMAK</Text>
                 <Text style={styles.subtitle}>Carteirinha de Estudante</Text>
               </View>
             </View>
@@ -254,7 +254,7 @@ export function StudentCardPdf({
 
             {/* Footer */}
             <View style={styles.footer}>
-              <Text style={styles.footerText}>www.formarensino.com.br</Text>
+              <Text style={styles.footerText}>www.formak.com.br</Text>
               {qrCodeDataUrl && <Image src={qrCodeDataUrl} style={styles.qrCode} />}
             </View>
           </View>
@@ -271,7 +271,7 @@ export function StudentCardPdf({
             <View style={styles.backContent}>
               <View style={styles.validationBox}>
                 <Text style={styles.validationLabel}>Para validar esta carteirinha</Text>
-                <Text style={styles.validationText}>Acesse: formarensino.com.br/validar-carteirinha</Text>
+                <Text style={styles.validationText}>Acesse: formak.com.br/validar-carteirinha</Text>
                 <Text style={styles.validationCode}>Código: {cardCode}</Text>
               </View>
 
@@ -283,7 +283,7 @@ export function StudentCardPdf({
             {/* Footer */}
             <View style={styles.backFooter}>
               <View>
-                <Text style={styles.backFooterText}>Formar Ensino</Text>
+                <Text style={styles.backFooterText}>Formak</Text>
                 <Text style={styles.backFooterSubtext}>CNPJ: XX.XXX.XXX/0001-XX</Text>
               </View>
               {logoUrl && <Image src={logoUrl} style={styles.backLogo} />}

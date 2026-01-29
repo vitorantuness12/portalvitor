@@ -170,7 +170,21 @@ interface CertificateConfigType {
   back_wave_style?: string | null;
   show_front_waves?: boolean | null;
   show_back_waves?: boolean | null;
+  left_badge_url?: string | null;
+  right_badge_url?: string | null;
+  left_badge_text?: string | null;
+  right_badge_text?: string | null;
 }
+
+// Badge/Seal SVG Component - Golden star icon
+const BadgeStar = ({ color }: { color: string }) => (
+  <Svg viewBox="0 0 24 24" style={{ width: 20, height: 20 }}>
+    <Path 
+      d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" 
+      fill={color}
+    />
+  </Svg>
+);
 
 const CertificateDoc = ({ studentName, courseName, completionDate, duration, score, certificateCode, qrCodeDataUrl, config }: CertificateDocProps) => {
   const primaryColor = config?.primary_color || '#FF7026';
@@ -395,7 +409,47 @@ const CertificateDoc = ({ studentName, courseName, completionDate, duration, sco
       color: `${textColor}80`,
       marginBottom: 15,
     },
+    // Badge/Seal styles
+    badgeLeft: {
+      position: 'absolute',
+      top: 35,
+      left: 35,
+      alignItems: 'center',
+      zIndex: 30,
+    },
+    badgeRight: {
+      position: 'absolute',
+      top: 35,
+      right: 35,
+      alignItems: 'center',
+      zIndex: 30,
+    },
+    badgeCircle: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 2,
+    },
+    badgeText: {
+      fontSize: 6,
+      fontFamily: 'Montserrat',
+      fontWeight: 700,
+      textTransform: 'uppercase',
+      marginTop: 4,
+      letterSpacing: 0.5,
+    },
+    badgeImage: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+    },
   });
+
+  // Badge configuration
+  const leftBadgeText = config?.left_badge_text || 'PREMIUM';
+  const rightBadgeText = config?.right_badge_text || 'QUALIDADE';
 
   return (
     <Document>
@@ -407,7 +461,29 @@ const CertificateDoc = ({ studentName, courseName, completionDate, duration, sco
         {/* Border frame */}
         <View style={styles.borderFrame} />
 
-        {/* Main content */}
+        {/* Left Badge/Seal */}
+        <View style={styles.badgeLeft}>
+          {config?.left_badge_url ? (
+            <Image src={config.left_badge_url} style={styles.badgeImage} />
+          ) : (
+            <View style={[styles.badgeCircle, { backgroundColor: primaryColor, borderColor: secondaryColor }]}>
+              <BadgeStar color={secondaryColor} />
+            </View>
+          )}
+          <Text style={[styles.badgeText, { color: primaryColor }]}>{leftBadgeText}</Text>
+        </View>
+
+        {/* Right Badge/Seal */}
+        <View style={styles.badgeRight}>
+          {config?.right_badge_url ? (
+            <Image src={config.right_badge_url} style={styles.badgeImage} />
+          ) : (
+            <View style={[styles.badgeCircle, { backgroundColor: secondaryColor, borderColor: secondaryColor }]}>
+              <BadgeStar color="#FFFFFF" />
+            </View>
+          )}
+          <Text style={[styles.badgeText, { color: primaryColor }]}>{rightBadgeText}</Text>
+        </View>
         <View style={styles.content}>
           <View style={styles.header}>
             {config?.institution_logo_url && (

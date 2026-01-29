@@ -29,9 +29,14 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   header: {
-    flexDirection: 'column',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: 12,
+  },
+  headerLeft: {
+    flexDirection: 'column',
+    alignItems: 'flex-start',
   },
   logoImage: {
     height: 18,
@@ -42,6 +47,11 @@ const styles = StyleSheet.create({
     fontSize: 7,
     marginTop: 4,
     fontFamily: 'Helvetica',
+  },
+  yearText: {
+    color: 'white',
+    fontSize: 14,
+    fontFamily: 'Helvetica-Bold',
   },
   mainContent: {
     flexDirection: 'row',
@@ -202,10 +212,13 @@ export function StudentCardPdf({
         <View style={styles.frontCard}>
             {/* Header */}
             <View style={styles.header}>
-              {logoUrl && (
-                <Image src={logoUrl} style={styles.logoImage} />
-              )}
-              <Text style={styles.subtitle}>Carteirinha de Estudante</Text>
+              <View style={styles.headerLeft}>
+                {logoUrl && (
+                  <Image src={logoUrl} style={styles.logoImage} />
+                )}
+                <Text style={styles.subtitle}>Carteirinha de Estudante</Text>
+              </View>
+              <Text style={styles.yearText}>{new Date().getFullYear()}</Text>
             </View>
 
             {/* Main Content */}

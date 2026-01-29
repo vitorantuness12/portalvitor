@@ -29,12 +29,11 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { StudentCardForm } from '@/components/studentCard/StudentCardForm';
 import { StudentCardPreview } from '@/components/studentCard/StudentCardPreview';
-import { StudentCardPdf, generateQRCodeDataUrl } from '@/components/studentCard/StudentCardPdf';
 import { PaymentCheckout } from '@/components/payment/PaymentCheckout';
-import { pdf } from '@react-pdf/renderer';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Skeleton } from '@/components/ui/skeleton';
+import html2canvas from 'html2canvas';
 import logoWhite from '@/assets/logo_formak_white.png';
 
 type StudentCardType = {
@@ -137,47 +136,31 @@ export default function StudentCard() {
     queryClient.invalidateQueries({ queryKey: ['student-card', user?.id] });
   };
 
-  const handleDownloadPdf = async () => {
+  const handleDownloadPng = async () => {
     if (!studentCard || !profile) return;
 
     setDownloading(true);
 
     try {
-      const validationUrl = `${window.location.origin}/validar-carteirinha?codigo=${studentCard.card_code}`;
-      const qrCodeDataUrl = await generateQRCodeDataUrl(validationUrl);
-      const expiresAt = studentCard.expires_at
-        ? format(new Date(studentCard.expires_at), 'dd/MM/yyyy', { locale: ptBR })
-        : '-';
+      // Find the card preview element
+      const cardElement = document.getElementById('student-card-preview');
+      if (!cardElement) {
+        throw new Error('Card preview element not found');
+      }
 
-      // Convert logo to data URL
-      const logoResponse = await fetch(logoWhite);
-      const logoBlob = await logoResponse.blob();
-      const logoDataUrl = await new Promise<string>((resolve) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result as string);
-        reader.readAsDataURL(logoBlob);
+      const canvas = await html2canvas(cardElement, {
+        scale: 3, // High resolution
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: null,
       });
 
-      const blob = await pdf(
-        <StudentCardPdf
-          studentName={profile.full_name}
-          photoUrl={studentCard.photo_url}
-          cardCode={studentCard.card_code}
-          expiresAt={expiresAt}
-          validationUrl={validationUrl}
-          qrCodeDataUrl={qrCodeDataUrl}
-          logoUrl={logoDataUrl}
-        />
-      ).toBlob();
-
-      const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
-      link.href = url;
-      link.download = `carteirinha-${studentCard.card_code}.pdf`;
+      link.download = `carteirinha-${studentCard.card_code}.png`;
+      link.href = canvas.toDataURL('image/png');
       link.click();
-      URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('Error generating PDF:', error);
+      console.error('Error generating PNG:', error);
     } finally {
       setDownloading(false);
     }
@@ -260,14 +243,16 @@ export default function StudentCard() {
                         <TabsTrigger value="back">Verso</TabsTrigger>
                       </TabsList>
                       <TabsContent value="front">
-                        <StudentCardPreview
-                          studentName={profile?.full_name || ''}
-                          photoUrl={studentCard.photo_url}
-                          cardCode={studentCard.card_code}
-                          expiresAt={studentCard.expires_at ? new Date(studentCard.expires_at) : undefined}
-                          validationUrl={validationUrl}
-                          side="front"
-                        />
+                        <div id="student-card-preview">
+                          <StudentCardPreview
+                            studentName={profile?.full_name || ''}
+                            photoUrl={studentCard.photo_url}
+                            cardCode={studentCard.card_code}
+                            expiresAt={studentCard.expires_at ? new Date(studentCard.expires_at) : undefined}
+                            validationUrl={validationUrl}
+                            side="front"
+                          />
+                        </div>
                       </TabsContent>
                       <TabsContent value="back">
                         <StudentCardPreview
@@ -283,7 +268,7 @@ export default function StudentCard() {
 
                     {studentCard.status === 'active' && (
                       <Button
-                        onClick={handleDownloadPdf}
+                        onClick={handleDownloadPng}
                         disabled={downloading}
                         className="w-full"
                         variant="hero"
@@ -291,12 +276,12 @@ export default function StudentCard() {
                         {downloading ? (
                           <>
                             <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                            Gerando PDF...
+                            Gerando PNG...
                           </>
                         ) : (
                           <>
                             <Download className="h-4 w-4 mr-2" />
-                            Baixar PDF
+                            Baixar PNG
                           </>
                         )}
                       </Button>

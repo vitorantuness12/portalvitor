@@ -37,20 +37,20 @@ export function StudentCardPreview({
 
         {side === 'front' ? (
           /* Front Side */
-          <div className="relative h-full p-4 flex flex-col">
+          <div className="relative h-full p-3 flex flex-col">
             {/* Header */}
-            <div className="flex justify-between items-start mb-3">
+            <div className="flex justify-between items-start mb-2">
               <div className="flex flex-col items-start">
-                <img src={logoWhite} alt="Formak" className="h-6 object-contain" />
-                <p className="text-white/90 text-[10px] mt-1 font-sans">Carteirinha de Estudante</p>
+                <img src={logoWhite} alt="Formak" className="h-5 object-contain" />
+                <p className="text-white/90 text-[9px] mt-1 font-sans">Carteirinha de Estudante</p>
               </div>
-              <span className="text-white font-bold text-lg">{new Date().getFullYear()}</span>
+              <span className="text-white font-bold text-base leading-none">{new Date().getFullYear()}</span>
             </div>
 
             {/* Main Content */}
             <div className="flex gap-3 flex-1">
               {/* Photo */}
-              <div className="w-20 h-24 rounded-lg overflow-hidden bg-white/20 flex-shrink-0 border-2 border-white/30">
+              <div className="w-16 h-20 rounded-lg overflow-hidden bg-white/20 flex-shrink-0 border-2 border-white/30">
                 {photoUrl ? (
                   <img
                     src={photoUrl}
@@ -59,33 +59,33 @@ export function StudentCardPreview({
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
-                    <span className="text-white/50 text-4xl">👤</span>
+                    <span className="text-white/50 text-3xl">👤</span>
                   </div>
                 )}
               </div>
 
               {/* Info */}
               <div className="flex flex-col justify-center flex-1 min-w-0">
-                <p className="text-[10px] text-white/70 uppercase tracking-wide">Nome do Estudante</p>
-                <p className="text-white font-bold text-sm truncate">{studentName || 'Nome do Aluno'}</p>
+                <p className="text-[9px] text-white/70 uppercase tracking-wide">Nome do Estudante</p>
+                <p className="text-white font-bold text-[13px] leading-tight truncate">{studentName || 'Nome do Aluno'}</p>
                 
-                <p className="text-[10px] text-white/70 uppercase tracking-wide mt-2">Código</p>
-                <p className="text-white font-mono text-xs">{cardCode || 'CARD-XXXXXX'}</p>
+                <p className="text-[9px] text-white/70 uppercase tracking-wide mt-2">Código</p>
+                <p className="text-white font-mono text-[11px]">{cardCode || 'CARD-XXXXXX'}</p>
                 
-                <p className="text-[10px] text-white/70 uppercase tracking-wide mt-2">Válido até</p>
-                <p className="text-white font-semibold text-xs">
+                <p className="text-[9px] text-white/70 uppercase tracking-wide mt-2">Válido até</p>
+                <p className="text-white font-semibold text-[11px]">
                   {format(displayDate, "dd/MM/yyyy", { locale: ptBR })}
                 </p>
               </div>
             </div>
 
             {/* Footer */}
-            <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/20">
-              <p className="text-[9px] text-white/60">www.formak.com.br</p>
-              <div className="bg-white rounded p-1">
+            <div className="flex items-center justify-between mt-1 pt-1 border-t border-white/20">
+              <p className="text-[8px] text-white/60">www.formak.com.br</p>
+              <div className="bg-white rounded p-0.5">
                 <QRCodeSVG
                   value={validationUrl}
-                  size={36}
+                  size={32}
                   level="L"
                   bgColor="white"
                   fgColor="#000"
@@ -95,13 +95,13 @@ export function StudentCardPreview({
           </div>
         ) : (
           /* Back Side */
-          <div className="relative h-full p-4 flex flex-col bg-white">
+          <div className="relative h-full p-3 flex flex-col bg-white">
             <div className="flex-1 flex flex-col">
               {/* Validation Info */}
-              <div className="bg-primary rounded-lg p-3 mb-3">
-                <p className="text-[10px] text-white/90 uppercase tracking-wide mb-1">Para validar esta carteirinha</p>
-                <p className="text-white text-xs">Acesse: formak.com.br/validar-carteirinha</p>
-                <p className="text-white font-mono text-sm mt-1">Código: {cardCode || 'CARD-XXXXXX'}</p>
+              <div className="bg-primary rounded-lg p-2 mb-2">
+                <p className="text-[9px] text-white/90 uppercase tracking-wide mb-1">Para validar esta carteirinha</p>
+                <p className="text-white text-[11px]">Acesse: formak.com.br/validar-carteirinha</p>
+                <p className="text-white font-mono text-[12px] mt-1">Código: {cardCode || 'CARD-XXXXXX'}</p>
               </div>
 
               {/* Terms */}

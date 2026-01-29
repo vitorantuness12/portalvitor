@@ -1,6 +1,7 @@
+import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Clock, Users, BookOpen, Award, ArrowLeft, Play, CheckCircle, Star } from 'lucide-react';
+import { Clock, BookOpen, Award, ArrowLeft, Play, CheckCircle, Star, ShoppingCart } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
@@ -10,6 +11,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { PaymentCheckout } from '@/components/payment/PaymentCheckout';
 
 export default function CourseDetail() {
   const { id } = useParams<{ id: string }>();
@@ -17,6 +25,7 @@ export default function CourseDetail() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
 
   const { data: course, isLoading } = useQuery({
     queryKey: ['course', id],
@@ -47,6 +56,26 @@ export default function CourseDetail() {
         .select('*')
         .eq('course_id', id)
         .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id && !!user,
+  });
+
+  // Check for pending payment
+  const { data: pendingPayment } = useQuery({
+    queryKey: ['course-payment', id, user?.id],
+    queryFn: async () => {
+      if (!user || !id) return null;
+      const { data, error } = await supabase
+        .from('payments')
+        .select('*')
+        .eq('reference_type', 'course')
+        .eq('reference_id', id)
+        .eq('user_id', user.id)
+        .eq('status', 'pending')
         .maybeSingle();
 
       if (error) throw error;
@@ -90,7 +119,26 @@ export default function CourseDetail() {
       navigate('/auth');
       return;
     }
-    enrollMutation.mutate();
+
+    // If course is free, enroll directly
+    if (Number(course?.price) === 0) {
+      enrollMutation.mutate();
+      return;
+    }
+
+    // If course is paid, show payment dialog
+    setShowPaymentDialog(true);
+  };
+
+  const handlePaymentSuccess = () => {
+    setShowPaymentDialog(false);
+    queryClient.invalidateQueries({ queryKey: ['enrollment', id] });
+    queryClient.invalidateQueries({ queryKey: ['my-enrollments'] });
+    queryClient.invalidateQueries({ queryKey: ['course-payment', id] });
+    toast({
+      title: 'Pagamento confirmado!',
+      description: 'Você agora tem acesso ao curso.',
+    });
   };
 
   const formatPrice = (price: number) => {
@@ -147,6 +195,8 @@ export default function CourseDetail() {
       </div>
     );
   }
+
+  const isPaid = Number(course.price) > 0;
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -232,7 +282,7 @@ export default function CourseDetail() {
                       <p className="text-2xl font-bold text-primary">
                         {formatPrice(Number(course.price))}
                       </p>
-                      {Number(course.price) > 0 && (
+                      {isPaid && (
                         <p className="text-xs text-muted-foreground">
                           Pagamento único
                         </p>
@@ -243,7 +293,12 @@ export default function CourseDetail() {
                       onClick={handleEnroll}
                       disabled={enrollMutation.isPending}
                     >
-                      {enrollMutation.isPending ? 'Processando...' : Number(course.price) === 0 ? 'Matricular Grátis' : 'Comprar'}
+                      {enrollMutation.isPending ? 'Processando...' : isPaid ? (
+                        <>
+                          <ShoppingCart className="h-4 w-4 mr-1" />
+                          Comprar
+                        </>
+                      ) : 'Matricular Grátis'}
                     </Button>
                   </div>
                 </div>
@@ -283,7 +338,7 @@ export default function CourseDetail() {
                   <p className="text-4xl font-bold text-primary">
                     {formatPrice(Number(course.price))}
                   </p>
-                  {Number(course.price) > 0 && (
+                  {isPaid && (
                     <p className="text-sm text-muted-foreground mt-1">
                       Pagamento único • Acesso vitalício
                     </p>
@@ -305,7 +360,12 @@ export default function CourseDetail() {
                     onClick={handleEnroll}
                     disabled={enrollMutation.isPending}
                   >
-                    {enrollMutation.isPending ? 'Processando...' : Number(course.price) === 0 ? 'Matricular Grátis' : 'Comprar Agora'}
+                    {enrollMutation.isPending ? 'Processando...' : isPaid ? (
+                      <>
+                        <ShoppingCart className="h-5 w-5 mr-2" />
+                        Comprar Agora
+                      </>
+                    ) : 'Matricular Grátis'}
                   </Button>
                 )}
 
@@ -359,6 +419,25 @@ export default function CourseDetail() {
         </div>
       </main>
       <Footer />
+
+      {/* Payment Dialog */}
+      <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Comprar Curso</DialogTitle>
+          </DialogHeader>
+          {course && id && (
+            <PaymentCheckout
+              referenceType="course"
+              referenceId={id}
+              amount={Number(course.price)}
+              description={`Curso: ${course.title}`}
+              onSuccess={handlePaymentSuccess}
+              onCancel={() => setShowPaymentDialog(false)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

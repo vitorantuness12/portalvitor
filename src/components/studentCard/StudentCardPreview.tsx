@@ -45,6 +45,16 @@ export function StudentCardPreview({
         className: wrapperClassName,
       };
 
+  // Style for name with 2-line clamp
+  const nameStyle: React.CSSProperties = {
+    overflow: 'hidden',
+    display: '-webkit-box',
+    WebkitLineClamp: 2,
+    WebkitBoxOrient: 'vertical',
+    lineHeight: '1.2',
+    maxHeight: '2.4em', // 2 lines * 1.2 line-height
+  };
+
   return (
     <Wrapper {...wrapperProps}>
       {/* Card Container - Credit card aspect ratio */}
@@ -52,20 +62,20 @@ export function StudentCardPreview({
 
         {side === 'front' ? (
           /* Front Side */
-          <div className="relative h-full p-4 flex flex-col">
+          <div className="relative h-full p-3 flex flex-col">
             {/* Header */}
-            <div className="flex justify-between items-start mb-3">
+            <div className="flex justify-between items-start mb-2">
               <div className="flex flex-col items-start">
-                <img src={logoWhite} alt="Formak" className="h-5 object-contain" />
-                <p className="text-white/90 text-[9px] mt-1 font-sans">Carteirinha de Estudante</p>
+                <img src={logoWhite} alt="Formak" className="h-4 object-contain" />
+                <p className="text-white/90 text-[8px] mt-0.5 font-sans">Carteirinha de Estudante</p>
               </div>
-              <span className="text-white font-bold text-lg leading-none">{new Date().getFullYear()}</span>
+              <span className="text-white font-bold text-base leading-none">{new Date().getFullYear()}</span>
             </div>
 
             {/* Main Content */}
-            <div className="flex gap-4 flex-1">
+            <div className="flex gap-3 flex-1">
               {/* Photo */}
-              <div className="w-[72px] h-24 rounded-lg overflow-hidden bg-white/20 flex-shrink-0 border-2 border-white/30">
+              <div className="w-16 h-20 rounded-lg overflow-hidden bg-white/20 flex-shrink-0 border-2 border-white/30">
                 {photoUrl ? (
                   <img
                     src={photoUrl}
@@ -74,35 +84,38 @@ export function StudentCardPreview({
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
-                    <span className="text-white/50 text-3xl">👤</span>
+                    <span className="text-white/50 text-2xl">👤</span>
                   </div>
                 )}
               </div>
 
               {/* Info */}
               <div className="flex flex-col justify-center flex-1 min-w-0">
-                <p className="text-[9px] text-white/70 uppercase tracking-wide">Nome do Estudante</p>
-                <p className="text-white font-bold text-[14px] leading-[1.3] truncate">
+                <p className="text-[8px] text-white/70 uppercase tracking-wide">Nome do Estudante</p>
+                <p 
+                  className="text-white font-bold text-[12px]"
+                  style={nameStyle}
+                >
                   {studentName || 'Nome do Aluno'}
                 </p>
                 
-                <p className="text-[9px] text-white/70 uppercase tracking-wide mt-2">Código</p>
-                <p className="text-white font-bold font-sans text-[11px] tracking-wide">{cardCode || 'CARD-XXXXXX'}</p>
+                <p className="text-[8px] text-white/70 uppercase tracking-wide mt-1">Código</p>
+                <p className="text-white font-bold font-sans text-[10px] tracking-wide">{cardCode || 'CARD-XXXXXX'}</p>
                 
-                <p className="text-[9px] text-white/70 uppercase tracking-wide mt-2">Válido até</p>
-                <p className="text-white font-bold text-[11px]">
+                <p className="text-[8px] text-white/70 uppercase tracking-wide mt-1">Válido até</p>
+                <p className="text-white font-bold text-[10px]">
                   {format(displayDate, "dd/MM/yyyy", { locale: ptBR })}
                 </p>
               </div>
             </div>
 
             {/* Footer */}
-            <div className="flex items-center justify-between mt-auto pt-2 border-t border-white/20">
-              <p className="text-[8px] text-white/60">www.formak.com.br</p>
+            <div className="flex items-center justify-between mt-auto pt-1.5 border-t border-white/20">
+              <p className="text-[7px] text-white/60">www.formak.com.br</p>
               <div className="bg-white rounded p-0.5">
                 <QRCodeSVG
                   value={validationUrl}
-                  size={26}
+                  size={22}
                   level="L"
                   bgColor="white"
                   fgColor="#000"
@@ -112,26 +125,26 @@ export function StudentCardPreview({
           </div>
         ) : (
           /* Back Side */
-          <div className="relative h-full p-4 flex flex-col bg-white">
+          <div className="relative h-full p-3 flex flex-col bg-white">
             <div className="flex-1 flex flex-col">
               {/* Validation Info */}
               <div className="bg-primary rounded-lg p-2 mb-2">
-                <p className="text-[9px] text-white/90 uppercase tracking-wide mb-1">Para validar esta carteirinha</p>
-                <p className="text-white text-[11px]">Acesse: formak.com.br/validar-carteirinha</p>
-                <p className="text-white font-bold font-sans text-[12px] mt-1 tracking-wide">Código: {cardCode || 'CARD-XXXXXX'}</p>
+                <p className="text-[8px] text-white/90 uppercase tracking-wide mb-0.5">Para validar esta carteirinha</p>
+                <p className="text-white text-[10px]">Acesse: formak.com.br/validar-carteirinha</p>
+                <p className="text-white font-bold font-sans text-[11px] mt-0.5 tracking-wide">Código: {cardCode || 'CARD-XXXXXX'}</p>
               </div>
 
               {/* Terms */}
               <div className="flex-1">
-                <p className="text-[8px] text-muted-foreground leading-relaxed">
+                <p className="text-[7px] text-muted-foreground leading-relaxed">
                   Esta carteirinha é de uso pessoal e intransferível. O uso indevido está sujeito às penalidades previstas em lei. Em caso de perda ou roubo, comunique imediatamente através do nosso site.
                 </p>
               </div>
 
               {/* Footer */}
-              <div className="flex items-center justify-between mt-auto pt-2 border-t border-border">
+              <div className="flex items-center justify-between mt-auto pt-1.5 border-t border-border">
                 <p className="text-sm font-bold text-primary">Formak</p>
-                <img src={logo} alt="Logo" className="h-6 w-6 object-contain" />
+                <img src={logo} alt="Logo" className="h-5 w-5 object-contain" />
               </div>
             </div>
           </div>

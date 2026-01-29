@@ -1,4 +1,4 @@
-import { Document, Page, View, Text, Image, StyleSheet } from '@react-pdf/renderer';
+import { Document, Page, View, Text, Image, StyleSheet, Svg, Line } from '@react-pdf/renderer';
 import QRCode from 'qrcode';
 
 const styles = StyleSheet.create({
@@ -19,6 +19,18 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: '#FF7026',
     position: 'relative',
+  },
+  gridPattern: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    opacity: 0.1,
+  },
+  gridLine: {
+    stroke: 'white',
+    strokeWidth: 0.5,
   },
   backCard: {
     width: '100%',
@@ -211,7 +223,19 @@ export function StudentCardPdf({
         {/* Front Card */}
         <Text style={styles.sectionTitle}>Frente</Text>
         <View style={styles.cardContainer}>
-          <View style={styles.frontCard}>
+        <View style={styles.frontCard}>
+            {/* Grid Pattern Background */}
+            <Svg style={styles.gridPattern} viewBox="0 0 100 100" preserveAspectRatio="none">
+              {/* Vertical lines */}
+              {[...Array(11)].map((_, i) => (
+                <Line key={`v${i}`} x1={i * 10} y1="0" x2={i * 10} y2="100" stroke="white" strokeWidth="0.5" />
+              ))}
+              {/* Horizontal lines */}
+              {[...Array(11)].map((_, i) => (
+                <Line key={`h${i}`} x1="0" y1={i * 10} x2="100" y2={i * 10} stroke="white" strokeWidth="0.5" />
+              ))}
+            </Svg>
+            
             {/* Header */}
             <View style={styles.header}>
               {logoUrl && (

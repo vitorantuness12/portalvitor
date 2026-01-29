@@ -1,42 +1,44 @@
 
-## Correção do Nome Cortado na Carteirinha
+## Correções no Verso da Carteirinha
 
-### Problema Identificado
-O nome do estudante está aparecendo com uma **linha horizontal** atravessando o texto (como um "strikethrough"). Isso acontece porque o `html2canvas` não suporta corretamente as propriedades CSS `-webkit-line-clamp` e `-webkit-box-orient` usadas para limitar o texto a 2 linhas.
+### Problema 1: Logo Achatada
+A logo está usando `h-5 w-5` (dimensões quadradas), mas a imagem original é retangular. Isso força a logo a ficar "esmagada".
 
-### Solução
-Remover completamente o sistema de "line clamp" e usar uma abordagem mais simples que seja compatível com `html2canvas`:
-- Usar `word-break: break-word` para quebrar palavras longas
-- Limitar apenas com `max-height` se necessário
-- Remover todas as propriedades `-webkit` que causam o problema
+**Solução**: Remover a largura fixa e usar apenas altura, permitindo que a largura seja proporcional automaticamente.
+
+### Problema 2: Substituir "Formak" por Bandeira do Brasil
+O texto "Formak" no rodapé será substituído por uma imagem da bandeira do Brasil.
+
+**Solução**: Usar um emoji de bandeira 🇧🇷 ou uma imagem SVG inline da bandeira brasileira.
 
 ### Alterações Técnicas
 
 **Arquivo:** `src/components/studentCard/StudentCardPreview.tsx`
 
-1. **Remover o `nameStyle` problemático** (linhas 48-56)
-   - Excluir as propriedades `display: -webkit-box`, `WebkitLineClamp`, `WebkitBoxOrient`
+1. **Linha 143-144** - Substituir o footer do verso:
 
-2. **Substituir por estilo simples e compatível**
-   - Usar apenas `overflow: hidden` e `wordBreak: break-word`
-   - Opcionalmente, limitar altura máxima para 2 linhas de forma segura
+De:
+```tsx
+<p className="text-sm font-bold text-primary">Formak</p>
+<img src={logo} alt="Logo" className="h-5 w-5 object-contain" />
+```
 
-3. **Alternativa: usar abordagem híbrida**
-   - No modo `exportMode`, usar estilo simplificado
-   - No preview normal, manter o line-clamp para visual melhor
-
-### Código Proposto
-
-Trocar o `nameStyle` atual por:
-```typescript
-const nameStyle: React.CSSProperties = {
-  wordBreak: 'break-word',
-  overflowWrap: 'break-word',
-  lineHeight: '1.2',
-};
+Para:
+```tsx
+{/* Bandeira do Brasil */}
+<div className="flex items-center gap-1">
+  <svg className="h-4 w-6" viewBox="0 0 36 24" fill="none">
+    <rect width="36" height="24" fill="#009739"/>
+    <path d="M18 2L34 12L18 22L2 12L18 2Z" fill="#FEDD00"/>
+    <circle cx="18" cy="12" r="6" fill="#002776"/>
+    <path d="M10 12C10 12 14 15 18 15C22 15 26 12 26 12" stroke="white" strokeWidth="1"/>
+  </svg>
+</div>
+{/* Logo com proporção correta */}
+<img src={logo} alt="Logo" className="h-6 object-contain" />
 ```
 
 ### Resultado Esperado
-- O nome do estudante será exibido **sem a linha cortando**
-- Nomes longos vão quebrar em múltiplas linhas naturalmente
-- Preview e PNG ficarão idênticos e corretos
+- A logo aparecerá com proporção correta (não mais achatada)
+- O texto "Formak" será substituído por uma bandeira do Brasil estilizada
+- O layout do rodapé permanece alinhado e visualmente equilibrado

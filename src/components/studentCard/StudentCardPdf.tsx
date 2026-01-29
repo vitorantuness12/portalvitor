@@ -31,12 +31,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
-  logo: {
+  logoContainer: {
     width: 32,
     height: 32,
     marginRight: 8,
     borderRadius: 16,
     backgroundColor: 'white',
+    padding: 3,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logo: {
+    width: 24,
+    height: 24,
+    objectFit: 'contain',
   },
   headerText: {
     flex: 1,
@@ -100,15 +108,15 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: 'rgba(255,255,255,0.2)',
     paddingTop: 8,
-    marginTop: 8,
+    marginTop: 'auto',
   },
   footerText: {
     color: 'rgba(255,255,255,0.6)',
     fontSize: 6,
   },
   qrCode: {
-    width: 40,
-    height: 40,
+    width: 36,
+    height: 36,
     backgroundColor: 'white',
     padding: 2,
     borderRadius: 4,
@@ -179,6 +187,7 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     opacity: 0.5,
+    objectFit: 'contain',
   },
   sectionTitle: {
     color: '#666',
@@ -221,7 +230,11 @@ export function StudentCardPdf({
           <View style={styles.frontCard}>
             {/* Header */}
             <View style={styles.header}>
-              {logoUrl && <Image src={logoUrl} style={styles.logo} />}
+              {logoUrl && (
+                <View style={styles.logoContainer}>
+                  <Image src={logoUrl} style={styles.logo} />
+                </View>
+              )}
               <View style={styles.headerText}>
                 <Text style={styles.institutionName}>FORMAK</Text>
                 <Text style={styles.subtitle}>Carteirinha de Estudante</Text>

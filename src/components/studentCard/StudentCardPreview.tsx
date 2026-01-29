@@ -39,9 +39,12 @@ export function StudentCardPreview({
           /* Front Side */
           <div className="relative h-full p-4 flex flex-col">
             {/* Header */}
-            <div className="flex flex-col items-start mb-3">
-              <img src={logoWhite} alt="Formak" className="h-6 object-contain" />
-              <p className="text-white/90 text-[10px] mt-1 font-sans">Carteirinha de Estudante</p>
+            <div className="flex justify-between items-start mb-3">
+              <div className="flex flex-col items-start">
+                <img src={logoWhite} alt="Formak" className="h-6 object-contain" />
+                <p className="text-white/90 text-[10px] mt-1 font-sans">Carteirinha de Estudante</p>
+              </div>
+              <span className="text-white font-bold text-lg">{new Date().getFullYear()}</span>
             </div>
 
             {/* Main Content */}

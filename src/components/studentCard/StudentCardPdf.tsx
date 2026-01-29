@@ -23,8 +23,9 @@ const styles = StyleSheet.create({
   backCard: {
     width: '100%',
     height: '100%',
-    backgroundColor: '#1E293B',
+    backgroundColor: '#FFFFFF',
     position: 'relative',
+    padding: 16,
   },
   header: {
     flexDirection: 'row',
@@ -122,27 +123,17 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   // Back card styles
-  magneticStrip: {
-    position: 'absolute',
-    top: 16,
-    left: 0,
-    right: 0,
-    height: 32,
-    backgroundColor: '#0F172A',
-  },
   backContent: {
-    padding: 16,
-    marginTop: 40,
     flex: 1,
   },
   validationBox: {
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: '#FF7026',
     borderRadius: 6,
     padding: 10,
     marginBottom: 10,
   },
   validationLabel: {
-    color: 'rgba(255,255,255,0.7)',
+    color: 'rgba(255,255,255,0.9)',
     fontSize: 6,
     textTransform: 'uppercase',
     marginBottom: 4,
@@ -159,34 +150,27 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   terms: {
-    color: 'rgba(255,255,255,0.5)',
+    color: '#666666',
     fontSize: 5,
     lineHeight: 1.4,
   },
   backFooter: {
-    position: 'absolute',
-    bottom: 16,
-    left: 16,
-    right: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.2)',
+    borderTopColor: '#E5E5E5',
     paddingTop: 8,
+    marginTop: 'auto',
   },
   backFooterText: {
-    color: 'rgba(255,255,255,0.6)',
-    fontSize: 6,
-  },
-  backFooterSubtext: {
-    color: 'rgba(255,255,255,0.4)',
-    fontSize: 5,
+    color: '#FF7026',
+    fontSize: 8,
+    fontWeight: 'bold',
   },
   backLogo: {
     width: 24,
     height: 24,
-    opacity: 0.5,
     objectFit: 'contain',
   },
   sectionTitle: {
@@ -277,9 +261,6 @@ export function StudentCardPdf({
         <Text style={styles.sectionTitle}>Verso</Text>
         <View style={styles.cardContainer}>
           <View style={styles.backCard}>
-            {/* Magnetic Strip */}
-            <View style={styles.magneticStrip} />
-
             {/* Content */}
             <View style={styles.backContent}>
               <View style={styles.validationBox}>
@@ -295,10 +276,7 @@ export function StudentCardPdf({
 
             {/* Footer */}
             <View style={styles.backFooter}>
-              <View>
-                <Text style={styles.backFooterText}>Formak</Text>
-                <Text style={styles.backFooterSubtext}>CNPJ: XX.XXX.XXX/0001-XX</Text>
-              </View>
+              <Text style={styles.backFooterText}>Formak</Text>
               {logoUrl && <Image src={logoUrl} style={styles.backLogo} />}
             </View>
           </View>

@@ -105,32 +105,26 @@ export function StudentCardPreview({
           </div>
         ) : (
           /* Back Side */
-          <div className="relative h-full p-4 flex flex-col bg-gradient-to-br from-slate-800 to-slate-900">
-            {/* Magnetic Strip */}
-            <div className="absolute top-4 left-0 right-0 h-8 bg-slate-950" />
-
-            <div className="mt-12 flex-1 flex flex-col">
+          <div className="relative h-full p-4 flex flex-col bg-white">
+            <div className="flex-1 flex flex-col">
               {/* Validation Info */}
-              <div className="bg-white/10 rounded-lg p-3 mb-3">
-                <p className="text-[10px] text-white/70 uppercase tracking-wide mb-1">Para validar esta carteirinha</p>
+              <div className="bg-primary rounded-lg p-3 mb-3">
+                <p className="text-[10px] text-white/90 uppercase tracking-wide mb-1">Para validar esta carteirinha</p>
                 <p className="text-white text-xs">Acesse: formak.com.br/validar-carteirinha</p>
                 <p className="text-white font-mono text-sm mt-1">Código: {cardCode || 'CARD-XXXXXX'}</p>
               </div>
 
               {/* Terms */}
               <div className="flex-1">
-                <p className="text-[8px] text-white/60 leading-relaxed">
+                <p className="text-[8px] text-muted-foreground leading-relaxed">
                   Esta carteirinha é de uso pessoal e intransferível. O uso indevido está sujeito às penalidades previstas em lei. Em caso de perda ou roubo, comunique imediatamente através do nosso site.
                 </p>
               </div>
 
               {/* Footer */}
-              <div className="flex items-center justify-between pt-2 border-t border-white/20">
-                <div>
-                  <p className="text-[9px] text-white/60">Formak</p>
-                  <p className="text-[8px] text-white/40">CNPJ: XX.XXX.XXX/0001-XX</p>
-                </div>
-                <img src={logo} alt="Logo" className="h-6 w-6 object-contain opacity-50" />
+              <div className="flex items-center justify-between pt-2 border-t border-border">
+                <p className="text-sm font-bold text-primary">Formak</p>
+                <img src={logo} alt="Logo" className="h-6 w-6 object-contain" />
               </div>
             </div>
           </div>

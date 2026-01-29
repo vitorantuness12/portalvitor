@@ -1,51 +1,27 @@
 
 
-## Adicionar Selo Dourado no Certificado PDF
+## Remover Selo PREMIUM e Texto QUALIDADE
 
-### Problema Identificado
-O PDF do certificado baixado pelo aluno (em `CourseCertificate.tsx`) **não possui** os selos/badges dourados que aparecem no preview do admin (`CertificatePreviewPdf.tsx`). O preview mostra os badges nas posições superior esquerda e direita, mas esses elementos não foram implementados no documento final.
-
-### Solução
-Adicionar o selo dourado no canto do certificado PDF de download, utilizando a mesma estrutura já existente no preview do admin, mas aplicando ao documento real do aluno.
+### Alteração Solicitada
+Manter apenas o selo dourado no canto direito do certificado PDF, removendo:
+1. O selo esquerdo (PREMIUM - fundo azul com estrela dourada)
+2. O texto "QUALIDADE" abaixo do selo direito
 
 ### Alterações Técnicas
 
 **Arquivo: `src/pages/CourseCertificate.tsx`**
 
-1. Adicionar estilos para o badge/selo no `StyleSheet`:
-```typescript
-badge: {
-  position: 'absolute',
-  top: 35,
-  alignItems: 'center',
-},
-badgeCircle: {
-  width: 48,
-  height: 48,
-  borderRadius: 24,
-  alignItems: 'center',
-  justifyContent: 'center',
-},
-badgeText: {
-  fontSize: 6,
-  fontFamily: 'Montserrat',
-  fontWeight: 700,
-  textTransform: 'uppercase',
-  marginTop: 4,
-},
-```
+1. **Remover o bloco do Left Badge** (linhas 464-474):
+   - Deletar completamente o elemento `<View style={styles.badgeLeft}>...</View>`
 
-2. Renderizar os selos dourados na página frontal do certificado (após a borda e ondas decorativas):
-   - **Selo esquerdo**: Ícone de estrela com fundo azul e borda dourada + texto "PREMIUM"
-   - **Selo direito**: Ícone de estrela com fundo dourado + texto "QUALIDADE"
+2. **Remover o texto do Right Badge** (linha 485):
+   - Deletar a linha `<Text style={[styles.badgeText, { color: primaryColor }]}>{rightBadgeText}</Text>`
 
-3. Buscar as configurações de badges da tabela `certificate_config` para permitir customização pelo admin
-
-### Estrutura Visual do Selo
+### Resultado Visual
 
 ```text
 +------------------------------------------+
-| [★ PREMIUM]                 [★ QUALIDADE]|
+|                               [★]        |
 |                                          |
 |            CERTIFICADO                   |
 |          DE CONCLUSÃO                    |
@@ -56,22 +32,17 @@ badgeText: {
 +------------------------------------------+
 ```
 
-### Detalhes do Design do Selo
-
-- **Selo Circular**: 48x48 pixels com borda dourada
-- **Ícone**: Estrela (★) centralizada
-- **Cores**: 
-  - Selo esquerdo: Fundo azul primário, borda e estrela douradas
-  - Selo direito: Fundo dourado sólido, estrela branca
-- **Texto**: Abaixo do selo, em maiúsculas, cor primária
-- **Posição**: Top 35px, esquerda 35px / direita 35px
-
-### Customização pelo Admin
-O sistema já possui campos na configuração do certificado para personalizar:
-- `left_badge_url` - Imagem customizada para selo esquerdo
-- `right_badge_url` - Imagem customizada para selo direito  
-- `left_badge_text` - Texto do selo esquerdo (padrão: "PREMIUM")
-- `right_badge_text` - Texto do selo direito (padrão: "QUALIDADE")
-
-Esses valores serão lidos da configuração e aplicados dinamicamente no PDF.
+### Código Final do Badge
+```typescript
+{/* Right Badge/Seal */}
+<View style={styles.badgeRight}>
+  {config?.right_badge_url ? (
+    <Image src={config.right_badge_url} style={styles.badgeImage} />
+  ) : (
+    <View style={[styles.badgeCircle, { backgroundColor: secondaryColor, borderColor: secondaryColor }]}>
+      <BadgeStar color="#FFFFFF" />
+    </View>
+  )}
+</View>
+```
 

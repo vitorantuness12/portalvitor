@@ -88,7 +88,6 @@ export default function StudentCard() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
-  const [previewSide, setPreviewSide] = useState<'front' | 'back'>('front');
   const [downloading, setDownloading] = useState(false);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
 
@@ -142,23 +141,44 @@ export default function StudentCard() {
     setDownloading(true);
 
     try {
-      // Find the card preview element
-      const cardElement = document.getElementById('student-card-preview');
-      if (!cardElement) {
-        throw new Error('Card preview element not found');
+      // Get both front and back card elements
+      const frontElement = document.getElementById('student-card-front');
+      const backElement = document.getElementById('student-card-back');
+      
+      if (!frontElement || !backElement) {
+        throw new Error('Card preview elements not found');
       }
 
-      const canvas = await html2canvas(cardElement, {
-        scale: 3, // High resolution
+      // Generate front PNG
+      const frontCanvas = await html2canvas(frontElement, {
+        scale: 3,
         useCORS: true,
         allowTaint: true,
         backgroundColor: null,
       });
 
-      const link = document.createElement('a');
-      link.download = `carteirinha-${studentCard.card_code}.png`;
-      link.href = canvas.toDataURL('image/png');
-      link.click();
+      // Generate back PNG
+      const backCanvas = await html2canvas(backElement, {
+        scale: 3,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: null,
+      });
+
+      // Download front
+      const frontLink = document.createElement('a');
+      frontLink.download = `carteirinha-${studentCard.card_code}-frente.png`;
+      frontLink.href = frontCanvas.toDataURL('image/png');
+      frontLink.click();
+
+      // Small delay before downloading back
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Download back
+      const backLink = document.createElement('a');
+      backLink.download = `carteirinha-${studentCard.card_code}-verso.png`;
+      backLink.href = backCanvas.toDataURL('image/png');
+      backLink.click();
     } catch (error) {
       console.error('Error generating PNG:', error);
     } finally {
@@ -237,13 +257,11 @@ export default function StudentCard() {
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <Tabs value={previewSide} onValueChange={(v) => setPreviewSide(v as 'front' | 'back')}>
-                      <TabsList className="grid w-full grid-cols-2 mb-4">
-                        <TabsTrigger value="front">Frente</TabsTrigger>
-                        <TabsTrigger value="back">Verso</TabsTrigger>
-                      </TabsList>
-                      <TabsContent value="front">
-                        <div id="student-card-preview">
+                    {/* Both cards visible for preview and download */}
+                    <div className="space-y-4">
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground mb-2">Frente</p>
+                        <div id="student-card-front">
                           <StudentCardPreview
                             studentName={profile?.full_name || ''}
                             photoUrl={studentCard.photo_url}
@@ -253,18 +271,21 @@ export default function StudentCard() {
                             side="front"
                           />
                         </div>
-                      </TabsContent>
-                      <TabsContent value="back">
-                        <StudentCardPreview
-                          studentName={profile?.full_name || ''}
-                          photoUrl={studentCard.photo_url}
-                          cardCode={studentCard.card_code}
-                          expiresAt={studentCard.expires_at ? new Date(studentCard.expires_at) : undefined}
-                          validationUrl={validationUrl}
-                          side="back"
-                        />
-                      </TabsContent>
-                    </Tabs>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground mb-2">Verso</p>
+                        <div id="student-card-back">
+                          <StudentCardPreview
+                            studentName={profile?.full_name || ''}
+                            photoUrl={studentCard.photo_url}
+                            cardCode={studentCard.card_code}
+                            expiresAt={studentCard.expires_at ? new Date(studentCard.expires_at) : undefined}
+                            validationUrl={validationUrl}
+                            side="back"
+                          />
+                        </div>
+                      </div>
+                    </div>
 
                     {studentCard.status === 'active' && (
                       <Button

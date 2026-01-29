@@ -574,7 +574,7 @@ export const CertificatePreviewPdf = ({ config }: PreviewPdfProps) => {
               {config.back_validation_text || 'Para validar este certificado, acesse:'}
             </Text>
             <Text style={styles.validationUrl}>
-              {config.back_validation_url || 'formarensino.com.br/validar'}
+              {config.back_validation_url || 'formak.com.br/validar'}
             </Text>
             <Text style={styles.codeText}>Código: {sampleData.code}</Text>
           </View>

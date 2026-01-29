@@ -551,7 +551,7 @@ export function CertificatePreview({ config }: CertificatePreviewProps) {
                     className="text-[6px] font-bold"
                     style={{ color: primaryColor }}
                   >
-                    {config.back_validation_url || 'formarensino.com.br/validar'}
+                    {config.back_validation_url || 'formak.com.br/validar'}
                   </p>
                   <p 
                     className="text-[5px] mt-1"

@@ -45,14 +45,11 @@ export function StudentCardPreview({
         className: wrapperClassName,
       };
 
-  // Style for name with 2-line clamp
+  // Style for name - simple approach compatible with html2canvas
   const nameStyle: React.CSSProperties = {
-    overflow: 'hidden',
-    display: '-webkit-box',
-    WebkitLineClamp: 2,
-    WebkitBoxOrient: 'vertical',
+    wordBreak: 'break-word',
+    overflowWrap: 'break-word',
     lineHeight: '1.2',
-    maxHeight: '2.4em', // 2 lines * 1.2 line-height
   };
 
   return (

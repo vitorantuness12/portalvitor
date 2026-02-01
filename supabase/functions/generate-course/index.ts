@@ -169,14 +169,15 @@ serve(async (req) => {
     const moduleCount = duration <= 10 ? 3 : duration <= 20 ? 4 : duration <= 40 ? 5 : duration <= 60 ? 6 : 8;
     
     // Define content depth parameters
-    // gpt-4o-mini max: 16384 tokens, gpt-4o max: 128k tokens
+    // BOTH gpt-4o-mini and gpt-4o have a max of 16384 OUTPUT tokens per request
+    // The 128k limit for gpt-4o is the context window (input + output), not per-request output
     const depthConfig = {
       basico: { minWords: 500, maxTokens: 8000, description: "resumido e direto ao ponto" },
       detalhado: { minWords: 1000, maxTokens: 12000, description: "com bom nível de detalhes e exemplos" },
-      extenso: { minWords: 2000, maxTokens: isAdvancedModel ? 20000 : 16000, description: "extremamente completo como um livro didático profissional" },
-      muito_extenso: { minWords: 3000, maxTokens: isAdvancedModel ? 30000 : 16000, description: "altamente detalhado com teoria e prática aprofundadas" },
-      profissional: { minWords: 4000, maxTokens: isAdvancedModel ? 40000 : 16000, description: "conteúdo de nível profissional com cobertura completa" },
-      enciclopedico: { minWords: 5000, maxTokens: isAdvancedModel ? 60000 : 16000, description: "conteúdo enciclopédico com máximo nível de detalhamento" }
+      extenso: { minWords: 2000, maxTokens: 16000, description: "extremamente completo como um livro didático profissional" },
+      muito_extenso: { minWords: 3000, maxTokens: 16000, description: "altamente detalhado com teoria e prática aprofundadas" },
+      profissional: { minWords: 4000, maxTokens: 16000, description: "conteúdo de nível profissional com cobertura completa" },
+      enciclopedico: { minWords: 5000, maxTokens: 16000, description: "conteúdo enciclopédico com máximo nível de detalhamento" }
     };
     const depth = depthConfig[contentDepth as keyof typeof depthConfig] || depthConfig.detalhado;
     

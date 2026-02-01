@@ -13,6 +13,7 @@ interface CourseRequest {
   categoryId?: string;
   price?: number;
   contentDepth?: string; // "basico", "detalhado", "extenso"
+  openaiModel?: string; // "gpt-4o-mini" or "gpt-4o"
   additionalInstructions?: string;
 }
 
@@ -155,21 +156,27 @@ serve(async (req) => {
       });
     }
 
-    const { topic, level, duration, categoryId, price, contentDepth, additionalInstructions }: CourseRequest = await req.json();
+    const { topic, level, duration, categoryId, price, contentDepth, openaiModel, additionalInstructions }: CourseRequest = await req.json();
 
-    console.log("Generating course with OpenAI:", { topic, level, duration, price, contentDepth });
+    // Validate and set the OpenAI model
+    const validModels = ["gpt-4o-mini", "gpt-4o"];
+    const selectedModel = validModels.includes(openaiModel || "") ? openaiModel : "gpt-4o-mini";
+    const isAdvancedModel = selectedModel === "gpt-4o";
+
+    console.log("Generating course with OpenAI:", { topic, level, duration, price, contentDepth, model: selectedModel });
 
     // Step 1: Generate course content using tool calling
     const moduleCount = duration <= 10 ? 3 : duration <= 20 ? 4 : duration <= 40 ? 5 : duration <= 60 ? 6 : 8;
     
-    // Define content depth parameters (gpt-4o-mini max: 16384 tokens)
+    // Define content depth parameters
+    // gpt-4o-mini max: 16384 tokens, gpt-4o max: 128k tokens
     const depthConfig = {
       basico: { minWords: 500, maxTokens: 8000, description: "resumido e direto ao ponto" },
       detalhado: { minWords: 1000, maxTokens: 12000, description: "com bom nível de detalhes e exemplos" },
-      extenso: { minWords: 2000, maxTokens: 16000, description: "extremamente completo como um livro didático profissional" },
-      muito_extenso: { minWords: 3000, maxTokens: 16000, description: "altamente detalhado com teoria e prática aprofundadas" },
-      profissional: { minWords: 4000, maxTokens: 16000, description: "conteúdo de nível profissional com cobertura completa" },
-      enciclopedico: { minWords: 5000, maxTokens: 16000, description: "conteúdo enciclopédico com máximo nível de detalhamento" }
+      extenso: { minWords: 2000, maxTokens: isAdvancedModel ? 20000 : 16000, description: "extremamente completo como um livro didático profissional" },
+      muito_extenso: { minWords: 3000, maxTokens: isAdvancedModel ? 30000 : 16000, description: "altamente detalhado com teoria e prática aprofundadas" },
+      profissional: { minWords: 4000, maxTokens: isAdvancedModel ? 40000 : 16000, description: "conteúdo de nível profissional com cobertura completa" },
+      enciclopedico: { minWords: 5000, maxTokens: isAdvancedModel ? 60000 : 16000, description: "conteúdo enciclopédico com máximo nível de detalhamento" }
     };
     const depth = depthConfig[contentDepth as keyof typeof depthConfig] || depthConfig.detalhado;
     
@@ -222,7 +229,7 @@ Use **negrito**, *itálico*, listas numeradas, tabelas. O aluno deve conseguir a
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: selectedModel,
         messages: [
           { role: "system", content: "Você é um professor universitário especialista em educação online. Você cria conteúdo educacional REAL e PRÁTICO que ensina de verdade. Nunca escreva apenas descrições do que será ensinado - escreva o conteúdo educacional completo. Use a função fornecida para estruturar o curso." },
           { role: "user", content: contentPrompt },
@@ -271,7 +278,7 @@ As questões devem testar a compreensão do conteúdo e ter níveis variados de 
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: selectedModel,
         messages: [
           { role: "system", content: "Você é um especialista em avaliação educacional. Use a função fornecida para criar exercícios." },
           { role: "user", content: exercisesPrompt },
@@ -317,7 +324,7 @@ A prova deve cobrir todos os módulos e ter questões de diferentes níveis de d
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: selectedModel,
         messages: [
           { role: "system", content: "Você é um especialista em avaliação educacional. Use a função fornecida para criar a prova." },
           { role: "user", content: examPrompt },

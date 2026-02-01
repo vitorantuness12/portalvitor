@@ -25,6 +25,7 @@ export default function CreateCourseAI() {
     categoryId: '',
     price: '0',
     contentDepth: 'detalhado',
+    openaiModel: 'gpt-4o-mini',
     additionalInstructions: '',
   });
   const [isGenerating, setIsGenerating] = useState(false);
@@ -98,6 +99,7 @@ export default function CreateCourseAI() {
             categoryId: formData.categoryId || null,
             price: parseFloat(formData.price) || 0,
             contentDepth: formData.contentDepth,
+            openaiModel: formData.openaiModel,
             additionalInstructions: formData.additionalInstructions,
           }),
           signal: controller.signal,
@@ -138,6 +140,7 @@ export default function CreateCourseAI() {
         categoryId: '',
         price: '0',
         contentDepth: 'detalhado',
+        openaiModel: 'gpt-4o-mini',
         additionalInstructions: '',
       });
     } catch (error: any) {
@@ -237,6 +240,38 @@ export default function CreateCourseAI() {
                       </SelectContent>
                     </Select>
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Modelo de IA</Label>
+                  <Select
+                    value={formData.openaiModel}
+                    onValueChange={(value) => setFormData({ ...formData, openaiModel: value })}
+                    disabled={isGenerating}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="gpt-4o-mini">
+                        <div className="flex flex-col">
+                          <span>⚡ GPT-4o Mini</span>
+                          <span className="text-xs text-muted-foreground">Rápido e econômico</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="gpt-4o">
+                        <div className="flex flex-col">
+                          <span>🚀 GPT-4o</span>
+                          <span className="text-xs text-muted-foreground">Avançado, mais tokens disponíveis</span>
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    {formData.openaiModel === 'gpt-4o' 
+                      ? '⚠️ Modelo avançado: maior qualidade, mas pode demorar mais e custar mais.'
+                      : 'Modelo padrão, rápido e eficiente para a maioria dos cursos.'}
+                  </p>
                 </div>
 
                 <div className="space-y-2">

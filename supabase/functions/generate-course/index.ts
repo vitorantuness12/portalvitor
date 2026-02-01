@@ -116,7 +116,9 @@ serve(async (req) => {
 
   try {
     const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!OPENAI_API_KEY) {
+      throw new Error("OPENAI_API_KEY is not configured");
+    }
     
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -156,29 +158,14 @@ serve(async (req) => {
 
     const { topic, level, duration, categoryId, price, contentDepth, openaiModel, additionalInstructions }: CourseRequest = await req.json();
 
-    // Determine which API to use based on model
-    const lovableModels = ["google/gemini-2.5-pro", "google/gemini-2.5-flash", "google/gemini-3-flash-preview", "openai/gpt-5", "openai/gpt-5-mini"];
-    const openaiDirectModels = ["gpt-4o-mini", "gpt-4o"];
-    
-    const useLovableAI = lovableModels.includes(openaiModel || "");
-    const selectedModel = useLovableAI 
-      ? openaiModel 
-      : (openaiDirectModels.includes(openaiModel || "") ? openaiModel : "gpt-4o-mini");
+    // All models use OpenAI directly
+    const validModels = ["gpt-4o-mini", "gpt-4o", "o1", "o1-mini", "o3-mini"];
+    const selectedModel = validModels.includes(openaiModel || "") ? openaiModel : "gpt-4o-mini";
 
-    // Check required API keys
-    if (useLovableAI && !LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured for Lovable AI models");
-    }
-    if (!useLovableAI && !OPENAI_API_KEY) {
-      throw new Error("OPENAI_API_KEY is not configured");
-    }
+    const apiEndpoint = "https://api.openai.com/v1/chat/completions";
+    const apiKey = OPENAI_API_KEY;
 
-    const apiEndpoint = useLovableAI 
-      ? "https://ai.gateway.lovable.dev/v1/chat/completions"
-      : "https://api.openai.com/v1/chat/completions";
-    const apiKey = useLovableAI ? LOVABLE_API_KEY : OPENAI_API_KEY;
-
-    console.log("Generating course with AI:", { topic, level, duration, price, contentDepth, model: selectedModel, provider: useLovableAI ? "Lovable AI" : "OpenAI Direct" });
+    console.log("Generating course with AI:", { topic, level, duration, price, contentDepth, model: selectedModel });
 
     // Step 1: Generate course content using tool calling
     const moduleCount = duration <= 10 ? 3 : duration <= 20 ? 4 : duration <= 40 ? 5 : duration <= 60 ? 6 : 8;
@@ -260,12 +247,12 @@ Use **negrito**, *itálico*, listas numeradas, tabelas. O aluno deve conseguir a
       const errorText = await contentResponse.text();
       console.error("AI content generation error:", contentResponse.status, errorText);
       if (contentResponse.status === 429) {
-        throw new Error("Rate limits exceeded, please try again later.");
+        throw new Error("Limite de requisições excedido. Tente novamente em alguns minutos.");
       }
-      if (contentResponse.status === 402) {
-        throw new Error("Payment required, please add funds to your Lovable AI workspace.");
+      if (contentResponse.status === 402 || contentResponse.status === 401) {
+        throw new Error("Erro de autenticação na API OpenAI. Verifique sua chave API.");
       }
-      throw new Error("Failed to generate course content");
+      throw new Error("Falha ao gerar conteúdo do curso: " + errorText);
     }
 
     const contentData = await contentResponse.json();

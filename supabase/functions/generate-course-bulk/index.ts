@@ -148,9 +148,7 @@ serve(async (req) => {
 
   try {
     const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
-    if (!OPENAI_API_KEY) {
-      throw new Error("OPENAI_API_KEY is not configured");
-    }
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -190,12 +188,29 @@ serve(async (req) => {
 
     const { topic, categoryId, autoCategory, price, autoPrice, durationRange, contentDepth, openaiModel, additionalInstructions }: BulkCourseRequest = await req.json();
 
-    // Validate and set the OpenAI model
-    const validModels = ["gpt-4o-mini", "gpt-4o"];
-    const selectedModel = validModels.includes(openaiModel || "") ? openaiModel : "gpt-4o-mini";
-    const isAdvancedModel = selectedModel === "gpt-4o";
+    // Determine which API to use based on model
+    const lovableModels = ["google/gemini-2.5-pro", "google/gemini-2.5-flash", "google/gemini-3-flash-preview", "openai/gpt-5", "openai/gpt-5-mini"];
+    const openaiDirectModels = ["gpt-4o-mini", "gpt-4o"];
+    
+    const useLovableAI = lovableModels.includes(openaiModel || "");
+    const selectedModel = useLovableAI 
+      ? openaiModel 
+      : (openaiDirectModels.includes(openaiModel || "") ? openaiModel : "gpt-4o-mini");
 
-    console.log("Bulk generating course with OpenAI:", { topic, price, autoCategory, autoPrice, durationRange, contentDepth, model: selectedModel });
+    // Check required API keys
+    if (useLovableAI && !LOVABLE_API_KEY) {
+      throw new Error("LOVABLE_API_KEY is not configured for Lovable AI models");
+    }
+    if (!useLovableAI && !OPENAI_API_KEY) {
+      throw new Error("OPENAI_API_KEY is not configured");
+    }
+
+    const apiEndpoint = useLovableAI 
+      ? "https://ai.gateway.lovable.dev/v1/chat/completions"
+      : "https://api.openai.com/v1/chat/completions";
+    const apiKey = useLovableAI ? LOVABLE_API_KEY : OPENAI_API_KEY;
+
+    console.log("Bulk generating course with AI:", { topic, price, autoCategory, autoPrice, durationRange, contentDepth, model: selectedModel, provider: useLovableAI ? "Lovable AI" : "OpenAI Direct" });
 
     // Fetch categories if auto-category is enabled
     let categories: { id: string; name: string }[] = [];
@@ -292,10 +307,10 @@ REGRA DE PREÇOS (OBRIGATÓRIO seguir esta tabela):
 - Cursos de 80 horas: R$ 89,90 a R$ 99,90
 Use valores quebrados como 19.90, 29.90, 39.90, etc.`;
 
-    const analysisResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+    const analysisResponse = await fetch(apiEndpoint, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
+        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
@@ -317,10 +332,16 @@ Use valores quebrados como 19.90, 29.90, 39.90, etc.`;
 
     if (!analysisResponse.ok) {
       const errorText = await analysisResponse.text();
-      console.error("OpenAI analysis error:", analysisResponse.status, errorText);
+      console.error("AI analysis error:", analysisResponse.status, errorText);
       if (analysisResponse.status === 429) {
         return new Response(JSON.stringify({ error: "Limite de requisições excedido. Tente novamente em alguns minutos." }), {
           status: 429,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      if (analysisResponse.status === 402) {
+        return new Response(JSON.stringify({ error: "Créditos de IA esgotados." }), {
+          status: 402,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
@@ -434,10 +455,10 @@ ESTRUTURA PARA CADA MÓDULO:
 Use **negrito**, *itálico*, listas, tabelas.
 IMPORTANTE: Crie EXATAMENTE ${finalModuleCount} módulos para ${finalDuration}h de curso.`;
 
-    const contentResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+    const contentResponse = await fetch(apiEndpoint, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
+        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
@@ -489,10 +510,10 @@ IMPORTANTE: Crie EXATAMENTE ${finalModuleCount} módulos para ${finalDuration}h 
     const exercisesPrompt = `Crie 10 exercícios de múltipla escolha para o curso "${courseContent.title}" sobre "${topic}". 
 As questões devem testar a compreensão do conteúdo e ter níveis variados de dificuldade.`;
 
-    const exercisesResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+    const exercisesResponse = await fetch(apiEndpoint, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
+        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
@@ -537,10 +558,10 @@ As questões devem testar a compreensão do conteúdo e ter níveis variados de 
     // Step 4: Generate exam
     const examPrompt = `Crie uma prova final com 15 questões de múltipla escolha para o curso "${courseContent.title}" sobre "${topic}".`;
 
-    const examResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+    const examResponse = await fetch(apiEndpoint, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
+        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({

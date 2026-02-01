@@ -359,21 +359,51 @@ export default function BulkCreateCourseAI() {
                     <SelectItem value="gpt-4o-mini">
                       <div className="flex flex-col">
                         <span>⚡ GPT-4o Mini</span>
-                        <span className="text-xs text-muted-foreground">Rápido e econômico</span>
+                        <span className="text-xs text-muted-foreground">OpenAI - Rápido e econômico</span>
                       </div>
                     </SelectItem>
                     <SelectItem value="gpt-4o">
                       <div className="flex flex-col">
                         <span>🚀 GPT-4o</span>
-                        <span className="text-xs text-muted-foreground">Avançado, mais tokens</span>
+                        <span className="text-xs text-muted-foreground">OpenAI - Alta qualidade</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="google/gemini-2.5-pro">
+                      <div className="flex flex-col">
+                        <span>🌟 Gemini 2.5 Pro</span>
+                        <span className="text-xs text-muted-foreground">Google - Top qualidade</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="google/gemini-2.5-flash">
+                      <div className="flex flex-col">
+                        <span>⚡ Gemini 2.5 Flash</span>
+                        <span className="text-xs text-muted-foreground">Google - Rápido e equilibrado</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="google/gemini-3-flash-preview">
+                      <div className="flex flex-col">
+                        <span>✨ Gemini 3 Flash</span>
+                        <span className="text-xs text-muted-foreground">Google - Nova geração</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="openai/gpt-5">
+                      <div className="flex flex-col">
+                        <span>🧠 GPT-5</span>
+                        <span className="text-xs text-muted-foreground">OpenAI - Máxima qualidade</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="openai/gpt-5-mini">
+                      <div className="flex flex-col">
+                        <span>💡 GPT-5 Mini</span>
+                        <span className="text-xs text-muted-foreground">OpenAI - Custo-benefício</span>
                       </div>
                     </SelectItem>
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground">
-                  {openaiModel === 'gpt-4o' 
-                    ? '⚠️ Modelo avançado: maior qualidade, pode demorar mais.'
-                    : 'Modelo padrão, rápido e eficiente.'}
+                  {openaiModel.includes('gemini') || openaiModel.includes('gpt-5')
+                    ? '✅ Lovable AI - Incluído gratuitamente'
+                    : '💰 OpenAI direto: consome créditos da sua API'}
                 </p>
               </div>
 

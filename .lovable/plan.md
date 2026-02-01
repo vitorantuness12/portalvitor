@@ -1,73 +1,124 @@
 
 
-## Expandir Opções de Profundidade de Conteúdo
+## Adicionar Seletor de Modelo OpenAI no Painel Admin
 
 ### Objetivo
-Adicionar novas opções de profundidade do conteúdo para permitir a criação de cursos com módulos mais extensos: 3.000, 4.000, 5.000+ palavras por módulo.
+Permitir que o administrador escolha qual modelo da OpenAI usar para gerar cursos (gpt-4o-mini ou gpt-4o), oferecendo flexibilidade entre velocidade/custo e qualidade/capacidade.
 
-### Arquivos a Modificar
+### Por que isso e importante?
+- **gpt-4o-mini**: Mais rapido e barato, mas limitado a 16.384 tokens de saida
+- **gpt-4o**: Mais caro, porem suporta 128k tokens de contexto e gera conteudo mais extenso e de maior qualidade
 
-**1. Frontend - Criação Individual de Curso**
-`src/pages/admin/CreateCourseAI.tsx`
+### Arquivos a Criar/Modificar
 
-- Adicionar novas opções no Select de "Profundidade do Conteúdo":
-  - **Muito Extenso**: ~3000 palavras/módulo
-  - **Profissional**: ~4000 palavras/módulo  
-  - **Enciclopédico**: ~5000 palavras/módulo
+**1. Banco de Dados - Nova Tabela**
+```sql
+CREATE TABLE ai_config (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  openai_model TEXT NOT NULL DEFAULT 'gpt-4o-mini',
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_by UUID REFERENCES auth.users(id)
+);
 
-**2. Frontend - Criação em Massa**
-`src/pages/admin/BulkCreateCourseAI.tsx`
+-- Inserir configuracao padrao
+INSERT INTO ai_config (openai_model) VALUES ('gpt-4o-mini');
+```
 
-- Adicionar as mesmas opções ao Select de profundidade
+**2. Frontend - Modificar CreateCourseAI.tsx e BulkCreateCourseAI.tsx**
+Adicionar um Select para escolher o modelo de IA:
+```text
++-------------------------------------+
+| Modelo de IA                        |
++-------------------------------------+
+| gpt-4o-mini (Rapido, Economico)     | <- Padrao
+| gpt-4o (Avancado, Mais Tokens)      |
++-------------------------------------+
+```
 
-**3. Backend - Função de Geração Individual**
-`supabase/functions/generate-course/index.ts`
+- O modelo selecionado sera enviado no body da requisicao para as Edge Functions
+- Exibir aviso de que gpt-4o pode demorar mais e custar mais
 
-- Expandir o objeto `depthConfig` com os novos níveis:
+**3. Backend - Modificar generate-course/index.ts**
+- Receber o parametro `openaiModel` no request body
+- Usar o modelo selecionado nas chamadas a API da OpenAI
+- Ajustar `maxTokens` dinamicamente baseado no modelo:
+  - gpt-4o-mini: max 16.000 tokens
+  - gpt-4o: max 64.000 tokens (permitindo conteudo muito mais extenso)
+
+**4. Backend - Modificar generate-course-bulk/index.ts**
+- Mesmas alteracoes do generate-course
+
+### Interface Visual Proposta
+
+```text
++------------------------------------------+
+|            Configurar Curso              |
++------------------------------------------+
+| Tema do Curso *                          |
+| [________________________________]       |
+|                                          |
+| Nivel           | Carga Horaria          |
+| [Iniciante   v] | [10 horas         v]   |
+|                                          |
+| Modelo de IA                             |
+| [gpt-4o-mini (Rapido)            v]      |
+| i Modelos mais avancados geram           |
+|   conteudo de maior qualidade mas        |
+|   podem demorar mais.                    |
+|                                          |
+| Profundidade do Conteudo                 |
+| [Detalhado (~1000 palavras)      v]      |
++------------------------------------------+
+```
+
+### Detalhes Tecnicos
+
+**Parametros por Modelo:**
+
+| Modelo | Max Tokens | Custo | Velocidade | Uso Recomendado |
+|--------|------------|-------|------------|-----------------|
+| gpt-4o-mini | 16.384 | $ | Rapido | Cursos basicos a extensos |
+| gpt-4o | 128.000 | $$$$ | Lento | Enciclopedico, alta qualidade |
+
+**Ajuste de Profundidade para gpt-4o:**
 ```typescript
 const depthConfig = {
-  basico: { minWords: 500, maxTokens: 8000, description: "resumido e direto ao ponto" },
-  detalhado: { minWords: 1000, maxTokens: 12000, description: "com bom nível de detalhes e exemplos" },
-  extenso: { minWords: 2000, maxTokens: 16000, description: "extremamente completo como um livro didático" },
-  muito_extenso: { minWords: 3000, maxTokens: 24000, description: "altamente detalhado com teoria e prática aprofundadas" },
-  profissional: { minWords: 4000, maxTokens: 32000, description: "conteúdo de nível profissional com cobertura completa" },
-  enciclopedico: { minWords: 5000, maxTokens: 40000, description: "conteúdo enciclopédico com máximo nível de detalhamento" }
+  basico: { minWords: 500, maxTokens: 8000 },
+  detalhado: { minWords: 1000, maxTokens: 12000 },
+  extenso: { minWords: 2000, maxTokens: 20000 },
+  muito_extenso: { minWords: 3000, maxTokens: 30000 },
+  profissional: { minWords: 4000, maxTokens: 40000 },
+  enciclopedico: { minWords: 5000, maxTokens: 60000 }
 };
 ```
 
-**4. Backend - Função de Geração em Massa**
-`supabase/functions/generate-course-bulk/index.ts`
-
-- Aplicar as mesmas alterações no `depthConfig`
-- Atualizar a lógica de decisão automática da IA para considerar os novos níveis
-
-### Novas Opções de Interface
+### Fluxo de Dados
 
 ```text
-+----------------------------------+
-| Profundidade do Conteúdo         |
-+----------------------------------+
-| 🤖 IA decide automaticamente     |
-| 📝 Básico (~500 palavras)        |
-| 📄 Detalhado (~1000 palavras)    |
-| 📚 Extenso (~2000 palavras)      |
-| 📖 Muito Extenso (~3000 palavras)| ← NOVO
-| 🎓 Profissional (~4000 palavras) | ← NOVO
-| 📕 Enciclopédico (~5000 palavras)| ← NOVO
-+----------------------------------+
+Admin Interface
+     |
+     | seleciona modelo: "gpt-4o"
+     v
++-------------------+
+| CreateCourseAI.tsx|
++-------------------+
+     |
+     | POST { topic, ..., openaiModel: "gpt-4o" }
+     v
++-------------------+
+| Edge Function     |
+| generate-course   |
++-------------------+
+     |
+     | fetch OpenAI API com model: "gpt-4o"
+     v
++-------------------+
+| OpenAI API        |
++-------------------+
 ```
 
-### Considerações Técnicas
-
-**Tokens da API OpenAI:**
-- Cursos com 5000 palavras/módulo requerem `max_tokens` de 40.000
-- O modelo gpt-4o-mini suporta até 128k tokens de contexto
-- Pode haver aumento no tempo de geração para conteúdos muito extensos
-
-**Timeout:**
-- O frontend já possui timeout de 10 minutos (600.000ms)
-- Suficiente para gerar conteúdo extenso
-
-**Aviso ao Usuário:**
-- Adicionar nota informando que níveis mais profundos levam mais tempo para gerar
+### Consideracoes de Seguranca
+- Apenas administradores podem alterar o modelo
+- O modelo e validado no backend para evitar valores invalidos
+- Modelos permitidos: ["gpt-4o-mini", "gpt-4o"]
 

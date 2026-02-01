@@ -116,10 +116,8 @@ serve(async (req) => {
 
   try {
     const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
-    if (!OPENAI_API_KEY) {
-      throw new Error("OPENAI_API_KEY is not configured");
-    }
-
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
@@ -158,12 +156,29 @@ serve(async (req) => {
 
     const { topic, level, duration, categoryId, price, contentDepth, openaiModel, additionalInstructions }: CourseRequest = await req.json();
 
-    // Validate and set the OpenAI model
-    const validModels = ["gpt-4o-mini", "gpt-4o"];
-    const selectedModel = validModels.includes(openaiModel || "") ? openaiModel : "gpt-4o-mini";
-    const isAdvancedModel = selectedModel === "gpt-4o";
+    // Determine which API to use based on model
+    const lovableModels = ["google/gemini-2.5-pro", "google/gemini-2.5-flash", "google/gemini-3-flash-preview", "openai/gpt-5", "openai/gpt-5-mini"];
+    const openaiDirectModels = ["gpt-4o-mini", "gpt-4o"];
+    
+    const useLovableAI = lovableModels.includes(openaiModel || "");
+    const selectedModel = useLovableAI 
+      ? openaiModel 
+      : (openaiDirectModels.includes(openaiModel || "") ? openaiModel : "gpt-4o-mini");
 
-    console.log("Generating course with OpenAI:", { topic, level, duration, price, contentDepth, model: selectedModel });
+    // Check required API keys
+    if (useLovableAI && !LOVABLE_API_KEY) {
+      throw new Error("LOVABLE_API_KEY is not configured for Lovable AI models");
+    }
+    if (!useLovableAI && !OPENAI_API_KEY) {
+      throw new Error("OPENAI_API_KEY is not configured");
+    }
+
+    const apiEndpoint = useLovableAI 
+      ? "https://ai.gateway.lovable.dev/v1/chat/completions"
+      : "https://api.openai.com/v1/chat/completions";
+    const apiKey = useLovableAI ? LOVABLE_API_KEY : OPENAI_API_KEY;
+
+    console.log("Generating course with AI:", { topic, level, duration, price, contentDepth, model: selectedModel, provider: useLovableAI ? "Lovable AI" : "OpenAI Direct" });
 
     // Step 1: Generate course content using tool calling
     const moduleCount = duration <= 10 ? 3 : duration <= 20 ? 4 : duration <= 40 ? 5 : duration <= 60 ? 6 : 8;
@@ -223,10 +238,10 @@ ESTRUTURA PARA CADA MÓDULO:
 
 Use **negrito**, *itálico*, listas numeradas, tabelas. O aluno deve conseguir aprender tudo apenas lendo este conteúdo.`;
 
-    const contentResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+    const contentResponse = await fetch(apiEndpoint, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
+        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
@@ -243,7 +258,13 @@ Use **negrito**, *itálico*, listas numeradas, tabelas. O aluno deve conseguir a
 
     if (!contentResponse.ok) {
       const errorText = await contentResponse.text();
-      console.error("OpenAI content generation error:", contentResponse.status, errorText);
+      console.error("AI content generation error:", contentResponse.status, errorText);
+      if (contentResponse.status === 429) {
+        throw new Error("Rate limits exceeded, please try again later.");
+      }
+      if (contentResponse.status === 402) {
+        throw new Error("Payment required, please add funds to your Lovable AI workspace.");
+      }
       throw new Error("Failed to generate course content");
     }
 
@@ -272,10 +293,10 @@ Use **negrito**, *itálico*, listas numeradas, tabelas. O aluno deve conseguir a
     const exercisesPrompt = `Crie 10 exercícios de múltipla escolha para o curso "${courseContent.title}" sobre "${topic}". 
 As questões devem testar a compreensão do conteúdo e ter níveis variados de dificuldade.`;
 
-    const exercisesResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+    const exercisesResponse = await fetch(apiEndpoint, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
+        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
@@ -291,7 +312,7 @@ As questões devem testar a compreensão do conteúdo e ter níveis variados de 
     });
 
     if (!exercisesResponse.ok) {
-      console.error("OpenAI exercises generation error:", exercisesResponse.status);
+      console.error("AI exercises generation error:", exercisesResponse.status);
       throw new Error("Failed to generate exercises");
     }
 
@@ -318,10 +339,10 @@ As questões devem testar a compreensão do conteúdo e ter níveis variados de 
     const examPrompt = `Crie uma prova final com 15 questões de múltipla escolha para o curso "${courseContent.title}" sobre "${topic}".
 A prova deve cobrir todos os módulos e ter questões de diferentes níveis de dificuldade.`;
 
-    const examResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+    const examResponse = await fetch(apiEndpoint, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
+        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
@@ -337,7 +358,7 @@ A prova deve cobrir todos os módulos e ter questões de diferentes níveis de d
     });
 
     if (!examResponse.ok) {
-      console.error("OpenAI exam generation error:", examResponse.status);
+      console.error("AI exam generation error:", examResponse.status);
       throw new Error("Failed to generate exam");
     }
 

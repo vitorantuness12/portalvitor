@@ -161,6 +161,9 @@ serve(async (req) => {
     // All models use OpenAI directly
     const validModels = ["gpt-4o-mini", "gpt-4o", "o1", "o1-mini", "o3-mini"];
     const selectedModel = validModels.includes(openaiModel || "") ? openaiModel : "gpt-4o-mini";
+    
+    // O1 models use max_completion_tokens instead of max_tokens
+    const isO1Model = selectedModel?.startsWith("o1") || selectedModel?.startsWith("o3");
 
     const apiEndpoint = "https://api.openai.com/v1/chat/completions";
     const apiKey = OPENAI_API_KEY;
@@ -225,22 +228,30 @@ ESTRUTURA PARA CADA MÓDULO:
 
 Use **negrito**, *itálico*, listas numeradas, tabelas. O aluno deve conseguir aprender tudo apenas lendo este conteúdo.`;
 
+    const contentRequestBody: any = {
+      model: selectedModel,
+      messages: [
+        ...(isO1Model ? [] : [{ role: "system", content: "Você é um professor universitário especialista em educação online. Você cria conteúdo educacional REAL e PRÁTICO que ensina de verdade. Nunca escreva apenas descrições do que será ensinado - escreva o conteúdo educacional completo. Use a função fornecida para estruturar o curso." }]),
+        { role: "user", content: isO1Model ? `Você é um professor universitário especialista em educação online. Você cria conteúdo educacional REAL e PRÁTICO que ensina de verdade. Nunca escreva apenas descrições do que será ensinado - escreva o conteúdo educacional completo.\n\n${contentPrompt}` : contentPrompt },
+      ],
+      tools: [courseContentTool],
+      tool_choice: { type: "function", function: { name: "create_course_content" } },
+    };
+    
+    // O1 models use max_completion_tokens, others use max_tokens
+    if (isO1Model) {
+      contentRequestBody.max_completion_tokens = depth.maxTokens;
+    } else {
+      contentRequestBody.max_tokens = depth.maxTokens;
+    }
+
     const contentResponse = await fetch(apiEndpoint, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        model: selectedModel,
-        messages: [
-          { role: "system", content: "Você é um professor universitário especialista em educação online. Você cria conteúdo educacional REAL e PRÁTICO que ensina de verdade. Nunca escreva apenas descrições do que será ensinado - escreva o conteúdo educacional completo. Use a função fornecida para estruturar o curso." },
-          { role: "user", content: contentPrompt },
-        ],
-        tools: [courseContentTool],
-        tool_choice: { type: "function", function: { name: "create_course_content" } },
-        max_tokens: depth.maxTokens,
-      }),
+      body: JSON.stringify(contentRequestBody),
     });
 
     if (!contentResponse.ok) {
@@ -280,22 +291,29 @@ Use **negrito**, *itálico*, listas numeradas, tabelas. O aluno deve conseguir a
     const exercisesPrompt = `Crie 10 exercícios de múltipla escolha para o curso "${courseContent.title}" sobre "${topic}". 
 As questões devem testar a compreensão do conteúdo e ter níveis variados de dificuldade.`;
 
+    const exercisesRequestBody: any = {
+      model: selectedModel,
+      messages: [
+        ...(isO1Model ? [] : [{ role: "system", content: "Você é um especialista em avaliação educacional. Use a função fornecida para criar exercícios." }]),
+        { role: "user", content: isO1Model ? `Você é um especialista em avaliação educacional. Use a função fornecida para criar exercícios.\n\n${exercisesPrompt}` : exercisesPrompt },
+      ],
+      tools: [exercisesTool],
+      tool_choice: { type: "function", function: { name: "create_exercises" } },
+    };
+    
+    if (isO1Model) {
+      exercisesRequestBody.max_completion_tokens = 4000;
+    } else {
+      exercisesRequestBody.max_tokens = 4000;
+    }
+
     const exercisesResponse = await fetch(apiEndpoint, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        model: selectedModel,
-        messages: [
-          { role: "system", content: "Você é um especialista em avaliação educacional. Use a função fornecida para criar exercícios." },
-          { role: "user", content: exercisesPrompt },
-        ],
-        tools: [exercisesTool],
-        tool_choice: { type: "function", function: { name: "create_exercises" } },
-        max_tokens: 4000,
-      }),
+      body: JSON.stringify(exercisesRequestBody),
     });
 
     if (!exercisesResponse.ok) {
@@ -326,22 +344,29 @@ As questões devem testar a compreensão do conteúdo e ter níveis variados de 
     const examPrompt = `Crie uma prova final com 15 questões de múltipla escolha para o curso "${courseContent.title}" sobre "${topic}".
 A prova deve cobrir todos os módulos e ter questões de diferentes níveis de dificuldade.`;
 
+    const examRequestBody: any = {
+      model: selectedModel,
+      messages: [
+        ...(isO1Model ? [] : [{ role: "system", content: "Você é um especialista em avaliação educacional. Use a função fornecida para criar a prova." }]),
+        { role: "user", content: isO1Model ? `Você é um especialista em avaliação educacional. Use a função fornecida para criar a prova.\n\n${examPrompt}` : examPrompt },
+      ],
+      tools: [examTool],
+      tool_choice: { type: "function", function: { name: "create_exam" } },
+    };
+    
+    if (isO1Model) {
+      examRequestBody.max_completion_tokens = 6000;
+    } else {
+      examRequestBody.max_tokens = 6000;
+    }
+
     const examResponse = await fetch(apiEndpoint, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        model: selectedModel,
-        messages: [
-          { role: "system", content: "Você é um especialista em avaliação educacional. Use a função fornecida para criar a prova." },
-          { role: "user", content: examPrompt },
-        ],
-        tools: [examTool],
-        tool_choice: { type: "function", function: { name: "create_exam" } },
-        max_tokens: 6000,
-      }),
+      body: JSON.stringify(examRequestBody),
     });
 
     if (!examResponse.ok) {

@@ -357,25 +357,43 @@ export default function BulkCreateCourseAI() {
                     <SelectItem value="auto">
                       <div className="flex items-center gap-2">
                         <Wand2 className="h-3 w-3" />
-                        <span>IA decide automaticamente</span>
+                        <span>🤖 IA decide automaticamente</span>
                       </div>
                     </SelectItem>
                     <SelectItem value="basico">
                       <div className="flex flex-col">
-                        <span>Básico</span>
+                        <span>📝 Básico</span>
                         <span className="text-xs text-muted-foreground">~500 palavras/módulo</span>
                       </div>
                     </SelectItem>
                     <SelectItem value="detalhado">
                       <div className="flex flex-col">
-                        <span>Detalhado</span>
+                        <span>📄 Detalhado</span>
                         <span className="text-xs text-muted-foreground">~1000 palavras/módulo</span>
                       </div>
                     </SelectItem>
                     <SelectItem value="extenso">
                       <div className="flex flex-col">
-                        <span>Extenso</span>
+                        <span>📚 Extenso</span>
                         <span className="text-xs text-muted-foreground">~2000 palavras/módulo</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="muito_extenso">
+                      <div className="flex flex-col">
+                        <span>📖 Muito Extenso</span>
+                        <span className="text-xs text-muted-foreground">~3000 palavras/módulo</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="profissional">
+                      <div className="flex flex-col">
+                        <span>🎓 Profissional</span>
+                        <span className="text-xs text-muted-foreground">~4000 palavras/módulo</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="enciclopedico">
+                      <div className="flex flex-col">
+                        <span>📕 Enciclopédico</span>
+                        <span className="text-xs text-muted-foreground">~5000+ palavras/módulo</span>
                       </div>
                     </SelectItem>
                   </SelectContent>

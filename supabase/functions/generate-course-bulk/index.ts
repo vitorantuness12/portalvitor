@@ -381,14 +381,14 @@ Use valores quebrados como 19.90, 29.90, 39.90, etc.`;
       }
       console.log("AI decided content depth based on level:", level, "duration:", finalDuration);
     } else {
-      // gpt-4o-mini max: 16384 tokens, gpt-4o max: 128k tokens
+      // BOTH gpt-4o-mini and gpt-4o have a max of 16384 OUTPUT tokens per request
       const depthConfig = {
         basico: { minWords: 500, maxTokens: 8000, description: "resumido e direto ao ponto" },
         detalhado: { minWords: 1000, maxTokens: 12000, description: "com bom nível de detalhes e exemplos" },
-        extenso: { minWords: 2000, maxTokens: isAdvancedModel ? 20000 : 16000, description: "extremamente completo como um livro didático profissional" },
-        muito_extenso: { minWords: 3000, maxTokens: isAdvancedModel ? 30000 : 16000, description: "altamente detalhado com teoria e prática aprofundadas" },
-        profissional: { minWords: 4000, maxTokens: isAdvancedModel ? 40000 : 16000, description: "conteúdo de nível profissional com cobertura completa" },
-        enciclopedico: { minWords: 5000, maxTokens: isAdvancedModel ? 60000 : 16000, description: "conteúdo enciclopédico com máximo nível de detalhamento" }
+        extenso: { minWords: 2000, maxTokens: 16000, description: "extremamente completo como um livro didático profissional" },
+        muito_extenso: { minWords: 3000, maxTokens: 16000, description: "altamente detalhado com teoria e prática aprofundadas" },
+        profissional: { minWords: 4000, maxTokens: 16000, description: "conteúdo de nível profissional com cobertura completa" },
+        enciclopedico: { minWords: 5000, maxTokens: 16000, description: "conteúdo enciclopédico com máximo nível de detalhamento" }
       };
       depth = depthConfig[contentDepth as keyof typeof depthConfig] || depthConfig.detalhado;
     }

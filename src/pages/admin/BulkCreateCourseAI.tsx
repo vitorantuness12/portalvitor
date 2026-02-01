@@ -37,6 +37,7 @@ export default function BulkCreateCourseAI() {
   const [autoPrice, setAutoPrice] = useState(true);
   const [durationRange, setDurationRange] = useState('auto');
   const [contentDepth, setContentDepth] = useState('detalhado');
+  const [openaiModel, setOpenaiModel] = useState('gpt-4o-mini');
   const [additionalInstructions, setAdditionalInstructions] = useState('');
   const [queue, setQueue] = useState<CourseQueueItem[]>([]);
   const [isRunning, setIsRunning] = useState(false);
@@ -126,6 +127,7 @@ export default function BulkCreateCourseAI() {
               autoPrice,
               durationRange: durationRange !== 'auto' ? durationRange : null,
               contentDepth,
+              openaiModel,
               additionalInstructions,
             }),
           }
@@ -340,6 +342,38 @@ export default function BulkCreateCourseAI() {
                 </Select>
                 <p className="text-xs text-muted-foreground">
                   Define a duração e quantidade de módulos dos cursos
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Modelo de IA</Label>
+                <Select
+                  value={openaiModel}
+                  onValueChange={setOpenaiModel}
+                  disabled={isRunning}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="gpt-4o-mini">
+                      <div className="flex flex-col">
+                        <span>⚡ GPT-4o Mini</span>
+                        <span className="text-xs text-muted-foreground">Rápido e econômico</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="gpt-4o">
+                      <div className="flex flex-col">
+                        <span>🚀 GPT-4o</span>
+                        <span className="text-xs text-muted-foreground">Avançado, mais tokens</span>
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  {openaiModel === 'gpt-4o' 
+                    ? '⚠️ Modelo avançado: maior qualidade, pode demorar mais.'
+                    : 'Modelo padrão, rápido e eficiente.'}
                 </p>
               </div>
 

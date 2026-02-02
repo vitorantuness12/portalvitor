@@ -280,6 +280,17 @@ Use **negrito**, *itálico*, listas numeradas, tabelas. O aluno deve conseguir a
     const contentData = await contentResponse.json();
     let courseContent;
     
+    // Function to clean LLM artifacts from content
+    const cleanLLMContent = (text: string): string => {
+      if (!text) return text;
+      return text
+        .replace(/\[CONTAGEM DE PALAVRAS APROX\.?:?\s*[\d.,]+\]/gi, "")
+        .replace(/\[APPROXIMATE WORD COUNT:?\s*[\d.,]+\]/gi, "")
+        .replace(/\[WORD COUNT:?\s*[\d.,]+\]/gi, "")
+        .replace(/\[PALAVRAS:?\s*[\d.,]+\]/gi, "")
+        .trim();
+    };
+    
     try {
       const toolCall = contentData.choices[0].message.tool_calls?.[0];
       if (toolCall && toolCall.function.arguments) {
@@ -289,6 +300,21 @@ Use **negrito**, *itálico*, listas numeradas, tabelas. O aluno deve conseguir a
         const jsonMatch = rawContent.match(/```(?:json)?\s*([\s\S]*?)```/) || [null, rawContent];
         courseContent = JSON.parse(jsonMatch[1].trim());
       }
+      
+      // Clean all module contents
+      if (courseContent.modules && Array.isArray(courseContent.modules)) {
+        courseContent.modules = courseContent.modules.map((mod: any) => ({
+          ...mod,
+          title: cleanLLMContent(mod.title),
+          content: cleanLLMContent(mod.content),
+        }));
+      }
+      
+      // Clean title and description too
+      if (courseContent.title) courseContent.title = cleanLLMContent(courseContent.title);
+      if (courseContent.subtitle) courseContent.subtitle = cleanLLMContent(courseContent.subtitle);
+      if (courseContent.description) courseContent.description = cleanLLMContent(courseContent.description);
+      
     } catch (e) {
       console.error("Failed to parse course content:", e);
       throw new Error("Falha ao processar resposta da IA para conteúdo");
@@ -684,6 +710,17 @@ Use **negrito**, *itálico*, listas numeradas, tabelas.`;
     const contentData = await contentResponse.json();
     let courseContent;
     
+    // Function to clean LLM artifacts from content
+    const cleanLLMContent = (text: string): string => {
+      if (!text) return text;
+      return text
+        .replace(/\[CONTAGEM DE PALAVRAS APROX\.?:?\s*[\d.,]+\]/gi, "")
+        .replace(/\[APPROXIMATE WORD COUNT:?\s*[\d.,]+\]/gi, "")
+        .replace(/\[WORD COUNT:?\s*[\d.,]+\]/gi, "")
+        .replace(/\[PALAVRAS:?\s*[\d.,]+\]/gi, "")
+        .trim();
+    };
+    
     try {
       const toolCall = contentData.choices[0].message.tool_calls?.[0];
       if (toolCall && toolCall.function.arguments) {
@@ -693,6 +730,21 @@ Use **negrito**, *itálico*, listas numeradas, tabelas.`;
         const jsonMatch = rawContent.match(/```(?:json)?\s*([\s\S]*?)```/) || [null, rawContent];
         courseContent = JSON.parse(jsonMatch[1].trim());
       }
+      
+      // Clean all module contents
+      if (courseContent.modules && Array.isArray(courseContent.modules)) {
+        courseContent.modules = courseContent.modules.map((mod: any) => ({
+          ...mod,
+          title: cleanLLMContent(mod.title),
+          content: cleanLLMContent(mod.content),
+        }));
+      }
+      
+      // Clean title and description too
+      if (courseContent.title) courseContent.title = cleanLLMContent(courseContent.title);
+      if (courseContent.subtitle) courseContent.subtitle = cleanLLMContent(courseContent.subtitle);
+      if (courseContent.description) courseContent.description = cleanLLMContent(courseContent.description);
+      
     } catch (e) {
       console.error("Failed to parse course content:", e);
       throw new Error("Failed to parse AI response for course content");

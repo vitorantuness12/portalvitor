@@ -352,7 +352,26 @@ ESCREVA O CONTEÚDO COMPLETO AGORA:`;
   return moduleContent;
 }
 
-// Process job with sequential module generation
+// Save partial progress to database
+async function savePartialProgress(
+  supabase: any,
+  jobId: string,
+  structure: any,
+  modules: any[],
+  progressDetail: string
+) {
+  await supabase
+    .from("course_generation_jobs")
+    .update({
+      partial_course_data: structure,
+      modules_generated: modules,
+      progress_detail: progressDetail,
+      updated_at: new Date().toISOString()
+    })
+    .eq("id", jobId);
+}
+
+// Process job with sequential module generation (resumable)
 async function processJobSequential(supabase: any, jobId: string) {
   const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
   const apiEndpoint = "https://api.openai.com/v1/chat/completions";
@@ -382,10 +401,23 @@ async function processJobSequential(supabase: any, jobId: string) {
 
     console.log("Processing job:", jobId, "model:", selectedModel, "depth:", content_depth);
 
+    // Check for existing partial progress
+    let existingStructure = job.partial_course_data;
+    let existingModules = job.modules_generated || [];
+    const startModuleIndex = existingModules.length;
+
+    console.log(`Resuming from module ${startModuleIndex + 1}, existing modules: ${existingModules.length}`);
+
     // Update job status
     await supabase
       .from("course_generation_jobs")
-      .update({ status: "processing", progress_detail: "Iniciando geração...", updated_at: new Date().toISOString() })
+      .update({ 
+        status: "processing", 
+        progress_detail: startModuleIndex > 0 
+          ? `Retomando geração do módulo ${startModuleIndex + 1}...` 
+          : "Iniciando geração...", 
+        updated_at: new Date().toISOString() 
+      })
       .eq("id", jobId);
 
     // Calculate module count and depth config
@@ -424,91 +456,126 @@ async function processJobSequential(supabase: any, jobId: string) {
     let courseContent: any;
 
     if (useSequential) {
-      // ===== SEQUENTIAL GENERATION FLOW =====
-      await updateJobProgress(supabase, jobId, "Gerando estrutura do curso...");
+      // ===== SEQUENTIAL GENERATION FLOW (RESUMABLE) =====
+      let structure = existingStructure;
 
-      // Step 1: Generate course structure
-      const structurePrompt = `Crie a estrutura de um curso sobre "${topic}" com ${moduleCount} módulos.
+      // Step 1: Generate course structure (if not already done)
+      if (!structure) {
+        await updateJobProgress(supabase, jobId, "Gerando estrutura do curso...");
+
+        const structurePrompt = `Crie a estrutura de um curso sobre "${topic}" com ${moduleCount} módulos.
 Nível: ${level}
 Carga horária: ${duration} horas
 ${additional_instructions ? `Instruções: ${additional_instructions}` : ""}
 
 Defina título, subtítulo, descrição e os títulos de cada módulo com um breve resumo do que será abordado.`;
 
-      const structureRequestBody: any = {
-        model: selectedModel,
-        messages: [
-          ...(isO1Model ? [] : [{ role: "system", content: "Você é um especialista em design instrucional." }]),
-          { role: "user", content: isO1Model ? `Você é um especialista em design instrucional.\n\n${structurePrompt}` : structurePrompt },
-        ],
-        tools: [courseStructureTool],
-        tool_choice: { type: "function", function: { name: "create_course_structure" } },
-      };
+        const structureRequestBody: any = {
+          model: selectedModel,
+          messages: [
+            ...(isO1Model ? [] : [{ role: "system", content: "Você é um especialista em design instrucional." }]),
+            { role: "user", content: isO1Model ? `Você é um especialista em design instrucional.\n\n${structurePrompt}` : structurePrompt },
+          ],
+          tools: [courseStructureTool],
+          tool_choice: { type: "function", function: { name: "create_course_structure" } },
+        };
 
-      if (isO1Model) {
-        structureRequestBody.max_completion_tokens = 8000;
-      } else {
-        structureRequestBody.max_tokens = 4000;
-      }
-
-      const structureResponse = await fetch(apiEndpoint, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${OPENAI_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(structureRequestBody),
-      });
-
-      if (!structureResponse.ok) {
-        const errorText = await structureResponse.text();
-        console.error("Structure generation error:", errorText);
-        throw new Error("Falha ao gerar estrutura do curso");
-      }
-
-      const structureData = await structureResponse.json();
-      let structure;
-
-      try {
-        const toolCall = structureData.choices[0].message.tool_calls?.[0];
-        if (toolCall && toolCall.function.arguments) {
-          structure = JSON.parse(toolCall.function.arguments);
+        if (isO1Model) {
+          structureRequestBody.max_completion_tokens = 8000;
         } else {
-          throw new Error("No tool call in response");
+          structureRequestBody.max_tokens = 4000;
         }
-      } catch (e) {
-        console.error("Failed to parse structure:", e);
-        throw new Error("Falha ao processar estrutura do curso");
+
+        const structureResponse = await fetch(apiEndpoint, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${OPENAI_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(structureRequestBody),
+        });
+
+        if (!structureResponse.ok) {
+          const errorText = await structureResponse.text();
+          console.error("Structure generation error:", errorText);
+          throw new Error("Falha ao gerar estrutura do curso");
+        }
+
+        const structureData = await structureResponse.json();
+
+        try {
+          const toolCall = structureData.choices[0].message.tool_calls?.[0];
+          if (toolCall && toolCall.function.arguments) {
+            structure = JSON.parse(toolCall.function.arguments);
+          } else {
+            throw new Error("No tool call in response");
+          }
+        } catch (e) {
+          console.error("Failed to parse structure:", e);
+          throw new Error("Falha ao processar estrutura do curso");
+        }
+
+        // Save structure immediately
+        await savePartialProgress(supabase, jobId, structure, [], "Estrutura gerada, iniciando módulos...");
       }
 
-      console.log("Course structure generated:", structure.title, "with", structure.modules.length, "modules");
+      console.log("Course structure:", structure.title, "with", structure.modules.length, "modules");
 
-      // Step 2: Generate each module individually
-      const fullModules: any[] = [];
+      // Step 2: Generate each module individually (resumable)
+      const fullModules: any[] = [...existingModules];
       let previousModulesSummary = "";
+      
+      // Build summary from existing modules
+      for (let i = 0; i < existingModules.length; i++) {
+        previousModulesSummary += `Módulo ${i + 1} - ${existingModules[i].title}: concluído\n`;
+      }
 
-      for (let i = 0; i < structure.modules.length; i++) {
+      // Continue from where we left off
+      for (let i = startModuleIndex; i < structure.modules.length; i++) {
         const moduleInfo = structure.modules[i];
         await updateJobProgress(supabase, jobId, `Gerando módulo ${i + 1} de ${structure.modules.length}: ${moduleInfo.title}`);
 
-        const moduleContent = await generateSingleModule(
-          OPENAI_API_KEY!,
-          selectedModel,
-          topic,
-          structure.title,
-          moduleInfo.title,
-          moduleInfo.outline,
-          i,
-          structure.modules.length,
-          depth.minWords,
-          depth.maxTokens,
-          previousModulesSummary
-        );
+        try {
+          const moduleContent = await generateSingleModule(
+            OPENAI_API_KEY!,
+            selectedModel,
+            topic,
+            structure.title,
+            moduleInfo.title,
+            moduleInfo.outline,
+            i,
+            structure.modules.length,
+            depth.minWords,
+            depth.maxTokens,
+            previousModulesSummary
+          );
 
-        fullModules.push(moduleContent);
+          fullModules.push(moduleContent);
 
-        // Add to summary for context in next module
-        previousModulesSummary += `Módulo ${i + 1} - ${moduleInfo.title}: abordou ${moduleInfo.outline}\n`;
+          // Save progress after each module (crucial for resumability)
+          await savePartialProgress(
+            supabase, 
+            jobId, 
+            structure, 
+            fullModules, 
+            `Módulo ${i + 1} de ${structure.modules.length} concluído`
+          );
+
+          // Add to summary for context in next module
+          previousModulesSummary += `Módulo ${i + 1} - ${moduleInfo.title}: abordou ${moduleInfo.outline}\n`;
+        } catch (moduleError: unknown) {
+          const errorMessage = moduleError instanceof Error ? moduleError.message : String(moduleError);
+          console.error(`Error generating module ${i + 1}:`, errorMessage);
+          // Save progress before failing
+          await savePartialProgress(
+            supabase, 
+            jobId, 
+            structure, 
+            fullModules, 
+            `Erro no módulo ${i + 1}: ${errorMessage}`
+          );
+          throw moduleError;
+        }
       }
 
       courseContent = {

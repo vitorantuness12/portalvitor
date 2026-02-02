@@ -288,7 +288,9 @@ export type Database = {
           error_message: string | null
           id: string
           level: string
+          modules_generated: Json | null
           openai_model: string | null
+          partial_course_data: Json | null
           price: number | null
           progress_detail: string | null
           status: string
@@ -307,7 +309,9 @@ export type Database = {
           error_message?: string | null
           id?: string
           level: string
+          modules_generated?: Json | null
           openai_model?: string | null
+          partial_course_data?: Json | null
           price?: number | null
           progress_detail?: string | null
           status?: string
@@ -326,7 +330,9 @@ export type Database = {
           error_message?: string | null
           id?: string
           level?: string
+          modules_generated?: Json | null
           openai_model?: string | null
+          partial_course_data?: Json | null
           price?: number | null
           progress_detail?: string | null
           status?: string

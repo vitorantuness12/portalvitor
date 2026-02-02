@@ -55,13 +55,90 @@ export default function CreateCourseAI() {
     },
   });
 
-  // Poll for job status when there's an active async job
+  // Trigger job processing and poll for status
   useEffect(() => {
     if (!activeJob || activeJob.status === 'completed' || activeJob.status === 'failed') {
       return;
     }
 
-    const pollInterval = setInterval(async () => {
+    let isProcessing = false;
+    let pollInterval: NodeJS.Timeout;
+
+    // Function to trigger job processing
+    const triggerProcessing = async () => {
+      if (isProcessing) return;
+      isProcessing = true;
+
+      try {
+        console.log('Triggering job processing:', activeJob.id);
+        
+        // Call the edge function to process the job (without auth - uses service role internally)
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-course`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            },
+            body: JSON.stringify({
+              processJob: true,
+              jobId: activeJob.id,
+            }),
+          }
+        );
+
+        const result = await response.json();
+        console.log('Job processing result:', result);
+
+        if (result.success) {
+          // Job completed successfully
+          setCurrentStep(3);
+          setIsGenerating(false);
+          
+          if (result.courseId || result.course) {
+            const courseId = result.courseId || result.course?.id;
+            const { data: course } = await supabase
+              .from('courses')
+              .select('*')
+              .eq('id', courseId)
+              .single();
+            
+            if (course) {
+              setGeneratedCourse(course);
+              setActiveJob(prev => prev ? { ...prev, status: 'completed', course_id: courseId } : null);
+              toast({
+                title: 'Curso criado com sucesso!',
+                description: `"${course.title}" foi gerado e está disponível.`,
+              });
+            }
+          }
+        } else if (result.error) {
+          // Job failed
+          setIsGenerating(false);
+          setActiveJob(prev => prev ? { ...prev, status: 'failed', error_message: result.error } : null);
+          toast({
+            title: 'Erro ao gerar curso',
+            description: result.error || 'Ocorreu um erro durante a geração.',
+            variant: 'destructive',
+          });
+        }
+      } catch (error: any) {
+        console.error('Error processing job:', error);
+        // Don't stop - the job might still be processing on the server
+        // Let the polling continue
+      } finally {
+        isProcessing = false;
+      }
+    };
+
+    // Start processing immediately when job is pending
+    if (activeJob.status === 'pending') {
+      triggerProcessing();
+    }
+
+    // Poll for job status as backup (in case the direct call fails or times out)
+    pollInterval = setInterval(async () => {
       const { data: job, error } = await supabase
         .from('course_generation_jobs')
         .select('*')
@@ -73,23 +150,25 @@ export default function CreateCourseAI() {
         return;
       }
 
-      setActiveJob(job as GenerationJob);
+      const typedJob = job as GenerationJob;
 
       // Update step based on status
-      if (job.status === 'processing') {
+      if (typedJob.status === 'processing') {
         setCurrentStep(1);
+        setActiveJob(typedJob);
       }
 
-      if (job.status === 'completed') {
+      if (typedJob.status === 'completed') {
         setCurrentStep(3);
         setIsGenerating(false);
+        setActiveJob(typedJob);
         
         // Fetch the created course
-        if (job.course_id) {
+        if (typedJob.course_id) {
           const { data: course } = await supabase
             .from('courses')
             .select('*')
-            .eq('id', job.course_id)
+            .eq('id', typedJob.course_id)
             .single();
           
           if (course) {
@@ -104,19 +183,22 @@ export default function CreateCourseAI() {
         clearInterval(pollInterval);
       }
 
-      if (job.status === 'failed') {
+      if (typedJob.status === 'failed') {
         setIsGenerating(false);
+        setActiveJob(typedJob);
         toast({
           title: 'Erro ao gerar curso',
-          description: job.error_message || 'Ocorreu um erro durante a geração.',
+          description: typedJob.error_message || 'Ocorreu um erro durante a geração.',
           variant: 'destructive',
         });
         clearInterval(pollInterval);
       }
-    }, 3000); // Poll every 3 seconds
+    }, 5000); // Poll every 5 seconds as backup
 
-    return () => clearInterval(pollInterval);
-  }, [activeJob, toast]);
+    return () => {
+      if (pollInterval) clearInterval(pollInterval);
+    };
+  }, [activeJob?.id, activeJob?.status, toast]);
 
   const steps = [
     { label: 'Iniciando geração...', icon: Clock },

@@ -1,124 +1,166 @@
 
-
-## Adicionar Seletor de Modelo OpenAI no Painel Admin
+## Aumentar Limite de Tokens para 60k-80k com Modelos O1/O3
 
 ### Objetivo
-Permitir que o administrador escolha qual modelo da OpenAI usar para gerar cursos (gpt-4o-mini ou gpt-4o), oferecendo flexibilidade entre velocidade/custo e qualidade/capacidade.
+Aproveitar os limites superiores de tokens dos modelos de raciocínio (o1, o1-mini, o3-mini) para gerar cursos com conteúdo muito mais extenso em uma única requisição, eliminando a necessidade de geração módulo por módulo.
 
-### Por que isso e importante?
-- **gpt-4o-mini**: Mais rapido e barato, mas limitado a 16.384 tokens de saida
-- **gpt-4o**: Mais caro, porem suporta 128k tokens de contexto e gera conteudo mais extenso e de maior qualidade
+### Limites de Tokens por Modelo
 
-### Arquivos a Criar/Modificar
+| Modelo | Tokens de Saída | Uso Recomendado |
+|--------|-----------------|-----------------|
+| gpt-4o-mini | 16.384 | Cursos básicos/detalhados |
+| gpt-4o | 16.384 | Cursos básicos/detalhados |
+| o1-mini | 65.536 | Cursos extensos/profissionais |
+| o1 | 100.000 | Cursos enciclopédicos |
+| o3-mini | 100.000 | Cursos enciclopédicos |
 
-**1. Banco de Dados - Nova Tabela**
-```sql
-CREATE TABLE ai_config (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  openai_model TEXT NOT NULL DEFAULT 'gpt-4o-mini',
-  updated_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_by UUID REFERENCES auth.users(id)
-);
+### Arquivos a Modificar
 
--- Inserir configuracao padrao
-INSERT INTO ai_config (openai_model) VALUES ('gpt-4o-mini');
-```
+**1. supabase/functions/generate-course/index.ts**
 
-**2. Frontend - Modificar CreateCourseAI.tsx e BulkCreateCourseAI.tsx**
-Adicionar um Select para escolher o modelo de IA:
-```text
-+-------------------------------------+
-| Modelo de IA                        |
-+-------------------------------------+
-| gpt-4o-mini (Rapido, Economico)     | <- Padrao
-| gpt-4o (Avancado, Mais Tokens)      |
-+-------------------------------------+
-```
+Atualizar a configuração de profundidade para usar tokens mais altos nos modelos O1/O3:
 
-- O modelo selecionado sera enviado no body da requisicao para as Edge Functions
-- Exibir aviso de que gpt-4o pode demorar mais e custar mais
-
-**3. Backend - Modificar generate-course/index.ts**
-- Receber o parametro `openaiModel` no request body
-- Usar o modelo selecionado nas chamadas a API da OpenAI
-- Ajustar `maxTokens` dinamicamente baseado no modelo:
-  - gpt-4o-mini: max 16.000 tokens
-  - gpt-4o: max 64.000 tokens (permitindo conteudo muito mais extenso)
-
-**4. Backend - Modificar generate-course-bulk/index.ts**
-- Mesmas alteracoes do generate-course
-
-### Interface Visual Proposta
-
-```text
-+------------------------------------------+
-|            Configurar Curso              |
-+------------------------------------------+
-| Tema do Curso *                          |
-| [________________________________]       |
-|                                          |
-| Nivel           | Carga Horaria          |
-| [Iniciante   v] | [10 horas         v]   |
-|                                          |
-| Modelo de IA                             |
-| [gpt-4o-mini (Rapido)            v]      |
-| i Modelos mais avancados geram           |
-|   conteudo de maior qualidade mas        |
-|   podem demorar mais.                    |
-|                                          |
-| Profundidade do Conteudo                 |
-| [Detalhado (~1000 palavras)      v]      |
-+------------------------------------------+
-```
-
-### Detalhes Tecnicos
-
-**Parametros por Modelo:**
-
-| Modelo | Max Tokens | Custo | Velocidade | Uso Recomendado |
-|--------|------------|-------|------------|-----------------|
-| gpt-4o-mini | 16.384 | $ | Rapido | Cursos basicos a extensos |
-| gpt-4o | 128.000 | $$$$ | Lento | Enciclopedico, alta qualidade |
-
-**Ajuste de Profundidade para gpt-4o:**
 ```typescript
-const depthConfig = {
-  basico: { minWords: 500, maxTokens: 8000 },
-  detalhado: { minWords: 1000, maxTokens: 12000 },
-  extenso: { minWords: 2000, maxTokens: 20000 },
-  muito_extenso: { minWords: 3000, maxTokens: 30000 },
-  profissional: { minWords: 4000, maxTokens: 40000 },
-  enciclopedico: { minWords: 5000, maxTokens: 60000 }
+// Configuração dinâmica baseada no modelo
+const getDepthConfig = (model: string) => {
+  const isHighTokenModel = model?.startsWith("o1") || model?.startsWith("o3");
+  
+  if (isHighTokenModel) {
+    // Modelos O1/O3 suportam muito mais tokens
+    return {
+      basico: { minWords: 500, maxTokens: 12000 },
+      detalhado: { minWords: 1500, maxTokens: 20000 },
+      extenso: { minWords: 3000, maxTokens: 35000 },
+      muito_extenso: { minWords: 5000, maxTokens: 50000 },
+      profissional: { minWords: 7000, maxTokens: 65000 },
+      enciclopedico: { minWords: 10000, maxTokens: 80000 }
+    };
+  }
+  
+  // Modelos GPT-4o limitados a 16k
+  return {
+    basico: { minWords: 500, maxTokens: 8000 },
+    detalhado: { minWords: 1000, maxTokens: 12000 },
+    extenso: { minWords: 2000, maxTokens: 16000 },
+    muito_extenso: { minWords: 3000, maxTokens: 16000 },
+    profissional: { minWords: 4000, maxTokens: 16000 },
+    enciclopedico: { minWords: 5000, maxTokens: 16000 }
+  };
 };
+```
+
+**2. supabase/functions/generate-course-bulk/index.ts**
+
+Aplicar a mesma lógica de configuração dinâmica.
+
+**3. src/pages/admin/CreateCourseAI.tsx**
+
+Atualizar o seletor de modelos para mostrar os limites de tokens:
+
+```text
++------------------------------------------+
+| Modelo de IA                             |
++------------------------------------------+
+| gpt-4o-mini (Rápido, até 16k tokens)     |
+| gpt-4o (Avançado, até 16k tokens)        |
+| o1-mini (Raciocínio, até 65k tokens) ⭐  |
+| o1 (Raciocínio Avançado, até 100k)       |
+| o3-mini (Mais Recente, até 100k) ⭐      |
++------------------------------------------+
+```
+
+Adicionar aviso informativo:
+```
+ℹ️ Modelos O1/O3 permitem gerar conteúdo muito mais 
+   extenso (até 10.000 palavras por módulo) em uma 
+   única requisição.
+```
+
+**4. Atualizar profundidades no frontend**
+
+Quando o usuário selecionar o1/o3, mostrar opções de profundidade com mais palavras:
+
+```text
+Para gpt-4o-mini/gpt-4o:
+- Básico (~500 palavras/módulo)
+- Detalhado (~1.000 palavras/módulo)
+- Extenso (~2.000 palavras/módulo)
+
+Para o1/o1-mini/o3-mini:
+- Básico (~500 palavras/módulo)
+- Detalhado (~1.500 palavras/módulo)
+- Extenso (~3.000 palavras/módulo)
+- Muito Extenso (~5.000 palavras/módulo)
+- Profissional (~7.000 palavras/módulo)
+- Enciclopédico (~10.000 palavras/módulo) ⭐
+```
+
+### Prompt Atualizado
+
+Adicionar instrução para não truncar:
+
+```
+IMPORTANTE: Você tem tokens suficientes para gerar conteúdo COMPLETO.
+NÃO adicione notas como "versão reduzida", "seria necessário detalhar".
+Gere o conteúdo COMPLETO sem truncamento.
 ```
 
 ### Fluxo de Dados
 
 ```text
-Admin Interface
-     |
-     | seleciona modelo: "gpt-4o"
-     v
-+-------------------+
-| CreateCourseAI.tsx|
-+-------------------+
-     |
-     | POST { topic, ..., openaiModel: "gpt-4o" }
-     v
-+-------------------+
-| Edge Function     |
-| generate-course   |
-+-------------------+
-     |
-     | fetch OpenAI API com model: "gpt-4o"
-     v
-+-------------------+
-| OpenAI API        |
-+-------------------+
+Admin seleciona:
+  - Modelo: o3-mini
+  - Profundidade: Enciclopédico
+           │
+           ▼
+┌─────────────────────────────────┐
+│ Edge Function                    │
+│ maxTokens = 80.000              │
+│ minWords = 10.000 por módulo    │
+└─────────────────────────────────┘
+           │
+           ▼
+┌─────────────────────────────────┐
+│ OpenAI API (o3-mini)            │
+│ max_completion_tokens: 80000    │
+│ Gera ~60.000 palavras           │
+└─────────────────────────────────┘
+           │
+           ▼
+┌─────────────────────────────────┐
+│ Curso Completo                  │
+│ 8 módulos x 7.500 palavras      │
+│ = ~60.000 palavras total        │
+└─────────────────────────────────┘
 ```
 
-### Consideracoes de Seguranca
-- Apenas administradores podem alterar o modelo
-- O modelo e validado no backend para evitar valores invalidos
-- Modelos permitidos: ["gpt-4o-mini", "gpt-4o"]
+### Estimativa de Conteúdo por Configuração
 
+| Modelo + Profundidade | Tokens | Palavras | Módulos (8) |
+|----------------------|--------|----------|-------------|
+| GPT-4o + Detalhado | 12k | ~9.000 | ~1.125 cada |
+| GPT-4o + Extenso | 16k | ~12.000 | ~1.500 cada |
+| O3-mini + Extenso | 35k | ~26.000 | ~3.250 cada |
+| O3-mini + Profissional | 65k | ~48.000 | ~6.000 cada |
+| O3-mini + Enciclopédico | 80k | ~60.000 | ~7.500 cada |
+
+### Considerações de Custo
+
+Os modelos O1/O3 são mais caros que GPT-4o:
+
+| Modelo | Custo por 1M tokens (input) | Custo por 1M tokens (output) |
+|--------|----------------------------|------------------------------|
+| gpt-4o-mini | $0.15 | $0.60 |
+| gpt-4o | $2.50 | $10.00 |
+| o1-mini | $3.00 | $12.00 |
+| o3-mini | $1.10 | $4.40 |
+| o1 | $15.00 | $60.00 |
+
+Recomendação: **o3-mini** oferece o melhor custo-benefício para conteúdo extenso.
+
+### Resumo das Alterações
+
+1. **Edge Functions**: Configuração dinâmica de tokens baseada no modelo selecionado
+2. **Frontend**: Atualizar labels dos modelos mostrando limites de tokens
+3. **Profundidades**: Aumentar limites de palavras para modelos O1/O3
+4. **Prompts**: Adicionar instrução explícita para não truncar conteúdo

@@ -26,6 +26,9 @@ interface GenerationJob {
   course_id?: string;
   progress_detail?: string;
   created_at: string;
+  updated_at?: string;
+  modules_generated?: any[];
+  partial_course_data?: any;
 }
 
 export default function CreateCourseAI() {
@@ -57,6 +60,16 @@ export default function CreateCourseAI() {
     },
   });
 
+  // Check if job is stalled (no update for 3+ minutes during processing)
+  const isJobStalled = (job: GenerationJob): boolean => {
+    if (job.status !== 'processing') return false;
+    if (!job.updated_at) return false;
+    const lastUpdate = new Date(job.updated_at).getTime();
+    const now = Date.now();
+    const threeMinutes = 3 * 60 * 1000;
+    return (now - lastUpdate) > threeMinutes;
+  };
+
   // Trigger job processing and poll for status
   useEffect(() => {
     if (!activeJob || activeJob.status === 'completed' || activeJob.status === 'failed') {
@@ -65,14 +78,27 @@ export default function CreateCourseAI() {
 
     let isProcessing = false;
     let pollInterval: NodeJS.Timeout;
+    let retryCount = 0;
+    const maxRetries = 3;
 
-    // Function to trigger job processing
-    const triggerProcessing = async () => {
+    // Function to trigger job processing (or resume)
+    const triggerProcessing = async (isRetry = false) => {
       if (isProcessing) return;
       isProcessing = true;
 
       try {
-        console.log('Triggering job processing:', activeJob.id);
+        console.log(isRetry ? 'Resuming stalled job:' : 'Triggering job processing:', activeJob.id);
+        
+        if (isRetry) {
+          setActiveJob(prev => prev ? { 
+            ...prev, 
+            progress_detail: `Retomando geração (tentativa ${retryCount + 1})...` 
+          } : null);
+          toast({
+            title: 'Retomando geração',
+            description: 'O job parecia travado. Retomando de onde parou...',
+          });
+        }
         
         const response = await fetch(
           `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-course`,
@@ -95,6 +121,7 @@ export default function CreateCourseAI() {
         if (result.success) {
           setCurrentStep(3);
           setIsGenerating(false);
+          retryCount = 0;
           
           if (result.courseId || result.course) {
             const courseId = result.courseId || result.course?.id;
@@ -114,16 +141,24 @@ export default function CreateCourseAI() {
             }
           }
         } else if (result.error) {
-          setIsGenerating(false);
-          setActiveJob(prev => prev ? { ...prev, status: 'failed', error_message: result.error } : null);
-          toast({
-            title: 'Erro ao gerar curso',
-            description: result.error || 'Ocorreu um erro durante a geração.',
-            variant: 'destructive',
-          });
+          // Check if it's a timeout-like error that we can retry
+          if (isRetry && retryCount < maxRetries && result.error.includes('timeout')) {
+            retryCount++;
+            console.log(`Retry ${retryCount}/${maxRetries} scheduled...`);
+            // Will retry on next poll cycle
+          } else {
+            setIsGenerating(false);
+            setActiveJob(prev => prev ? { ...prev, status: 'failed', error_message: result.error } : null);
+            toast({
+              title: 'Erro ao gerar curso',
+              description: result.error || 'Ocorreu um erro durante a geração.',
+              variant: 'destructive',
+            });
+          }
         }
       } catch (error: any) {
         console.error('Error processing job:', error);
+        // On network error, we'll try again on next poll if job is stalled
       } finally {
         isProcessing = false;
       }
@@ -149,9 +184,22 @@ export default function CreateCourseAI() {
 
       const typedJob = job as unknown as GenerationJob;
 
-      // Update progress detail
-      if (typedJob.progress_detail) {
-        setActiveJob(prev => prev ? { ...prev, progress_detail: typedJob.progress_detail } : null);
+      // Check if job is stalled and needs resume
+      if (isJobStalled(typedJob) && retryCount < maxRetries) {
+        console.log('Job appears stalled, triggering resume...');
+        retryCount++;
+        triggerProcessing(true);
+        return;
+      }
+
+      // Update progress detail and modules info
+      if (typedJob.progress_detail || typedJob.modules_generated) {
+        setActiveJob(prev => prev ? { 
+          ...prev, 
+          progress_detail: typedJob.progress_detail,
+          modules_generated: typedJob.modules_generated,
+          updated_at: typedJob.updated_at
+        } : null);
       }
 
       if (typedJob.status === 'processing') {

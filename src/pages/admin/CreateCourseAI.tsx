@@ -46,7 +46,71 @@ export default function CreateCourseAI() {
   const [currentStep, setCurrentStep] = useState(0);
   const [generatedCourse, setGeneratedCourse] = useState<any>(null);
   const [activeJob, setActiveJob] = useState<GenerationJob | null>(null);
+  const [isResuming, setIsResuming] = useState(false);
   const { toast } = useToast();
+
+  // Manual resume handler
+  const handleManualResume = async () => {
+    if (!activeJob || isResuming) return;
+    setIsResuming(true);
+    
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+
+      toast({
+        title: 'Retomando geração...',
+        description: 'Aguarde, isso pode levar alguns segundos.',
+      });
+
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-course`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+        },
+        body: JSON.stringify({
+          processJob: true,
+          jobId: activeJob.id,
+        }),
+      });
+
+      const result = await response.json().catch(() => ({ success: false }));
+      
+      if (result.success && result.courseId) {
+        const { data: course } = await supabase
+          .from('courses')
+          .select('*')
+          .eq('id', result.courseId)
+          .single();
+        
+        if (course) {
+          setGeneratedCourse(course);
+          setActiveJob(prev => prev ? { ...prev, status: 'completed', course_id: result.courseId } : null);
+          setIsGenerating(false);
+          toast({
+            title: 'Curso criado com sucesso!',
+            description: `"${course.title}" foi gerado.`,
+          });
+        }
+      } else {
+        toast({
+          title: 'Retomada iniciada',
+          description: 'O job está sendo processado em segundo plano.',
+        });
+      }
+    } catch (error: any) {
+      console.error('Manual resume error:', error);
+      toast({
+        title: 'Erro ao retomar',
+        description: 'Tente novamente em alguns segundos.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsResuming(false);
+    }
+  };
 
   const { data: categories } = useQuery({
     queryKey: ['categories'],
@@ -784,10 +848,28 @@ export default function CreateCourseAI() {
 
               {isGenerating && (
                 <div className="p-4 bg-primary/5 rounded-lg space-y-3">
-                  <p className="text-sm font-medium text-primary flex items-center gap-2">
-                    <RefreshCw className="h-4 w-4 animate-spin" />
-                    {activeJob?.progress_detail || steps[currentStep]?.label}
-                  </p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-medium text-primary flex items-center gap-2">
+                      <RefreshCw className="h-4 w-4 animate-spin" />
+                      {activeJob?.progress_detail || steps[currentStep]?.label}
+                    </p>
+                    {activeJob && activeJob.status === 'processing' && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={handleManualResume}
+                        disabled={isResuming}
+                        className="shrink-0"
+                      >
+                        {isResuming ? (
+                          <RefreshCw className="h-4 w-4 animate-spin mr-1" />
+                        ) : (
+                          <RefreshCw className="h-4 w-4 mr-1" />
+                        )}
+                        Retomar agora
+                      </Button>
+                    )}
+                  </div>
                   
                   {/* Module-by-module progress bar */}
                   {progressInfo && 'current' in progressInfo && (

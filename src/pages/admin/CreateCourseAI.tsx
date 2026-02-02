@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -23,6 +24,7 @@ interface GenerationJob {
   topic: string;
   error_message?: string;
   course_id?: string;
+  progress_detail?: string;
   created_at: string;
 }
 
@@ -72,7 +74,6 @@ export default function CreateCourseAI() {
       try {
         console.log('Triggering job processing:', activeJob.id);
         
-        // Call the edge function to process the job (without auth - uses service role internally)
         const response = await fetch(
           `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-course`,
           {
@@ -92,7 +93,6 @@ export default function CreateCourseAI() {
         console.log('Job processing result:', result);
 
         if (result.success) {
-          // Job completed successfully
           setCurrentStep(3);
           setIsGenerating(false);
           
@@ -106,7 +106,7 @@ export default function CreateCourseAI() {
             
             if (course) {
               setGeneratedCourse(course);
-              setActiveJob(prev => prev ? { ...prev, status: 'completed', course_id: courseId } : null);
+              setActiveJob(prev => prev ? { ...prev, status: 'completed', course_id: courseId, progress_detail: 'Curso criado com sucesso!' } : null);
               toast({
                 title: 'Curso criado com sucesso!',
                 description: `"${course.title}" foi gerado e está disponível.`,
@@ -114,7 +114,6 @@ export default function CreateCourseAI() {
             }
           }
         } else if (result.error) {
-          // Job failed
           setIsGenerating(false);
           setActiveJob(prev => prev ? { ...prev, status: 'failed', error_message: result.error } : null);
           toast({
@@ -125,8 +124,6 @@ export default function CreateCourseAI() {
         }
       } catch (error: any) {
         console.error('Error processing job:', error);
-        // Don't stop - the job might still be processing on the server
-        // Let the polling continue
       } finally {
         isProcessing = false;
       }
@@ -137,7 +134,7 @@ export default function CreateCourseAI() {
       triggerProcessing();
     }
 
-    // Poll for job status as backup (in case the direct call fails or times out)
+    // Poll for job status as backup
     pollInterval = setInterval(async () => {
       const { data: job, error } = await supabase
         .from('course_generation_jobs')
@@ -150,9 +147,13 @@ export default function CreateCourseAI() {
         return;
       }
 
-      const typedJob = job as GenerationJob;
+      const typedJob = job as unknown as GenerationJob;
 
-      // Update step based on status
+      // Update progress detail
+      if (typedJob.progress_detail) {
+        setActiveJob(prev => prev ? { ...prev, progress_detail: typedJob.progress_detail } : null);
+      }
+
       if (typedJob.status === 'processing') {
         setCurrentStep(1);
         setActiveJob(typedJob);
@@ -163,7 +164,6 @@ export default function CreateCourseAI() {
         setIsGenerating(false);
         setActiveJob(typedJob);
         
-        // Fetch the created course
         if (typedJob.course_id) {
           const { data: course } = await supabase
             .from('courses')
@@ -193,7 +193,7 @@ export default function CreateCourseAI() {
         });
         clearInterval(pollInterval);
       }
-    }, 5000); // Poll every 5 seconds as backup
+    }, 3000); // Poll every 3 seconds for better progress updates
 
     return () => {
       if (pollInterval) clearInterval(pollInterval);
@@ -208,6 +208,12 @@ export default function CreateCourseAI() {
   ];
 
   const isO1Model = formData.openaiModel.startsWith('o1') || formData.openaiModel.startsWith('o3');
+  
+  // Check if sequential generation will be used
+  const willUseSequential = isO1Model && (
+    ['muito_extenso', 'profissional', 'enciclopedico'].includes(formData.contentDepth) ||
+    parseInt(formData.duration) >= 40
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -233,8 +239,7 @@ export default function CreateCourseAI() {
         throw new Error('Você precisa estar logado para criar cursos');
       }
 
-      // Timeout maior para modelos O1/O3
-      const timeoutMs = isO1Model ? 30000 : 600000; // 30s for async, 10min for sync
+      const timeoutMs = isO1Model ? 30000 : 600000;
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
@@ -278,11 +283,11 @@ export default function CreateCourseAI() {
       const result = await response.json();
       
       if (result.async && result.jobId) {
-        // Async processing - start polling
         setActiveJob({
           id: result.jobId,
           status: 'pending',
           topic: formData.topic,
+          progress_detail: 'Aguardando início...',
           created_at: new Date().toISOString(),
         });
         
@@ -291,11 +296,9 @@ export default function CreateCourseAI() {
           description: result.message || 'O curso está sendo gerado em segundo plano.',
         });
         
-        // Keep generating state true for polling
         return;
       }
 
-      // Sync processing - course created immediately
       setCurrentStep(steps.length - 1);
       setGeneratedCourse(result.course);
       setIsGenerating(false);
@@ -338,11 +341,36 @@ export default function CreateCourseAI() {
     if (!isO1Model) return '30 segundos a 2 minutos';
     
     const depth = formData.contentDepth;
-    if (depth === 'enciclopedico' || depth === 'profissional') {
-      return '3 a 5 minutos';
+    const moduleCount = parseInt(formData.duration) <= 10 ? 3 : parseInt(formData.duration) <= 20 ? 4 : parseInt(formData.duration) <= 40 ? 5 : parseInt(formData.duration) <= 60 ? 6 : 8;
+    
+    if (depth === 'enciclopedico') {
+      return `${moduleCount * 3}-${moduleCount * 4} minutos`;
+    }
+    if (depth === 'profissional') {
+      return `${moduleCount * 2}-${moduleCount * 3} minutos`;
+    }
+    if (depth === 'muito_extenso') {
+      return `${moduleCount * 2}-${moduleCount * 2.5} minutos`;
     }
     return '2 a 4 minutos';
   };
+
+  // Parse progress detail to extract module info
+  const parseProgressDetail = (detail?: string) => {
+    if (!detail) return null;
+    
+    const moduleMatch = detail.match(/módulo (\d+) de (\d+)/i);
+    if (moduleMatch) {
+      return {
+        current: parseInt(moduleMatch[1]),
+        total: parseInt(moduleMatch[2]),
+        label: detail
+      };
+    }
+    return { label: detail };
+  };
+
+  const progressInfo = parseProgressDetail(activeJob?.progress_detail);
 
   return (
     <div className="space-y-8">
@@ -467,7 +495,12 @@ export default function CreateCourseAI() {
                   </Select>
                   {isO1Model && (
                     <p className="text-xs text-primary bg-primary/10 p-2 rounded-md">
-                      ℹ️ Modelos O1/O3 processam em segundo plano (2-5 min) e suportam conteúdo muito mais extenso.
+                      ℹ️ Modelos O1/O3 processam em segundo plano e suportam conteúdo muito mais extenso.
+                      {willUseSequential && (
+                        <span className="block mt-1 font-medium">
+                          🔄 Geração sequencial ativada: cada módulo será gerado individualmente para garantir conteúdo completo.
+                        </span>
+                      )}
                     </p>
                   )}
                   <p className="text-xs text-muted-foreground">
@@ -514,7 +547,7 @@ export default function CreateCourseAI() {
                         <div className="flex flex-col">
                           <span>📖 Muito Extenso</span>
                           <span className="text-xs text-muted-foreground">
-                            {isO1Model ? '~5.000 palavras/módulo' : '~3.000 palavras/módulo'}
+                            {isO1Model ? '~5.000 palavras/módulo 🔄' : '~3.000 palavras/módulo'}
                           </span>
                         </div>
                       </SelectItem>
@@ -522,7 +555,7 @@ export default function CreateCourseAI() {
                         <div className="flex flex-col">
                           <span>🎓 Profissional</span>
                           <span className="text-xs text-muted-foreground">
-                            {isO1Model ? '~7.000 palavras/módulo ⭐' : '~4.000 palavras/módulo'}
+                            {isO1Model ? '~7.000 palavras/módulo ⭐🔄' : '~4.000 palavras/módulo'}
                           </span>
                         </div>
                       </SelectItem>
@@ -530,7 +563,7 @@ export default function CreateCourseAI() {
                         <div className="flex flex-col">
                           <span>📕 Enciclopédico</span>
                           <span className="text-xs text-muted-foreground">
-                            {isO1Model ? '~10.000 palavras/módulo ⭐⭐' : '~5.000 palavras/módulo'}
+                            {isO1Model ? '~10.000 palavras/módulo ⭐⭐🔄' : '~5.000 palavras/módulo'}
                           </span>
                         </div>
                       </SelectItem>
@@ -538,7 +571,7 @@ export default function CreateCourseAI() {
                   </Select>
                   <p className="text-xs text-muted-foreground">
                     {isO1Model
-                      ? 'Modelos O1/O3 suportam conteúdo muito mais extenso'
+                      ? '🔄 indica geração sequencial (módulo por módulo) para garantir conteúdo completo'
                       : 'Define a quantidade de texto e detalhes em cada módulo'}
                   </p>
                 </div>
@@ -671,24 +704,43 @@ export default function CreateCourseAI() {
               ))}
 
               {isGenerating && (
-                <div className="p-4 bg-primary/5 rounded-lg">
+                <div className="p-4 bg-primary/5 rounded-lg space-y-3">
                   <p className="text-sm font-medium text-primary flex items-center gap-2">
                     <RefreshCw className="h-4 w-4 animate-spin" />
-                    {activeJob ? `Gerando: "${activeJob.topic}"` : steps[currentStep]?.label}
+                    {activeJob?.progress_detail || steps[currentStep]?.label}
                   </p>
-                  <div className="mt-2 h-2 bg-secondary rounded-full overflow-hidden">
-                    <motion.div
-                      className="h-full bg-primary"
-                      initial={{ width: '0%' }}
-                      animate={{ 
-                        width: activeJob 
-                          ? activeJob.status === 'processing' ? '60%' : '20%'
-                          : `${((currentStep + 1) / steps.length) * 100}%` 
-                      }}
-                      transition={{ duration: 0.5 }}
-                    />
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
+                  
+                  {/* Module-by-module progress bar */}
+                  {progressInfo && 'current' in progressInfo && (
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>Módulo {progressInfo.current} de {progressInfo.total}</span>
+                        <span>{Math.round((progressInfo.current / progressInfo.total) * 100)}%</span>
+                      </div>
+                      <Progress 
+                        value={(progressInfo.current / progressInfo.total) * 100} 
+                        className="h-2"
+                      />
+                    </div>
+                  )}
+                  
+                  {/* General progress bar for non-module states */}
+                  {(!progressInfo || !('current' in progressInfo)) && (
+                    <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                      <motion.div
+                        className="h-full bg-primary"
+                        initial={{ width: '0%' }}
+                        animate={{ 
+                          width: activeJob 
+                            ? activeJob.status === 'processing' ? '60%' : '20%'
+                            : `${((currentStep + 1) / steps.length) * 100}%` 
+                        }}
+                        transition={{ duration: 0.5 }}
+                      />
+                    </div>
+                  )}
+                  
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
                     <Clock className="h-3 w-3" />
                     Tempo estimado: {getEstimatedTime()}
                     {activeJob && ' (processamento em segundo plano)'}
@@ -738,7 +790,9 @@ export default function CreateCourseAI() {
                   <p className="font-medium text-foreground">Dica</p>
                   <p>
                     {isO1Model 
-                      ? 'Modelos O1/O3 processam em segundo plano. Você pode fechar esta página - o curso será criado automaticamente.'
+                      ? willUseSequential
+                        ? 'Para profundidades extensas, cada módulo é gerado separadamente para garantir conteúdo completo. O processo pode levar mais tempo, mas cada módulo terá o conteúdo solicitado.'
+                        : 'Modelos O1/O3 processam em segundo plano. Você pode fechar esta página - o curso será criado automaticamente.'
                       : 'Seja específico no tema do curso para obter melhores resultados. Por exemplo, ao invés de "Excel", use "Excel para Gestão Financeira de Pequenas Empresas".'}
                   </p>
                 </div>

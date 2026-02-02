@@ -16,6 +16,7 @@ import {
   Lightbulb,
   CreditCard,
   Wallet,
+  Activity,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -31,6 +32,7 @@ const sidebarLinks = [
   { href: '/admin/criar-curso', icon: Sparkles, label: 'Criar com IA' },
   { href: '/admin/criar-cursos-massa', icon: Layers, label: 'Criar em Massa' },
   { href: '/admin/gerador-temas', icon: Lightbulb, label: 'Gerador de Temas' },
+  { href: '/admin/jobs', icon: Activity, label: 'Monitor Jobs' },
   { href: '/admin/usuarios', icon: Users, label: 'Usuários' },
   { href: '/admin/categorias', icon: FolderOpen, label: 'Categorias' },
   { href: '/admin/pagamentos', icon: Wallet, label: 'Pagamentos' },

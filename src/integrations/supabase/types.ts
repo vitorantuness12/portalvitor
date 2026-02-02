@@ -290,6 +290,7 @@ export type Database = {
           level: string
           openai_model: string | null
           price: number | null
+          progress_detail: string | null
           status: string
           topic: string
           updated_at: string | null
@@ -308,6 +309,7 @@ export type Database = {
           level: string
           openai_model?: string | null
           price?: number | null
+          progress_detail?: string | null
           status?: string
           topic: string
           updated_at?: string | null
@@ -326,6 +328,7 @@ export type Database = {
           level?: string
           openai_model?: string | null
           price?: number | null
+          progress_detail?: string | null
           status?: string
           topic?: string
           updated_at?: string | null

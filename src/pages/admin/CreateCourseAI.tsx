@@ -79,7 +79,12 @@ export default function CreateCourseAI() {
     let isProcessing = false;
     let pollInterval: NodeJS.Timeout;
     let retryCount = 0;
-    const maxRetries = 3;
+    // Retomar pode falhar por timeout/rede; não podemos “desistir” em 3 tentativas.
+    // Mantemos um limite alto + cooldown para evitar spam de requests.
+    const maxRetries = 100;
+    const resumeCooldownMs = 30_000;
+    let lastResumeAt = 0;
+    let lastSeenUpdatedAt = activeJob.updated_at ? new Date(activeJob.updated_at).getTime() : 0;
 
     // Function to trigger job processing (or resume)
     const triggerProcessing = async (isRetry = false) => {
@@ -100,22 +105,35 @@ export default function CreateCourseAI() {
           });
         }
         
-        const response = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-course`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-            },
-            body: JSON.stringify({
-              processJob: true,
-              jobId: activeJob.id,
-            }),
-          }
-        );
+        const { data: sessionData } = await supabase.auth.getSession();
+        const accessToken = sessionData.session?.access_token;
 
-        const result = await response.json();
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 60_000);
+
+        const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-course`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+          },
+          body: JSON.stringify({
+            processJob: true,
+            jobId: activeJob.id,
+          }),
+          signal: controller.signal,
+        });
+
+        clearTimeout(timeoutId);
+
+        const rawText = await response.text();
+        let result: any;
+        try {
+          result = rawText ? JSON.parse(rawText) : { success: false, error: `HTTP ${response.status}` };
+        } catch {
+          result = { success: false, error: rawText || `HTTP ${response.status}` };
+        }
         console.log('Job processing result:', result);
 
         if (result.success) {
@@ -173,7 +191,8 @@ export default function CreateCourseAI() {
     pollInterval = setInterval(async () => {
       const { data: job, error } = await supabase
         .from('course_generation_jobs')
-        .select('*')
+        // Evita baixar o conteúdo completo dos módulos a cada 3s (payload enorme).
+        .select('id,status,topic,error_message,course_id,progress_detail,created_at,updated_at')
         .eq('id', activeJob.id)
         .single();
 
@@ -184,20 +203,32 @@ export default function CreateCourseAI() {
 
       const typedJob = job as unknown as GenerationJob;
 
-      // Check if job is stalled and needs resume
-      if (isJobStalled(typedJob) && retryCount < maxRetries) {
-        console.log('Job appears stalled, triggering resume...');
-        retryCount++;
-        triggerProcessing(true);
-        return;
+      // Se o job avançou (updated_at mudou), zera tentativas para permitir novas retomadas futuras
+      if (typedJob.updated_at) {
+        const updatedAtMs = new Date(typedJob.updated_at).getTime();
+        if (updatedAtMs && updatedAtMs !== lastSeenUpdatedAt) {
+          lastSeenUpdatedAt = updatedAtMs;
+          retryCount = 0;
+        }
       }
 
-      // Update progress detail and modules info
-      if (typedJob.progress_detail || typedJob.modules_generated) {
+      // Check if job is stalled and needs resume
+      if (isJobStalled(typedJob) && retryCount < maxRetries) {
+        const now = Date.now();
+        if (now - lastResumeAt >= resumeCooldownMs) {
+          console.log('Job appears stalled, triggering resume...');
+          lastResumeAt = now;
+          retryCount++;
+          triggerProcessing(true);
+          return;
+        }
+      }
+
+      // Update progress detail
+      if (typedJob.progress_detail) {
         setActiveJob(prev => prev ? { 
           ...prev, 
           progress_detail: typedJob.progress_detail,
-          modules_generated: typedJob.modules_generated,
           updated_at: typedJob.updated_at
         } : null);
       }

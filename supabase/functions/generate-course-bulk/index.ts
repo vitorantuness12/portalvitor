@@ -375,22 +375,26 @@ Use valores quebrados como 19.90, 29.90, 39.90, etc.`;
     console.log("Final duration:", finalDuration, forcedDuration ? "(user selected)" : "(AI suggested)");
     console.log("Final module count:", finalModuleCount);
     
-    // Define content depth parameters
-    // If contentDepth is 'auto' or not provided, AI decides based on course complexity
-    let depth;
-    if (contentDepth === 'auto' || !contentDepth) {
-      // AI decides depth based on level and duration
-      if (level === 'avancado' || finalDuration >= 60) {
-        depth = { minWords: 2000, maxTokens: 16000, description: "extremamente completo como um livro didático profissional" };
-      } else if (level === 'intermediario' || finalDuration >= 20) {
-        depth = { minWords: 1000, maxTokens: 12000, description: "com bom nível de detalhes e exemplos" };
-      } else {
-        depth = { minWords: 500, maxTokens: 8000, description: "resumido e direto ao ponto" };
+    // Define content depth parameters - DYNAMIC based on model
+    // O1/O3 models support much higher output limits (65k-100k tokens)
+    // GPT-4o models are limited to 16384 output tokens
+    const isO1Model = selectedModel?.startsWith("o1") || selectedModel?.startsWith("o3");
+    
+    const getDepthConfig = (model: string) => {
+      const isHighTokenModel = model?.startsWith("o1") || model?.startsWith("o3");
+      
+      if (isHighTokenModel) {
+        return {
+          basico: { minWords: 500, maxTokens: 12000, description: "resumido e direto ao ponto" },
+          detalhado: { minWords: 1500, maxTokens: 20000, description: "com bom nível de detalhes e exemplos" },
+          extenso: { minWords: 3000, maxTokens: 35000, description: "extremamente completo como um livro didático profissional" },
+          muito_extenso: { minWords: 5000, maxTokens: 50000, description: "altamente detalhado com teoria e prática aprofundadas" },
+          profissional: { minWords: 7000, maxTokens: 65000, description: "conteúdo de nível profissional com cobertura completa" },
+          enciclopedico: { minWords: 10000, maxTokens: 80000, description: "conteúdo enciclopédico com máximo nível de detalhamento" }
+        };
       }
-      console.log("AI decided content depth based on level:", level, "duration:", finalDuration);
-    } else {
-      // BOTH gpt-4o-mini and gpt-4o have a max of 16384 OUTPUT tokens per request
-      const depthConfig = {
+      
+      return {
         basico: { minWords: 500, maxTokens: 8000, description: "resumido e direto ao ponto" },
         detalhado: { minWords: 1000, maxTokens: 12000, description: "com bom nível de detalhes e exemplos" },
         extenso: { minWords: 2000, maxTokens: 16000, description: "extremamente completo como um livro didático profissional" },
@@ -398,10 +402,34 @@ Use valores quebrados como 19.90, 29.90, 39.90, etc.`;
         profissional: { minWords: 4000, maxTokens: 16000, description: "conteúdo de nível profissional com cobertura completa" },
         enciclopedico: { minWords: 5000, maxTokens: 16000, description: "conteúdo enciclopédico com máximo nível de detalhamento" }
       };
+    };
+    
+    let depth;
+    if (contentDepth === 'auto' || !contentDepth) {
+      const depthConfig = getDepthConfig(selectedModel || "gpt-4o-mini");
+      if (level === 'avancado' || finalDuration >= 60) {
+        depth = depthConfig.extenso;
+      } else if (level === 'intermediario' || finalDuration >= 20) {
+        depth = depthConfig.detalhado;
+      } else {
+        depth = depthConfig.basico;
+      }
+      console.log("AI decided content depth based on level:", level, "duration:", finalDuration);
+    } else {
+      const depthConfig = getDepthConfig(selectedModel || "gpt-4o-mini");
       depth = depthConfig[contentDepth as keyof typeof depthConfig] || depthConfig.detalhado;
     }
     
+    console.log("Using depth config for model:", selectedModel, "->", depth);
+    
     // Step 2: Generate course content
+    // Build the content prompt with anti-truncation instructions for high-token models
+    const antiTruncationNote = isO1Model ? `
+⚠️ IMPORTANTE: Você tem tokens suficientes (${depth.maxTokens}) para gerar conteúdo COMPLETO.
+NÃO adicione notas como "versão reduzida", "seria necessário detalhar", "em uma versão completa".
+Gere o conteúdo COMPLETO e EXTENSO sem truncamento ou avisos de incompletude.
+` : "";
+
     const contentPrompt = `Você é um professor universitário renomado criando um curso online. O curso deve ser um material didático de alta qualidade.
 
 CURSO: "${topic}"
@@ -409,13 +437,16 @@ NÍVEL: ${level}
 CARGA HORÁRIA: ${finalDuration} horas
 NÚMERO DE MÓDULOS: ${finalModuleCount} (OBRIGATÓRIO - crie EXATAMENTE ${finalModuleCount} módulos)
 PROFUNDIDADE DO CONTEÚDO: ${depth.description}
+MÍNIMO DE PALAVRAS POR MÓDULO: ${depth.minWords}
 ${additionalInstructions ? `INSTRUÇÕES ADICIONAIS: ${additionalInstructions}` : ""}
+${antiTruncationNote}
 
 ⚠️ REGRAS CRÍTICAS:
 
 1. CADA MÓDULO DEVE TER NO MÍNIMO ${depth.minWords} PALAVRAS de conteúdo educacional real
 2. NÃO ESCREVA frases como "Neste módulo vamos...", "Você aprenderá...", "Exploraremos..."
 3. ESCREVA O CONTEÚDO COMPLETO como um capítulo de livro didático
+4. NÃO adicione notas sobre "versão reduzida" ou "seria necessário detalhar mais"
 
 ESTRUTURA PARA CADA MÓDULO:
 
@@ -442,22 +473,31 @@ ESTRUTURA PARA CADA MÓDULO:
 Use **negrito**, *itálico*, listas, tabelas.
 IMPORTANTE: Crie EXATAMENTE ${finalModuleCount} módulos para ${finalDuration}h de curso.`;
 
+    // Build request body - O1 models need different handling
+    const contentRequestBody: any = {
+      model: selectedModel,
+      messages: [
+        ...(isO1Model ? [] : [{ role: "system", content: "Você é um professor universitário especialista em educação online. Você cria conteúdo educacional REAL e PRÁTICO que ensina de verdade. Use a função fornecida para estruturar o curso." }]),
+        { role: "user", content: isO1Model ? `Você é um professor universitário especialista em educação online. Você cria conteúdo educacional REAL e PRÁTICO que ensina de verdade.\n\n${contentPrompt}` : contentPrompt },
+      ],
+      tools: [courseContentTool],
+      tool_choice: { type: "function", function: { name: "create_course_content" } },
+    };
+    
+    // O1 models use max_completion_tokens, others use max_tokens
+    if (isO1Model) {
+      contentRequestBody.max_completion_tokens = depth.maxTokens;
+    } else {
+      contentRequestBody.max_tokens = depth.maxTokens;
+    }
+
     const contentResponse = await fetch(apiEndpoint, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        model: selectedModel,
-        messages: [
-          { role: "system", content: "Você é um professor universitário especialista em educação online. Você cria conteúdo educacional REAL e PRÁTICO que ensina de verdade. Use a função fornecida para estruturar o curso." },
-          { role: "user", content: contentPrompt },
-        ],
-        tools: [courseContentTool],
-        tool_choice: { type: "function", function: { name: "create_course_content" } },
-        max_tokens: depth.maxTokens,
-      }),
+      body: JSON.stringify(contentRequestBody),
     });
 
     if (!contentResponse.ok) {
@@ -497,22 +537,29 @@ IMPORTANTE: Crie EXATAMENTE ${finalModuleCount} módulos para ${finalDuration}h 
     const exercisesPrompt = `Crie 10 exercícios de múltipla escolha para o curso "${courseContent.title}" sobre "${topic}". 
 As questões devem testar a compreensão do conteúdo e ter níveis variados de dificuldade.`;
 
+    const exercisesRequestBody: any = {
+      model: selectedModel,
+      messages: [
+        ...(isO1Model ? [] : [{ role: "system", content: "Você é um especialista em avaliação educacional. Crie exercícios de múltipla escolha concisos e diretos. Use a função fornecida." }]),
+        { role: "user", content: isO1Model ? `Você é um especialista em avaliação educacional. Crie exercícios de múltipla escolha concisos e diretos.\n\n${exercisesPrompt}` : exercisesPrompt },
+      ],
+      tools: [exercisesTool],
+      tool_choice: { type: "function", function: { name: "create_exercises" } },
+    };
+    
+    if (isO1Model) {
+      exercisesRequestBody.max_completion_tokens = 8000;
+    } else {
+      exercisesRequestBody.max_tokens = 8000;
+    }
+
     const exercisesResponse = await fetch(apiEndpoint, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        model: selectedModel,
-        messages: [
-          { role: "system", content: "Você é um especialista em avaliação educacional. Crie exercícios de múltipla escolha concisos e diretos. Use a função fornecida." },
-          { role: "user", content: exercisesPrompt },
-        ],
-        tools: [exercisesTool],
-        tool_choice: { type: "function", function: { name: "create_exercises" } },
-        max_tokens: 8000,
-      }),
+      body: JSON.stringify(exercisesRequestBody),
     });
 
     let exercises = { exercises: [] };
@@ -545,22 +592,29 @@ As questões devem testar a compreensão do conteúdo e ter níveis variados de 
     // Step 4: Generate exam
     const examPrompt = `Crie uma prova final com 15 questões de múltipla escolha para o curso "${courseContent.title}" sobre "${topic}".`;
 
+    const examRequestBody: any = {
+      model: selectedModel,
+      messages: [
+        ...(isO1Model ? [] : [{ role: "system", content: "Você é um especialista em avaliação educacional. Use a função fornecida para criar a prova." }]),
+        { role: "user", content: isO1Model ? `Você é um especialista em avaliação educacional. Use a função fornecida para criar a prova.\n\n${examPrompt}` : examPrompt },
+      ],
+      tools: [examTool],
+      tool_choice: { type: "function", function: { name: "create_exam" } },
+    };
+    
+    if (isO1Model) {
+      examRequestBody.max_completion_tokens = 6000;
+    } else {
+      examRequestBody.max_tokens = 6000;
+    }
+
     const examResponse = await fetch(apiEndpoint, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        model: selectedModel,
-        messages: [
-          { role: "system", content: "Você é um especialista em avaliação educacional. Use a função fornecida para criar a prova." },
-          { role: "user", content: examPrompt },
-        ],
-        tools: [examTool],
-        tool_choice: { type: "function", function: { name: "create_exam" } },
-        max_tokens: 6000,
-      }),
+      body: JSON.stringify(examRequestBody),
     });
 
     let exam = { examQuestions: [] };

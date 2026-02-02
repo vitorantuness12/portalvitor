@@ -256,35 +256,40 @@ export default function CreateCourseAI() {
                       <SelectItem value="gpt-4o-mini">
                         <div className="flex flex-col">
                           <span>⚡ GPT-4o Mini</span>
-                          <span className="text-xs text-muted-foreground">Rápido e econômico</span>
+                          <span className="text-xs text-muted-foreground">Rápido, até 16k tokens</span>
                         </div>
                       </SelectItem>
                       <SelectItem value="gpt-4o">
                         <div className="flex flex-col">
                           <span>🚀 GPT-4o</span>
-                          <span className="text-xs text-muted-foreground">Alta qualidade</span>
+                          <span className="text-xs text-muted-foreground">Alta qualidade, até 16k tokens</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="o1-mini">
+                        <div className="flex flex-col">
+                          <span>💡 O1 Mini ⭐</span>
+                          <span className="text-xs text-muted-foreground">Raciocínio, até 65k tokens</span>
                         </div>
                       </SelectItem>
                       <SelectItem value="o1">
                         <div className="flex flex-col">
                           <span>🧠 O1</span>
-                          <span className="text-xs text-muted-foreground">Raciocínio avançado</span>
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="o1-mini">
-                        <div className="flex flex-col">
-                          <span>💡 O1 Mini</span>
-                          <span className="text-xs text-muted-foreground">Raciocínio rápido</span>
+                          <span className="text-xs text-muted-foreground">Raciocínio avançado, até 100k tokens</span>
                         </div>
                       </SelectItem>
                       <SelectItem value="o3-mini">
                         <div className="flex flex-col">
-                          <span>✨ O3 Mini</span>
-                          <span className="text-xs text-muted-foreground">Nova geração</span>
+                          <span>✨ O3 Mini ⭐</span>
+                          <span className="text-xs text-muted-foreground">Nova geração, até 100k tokens</span>
                         </div>
                       </SelectItem>
                     </SelectContent>
                   </Select>
+                  {(formData.openaiModel.startsWith('o1') || formData.openaiModel.startsWith('o3')) && (
+                    <p className="text-xs text-primary bg-primary/10 p-2 rounded-md">
+                      ℹ️ Modelos O1/O3 permitem gerar conteúdo muito mais extenso (até 10.000 palavras por módulo) em uma única requisição.
+                    </p>
+                  )}
                   <p className="text-xs text-muted-foreground">
                     Todos os modelos usam sua chave OpenAI configurada
                   </p>
@@ -304,43 +309,69 @@ export default function CreateCourseAI() {
                       <SelectItem value="basico">
                         <div className="flex flex-col">
                           <span>📝 Básico</span>
-                          <span className="text-xs text-muted-foreground">~500 palavras/módulo - Resumido</span>
+                          <span className="text-xs text-muted-foreground">
+                            {formData.openaiModel.startsWith('o1') || formData.openaiModel.startsWith('o3') 
+                              ? '~500 palavras/módulo' 
+                              : '~500 palavras/módulo'}
+                          </span>
                         </div>
                       </SelectItem>
                       <SelectItem value="detalhado">
                         <div className="flex flex-col">
                           <span>📄 Detalhado</span>
-                          <span className="text-xs text-muted-foreground">~1000 palavras/módulo - Recomendado</span>
+                          <span className="text-xs text-muted-foreground">
+                            {formData.openaiModel.startsWith('o1') || formData.openaiModel.startsWith('o3') 
+                              ? '~1.500 palavras/módulo' 
+                              : '~1.000 palavras/módulo'}
+                          </span>
                         </div>
                       </SelectItem>
                       <SelectItem value="extenso">
                         <div className="flex flex-col">
                           <span>📚 Extenso</span>
-                          <span className="text-xs text-muted-foreground">~2000 palavras/módulo - Completo</span>
+                          <span className="text-xs text-muted-foreground">
+                            {formData.openaiModel.startsWith('o1') || formData.openaiModel.startsWith('o3') 
+                              ? '~3.000 palavras/módulo' 
+                              : '~2.000 palavras/módulo'}
+                          </span>
                         </div>
                       </SelectItem>
                       <SelectItem value="muito_extenso">
                         <div className="flex flex-col">
                           <span>📖 Muito Extenso</span>
-                          <span className="text-xs text-muted-foreground">~3000 palavras/módulo - Detalhado</span>
+                          <span className="text-xs text-muted-foreground">
+                            {formData.openaiModel.startsWith('o1') || formData.openaiModel.startsWith('o3') 
+                              ? '~5.000 palavras/módulo' 
+                              : '~3.000 palavras/módulo'}
+                          </span>
                         </div>
                       </SelectItem>
                       <SelectItem value="profissional">
                         <div className="flex flex-col">
                           <span>🎓 Profissional</span>
-                          <span className="text-xs text-muted-foreground">~4000 palavras/módulo - Expert</span>
+                          <span className="text-xs text-muted-foreground">
+                            {formData.openaiModel.startsWith('o1') || formData.openaiModel.startsWith('o3') 
+                              ? '~7.000 palavras/módulo ⭐' 
+                              : '~4.000 palavras/módulo'}
+                          </span>
                         </div>
                       </SelectItem>
                       <SelectItem value="enciclopedico">
                         <div className="flex flex-col">
                           <span>📕 Enciclopédico</span>
-                          <span className="text-xs text-muted-foreground">~5000+ palavras/módulo - Máximo</span>
+                          <span className="text-xs text-muted-foreground">
+                            {formData.openaiModel.startsWith('o1') || formData.openaiModel.startsWith('o3') 
+                              ? '~10.000 palavras/módulo ⭐⭐' 
+                              : '~5.000 palavras/módulo'}
+                          </span>
                         </div>
                       </SelectItem>
                     </SelectContent>
                   </Select>
                   <p className="text-xs text-muted-foreground">
-                    Define a quantidade de texto e detalhes em cada módulo
+                    {formData.openaiModel.startsWith('o1') || formData.openaiModel.startsWith('o3')
+                      ? 'Modelos O1/O3 suportam conteúdo muito mais extenso'
+                      : 'Define a quantidade de texto e detalhes em cada módulo'}
                   </p>
                 </div>
 

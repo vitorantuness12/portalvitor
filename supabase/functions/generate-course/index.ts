@@ -173,19 +173,47 @@ serve(async (req) => {
     // Step 1: Generate course content using tool calling
     const moduleCount = duration <= 10 ? 3 : duration <= 20 ? 4 : duration <= 40 ? 5 : duration <= 60 ? 6 : 8;
     
-    // Define content depth parameters
-    // BOTH gpt-4o-mini and gpt-4o have a max of 16384 OUTPUT tokens per request
-    // The 128k limit for gpt-4o is the context window (input + output), not per-request output
-    const depthConfig = {
-      basico: { minWords: 500, maxTokens: 8000, description: "resumido e direto ao ponto" },
-      detalhado: { minWords: 1000, maxTokens: 12000, description: "com bom nível de detalhes e exemplos" },
-      extenso: { minWords: 2000, maxTokens: 16000, description: "extremamente completo como um livro didático profissional" },
-      muito_extenso: { minWords: 3000, maxTokens: 16000, description: "altamente detalhado com teoria e prática aprofundadas" },
-      profissional: { minWords: 4000, maxTokens: 16000, description: "conteúdo de nível profissional com cobertura completa" },
-      enciclopedico: { minWords: 5000, maxTokens: 16000, description: "conteúdo enciclopédico com máximo nível de detalhamento" }
+    // Define content depth parameters - DYNAMIC based on model
+    // O1/O3 models support much higher output limits (65k-100k tokens)
+    // GPT-4o models are limited to 16384 output tokens
+    const getDepthConfig = (model: string) => {
+      const isHighTokenModel = model?.startsWith("o1") || model?.startsWith("o3");
+      
+      if (isHighTokenModel) {
+        // O1/O3 models support much more tokens
+        return {
+          basico: { minWords: 500, maxTokens: 12000, description: "resumido e direto ao ponto" },
+          detalhado: { minWords: 1500, maxTokens: 20000, description: "com bom nível de detalhes e exemplos" },
+          extenso: { minWords: 3000, maxTokens: 35000, description: "extremamente completo como um livro didático profissional" },
+          muito_extenso: { minWords: 5000, maxTokens: 50000, description: "altamente detalhado com teoria e prática aprofundadas" },
+          profissional: { minWords: 7000, maxTokens: 65000, description: "conteúdo de nível profissional com cobertura completa" },
+          enciclopedico: { minWords: 10000, maxTokens: 80000, description: "conteúdo enciclopédico com máximo nível de detalhamento" }
+        };
+      }
+      
+      // GPT-4o models limited to 16k
+      return {
+        basico: { minWords: 500, maxTokens: 8000, description: "resumido e direto ao ponto" },
+        detalhado: { minWords: 1000, maxTokens: 12000, description: "com bom nível de detalhes e exemplos" },
+        extenso: { minWords: 2000, maxTokens: 16000, description: "extremamente completo como um livro didático profissional" },
+        muito_extenso: { minWords: 3000, maxTokens: 16000, description: "altamente detalhado com teoria e prática aprofundadas" },
+        profissional: { minWords: 4000, maxTokens: 16000, description: "conteúdo de nível profissional com cobertura completa" },
+        enciclopedico: { minWords: 5000, maxTokens: 16000, description: "conteúdo enciclopédico com máximo nível de detalhamento" }
+      };
     };
+    
+    const depthConfig = getDepthConfig(selectedModel || "gpt-4o-mini");
     const depth = depthConfig[contentDepth as keyof typeof depthConfig] || depthConfig.detalhado;
     
+    console.log("Using depth config for model:", selectedModel, "->", depth);
+    
+    // Build the content prompt with anti-truncation instructions for high-token models
+    const antiTruncationNote = isO1Model ? `
+⚠️ IMPORTANTE: Você tem tokens suficientes (${depth.maxTokens}) para gerar conteúdo COMPLETO.
+NÃO adicione notas como "versão reduzida", "seria necessário detalhar", "em uma versão completa".
+Gere o conteúdo COMPLETO e EXTENSO sem truncamento ou avisos de incompletude.
+` : "";
+
     const contentPrompt = `Você é um professor universitário renomado criando um curso online. O curso deve ser um material didático de alta qualidade.
 
 CURSO: "${topic}"
@@ -193,13 +221,16 @@ NÍVEL: ${level}
 CARGA HORÁRIA: ${duration} horas
 NÚMERO DE MÓDULOS: ${moduleCount}
 PROFUNDIDADE DO CONTEÚDO: ${depth.description}
+MÍNIMO DE PALAVRAS POR MÓDULO: ${depth.minWords}
 ${additionalInstructions ? `INSTRUÇÕES ADICIONAIS: ${additionalInstructions}` : ""}
+${antiTruncationNote}
 
 ⚠️ REGRAS CRÍTICAS:
 
 1. CADA MÓDULO DEVE TER NO MÍNIMO ${depth.minWords} PALAVRAS de conteúdo educacional real
 2. NÃO ESCREVA frases como "Neste módulo vamos...", "Você aprenderá...", "Exploraremos..."
 3. ESCREVA O CONTEÚDO COMPLETO como um capítulo de livro didático
+4. NÃO adicione notas sobre "versão reduzida" ou "seria necessário detalhar mais"
 
 ESTRUTURA PARA CADA MÓDULO:
 

@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, BookOpen, FileText, CheckCircle, AlertCircle } from 'lucide-react';
+import { Sparkles, BookOpen, FileText, CheckCircle, AlertCircle, Clock, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,6 +17,15 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+interface GenerationJob {
+  id: string;
+  status: string;
+  topic: string;
+  error_message?: string;
+  course_id?: string;
+  created_at: string;
+}
+
 export default function CreateCourseAI() {
   const [formData, setFormData] = useState({
     topic: '',
@@ -31,6 +40,7 @@ export default function CreateCourseAI() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [generatedCourse, setGeneratedCourse] = useState<any>(null);
+  const [activeJob, setActiveJob] = useState<GenerationJob | null>(null);
   const { toast } = useToast();
 
   const { data: categories } = useQuery({
@@ -45,12 +55,77 @@ export default function CreateCourseAI() {
     },
   });
 
+  // Poll for job status when there's an active async job
+  useEffect(() => {
+    if (!activeJob || activeJob.status === 'completed' || activeJob.status === 'failed') {
+      return;
+    }
+
+    const pollInterval = setInterval(async () => {
+      const { data: job, error } = await supabase
+        .from('course_generation_jobs')
+        .select('*')
+        .eq('id', activeJob.id)
+        .single();
+
+      if (error) {
+        console.error('Error polling job:', error);
+        return;
+      }
+
+      setActiveJob(job as GenerationJob);
+
+      // Update step based on status
+      if (job.status === 'processing') {
+        setCurrentStep(1);
+      }
+
+      if (job.status === 'completed') {
+        setCurrentStep(3);
+        setIsGenerating(false);
+        
+        // Fetch the created course
+        if (job.course_id) {
+          const { data: course } = await supabase
+            .from('courses')
+            .select('*')
+            .eq('id', job.course_id)
+            .single();
+          
+          if (course) {
+            setGeneratedCourse(course);
+            toast({
+              title: 'Curso criado com sucesso!',
+              description: `"${course.title}" foi gerado e está disponível.`,
+            });
+          }
+        }
+        
+        clearInterval(pollInterval);
+      }
+
+      if (job.status === 'failed') {
+        setIsGenerating(false);
+        toast({
+          title: 'Erro ao gerar curso',
+          description: job.error_message || 'Ocorreu um erro durante a geração.',
+          variant: 'destructive',
+        });
+        clearInterval(pollInterval);
+      }
+    }, 3000); // Poll every 3 seconds
+
+    return () => clearInterval(pollInterval);
+  }, [activeJob, toast]);
+
   const steps = [
+    { label: 'Iniciando geração...', icon: Clock },
     { label: 'Gerando conteúdo do curso...', icon: FileText },
-    { label: 'Criando exercícios práticos...', icon: BookOpen },
-    { label: 'Elaborando prova final...', icon: CheckCircle },
-    { label: 'Finalizando curso...', icon: Sparkles },
+    { label: 'Criando exercícios e prova...', icon: BookOpen },
+    { label: 'Finalizando curso...', icon: CheckCircle },
   ];
+
+  const isO1Model = formData.openaiModel.startsWith('o1') || formData.openaiModel.startsWith('o3');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,11 +142,7 @@ export default function CreateCourseAI() {
     setIsGenerating(true);
     setCurrentStep(0);
     setGeneratedCourse(null);
-
-    // Simulate progress through steps while AI generates
-    const stepInterval = setInterval(() => {
-      setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
-    }, 8000);
+    setActiveJob(null);
 
     try {
       const { data: session } = await supabase.auth.getSession();
@@ -80,9 +151,10 @@ export default function CreateCourseAI() {
         throw new Error('Você precisa estar logado para criar cursos');
       }
 
-      // Timeout de 10 minutos para cursos com conteúdo extenso
+      // Timeout maior para modelos O1/O3
+      const timeoutMs = isO1Model ? 30000 : 600000; // 30s for async, 10min for sync
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 600000);
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-course`,
@@ -108,8 +180,6 @@ export default function CreateCourseAI() {
 
       clearTimeout(timeoutId);
 
-      clearInterval(stepInterval);
-
       if (!response.ok) {
         const errorData = await response.json();
         
@@ -125,12 +195,32 @@ export default function CreateCourseAI() {
 
       const result = await response.json();
       
+      if (result.async && result.jobId) {
+        // Async processing - start polling
+        setActiveJob({
+          id: result.jobId,
+          status: 'pending',
+          topic: formData.topic,
+          created_at: new Date().toISOString(),
+        });
+        
+        toast({
+          title: 'Geração iniciada!',
+          description: result.message || 'O curso está sendo gerado em segundo plano.',
+        });
+        
+        // Keep generating state true for polling
+        return;
+      }
+
+      // Sync processing - course created immediately
       setCurrentStep(steps.length - 1);
       setGeneratedCourse(result.course);
+      setIsGenerating(false);
 
       toast({
         title: 'Curso criado com sucesso!',
-        description: `"${result.course.title}" foi gerado com ${result.course.exercisesCount} exercícios e ${result.course.examQuestionsCount} questões de prova.${result.course.subtitle ? ` Subtítulo: "${result.course.subtitle}"` : ''}`,
+        description: `"${result.course.title}" foi gerado e está disponível.`,
       });
 
       setFormData({
@@ -144,14 +234,14 @@ export default function CreateCourseAI() {
         additionalInstructions: '',
       });
     } catch (error: any) {
-      clearInterval(stepInterval);
       console.error('Error generating course:', error);
+      setIsGenerating(false);
       
       let errorMessage = error.message;
       if (error.name === 'AbortError') {
-        errorMessage = 'A geração do curso demorou muito. Tente novamente ou selecione um nível de profundidade menor.';
+        errorMessage = 'Tempo limite excedido. Por favor, tente novamente.';
       } else if (error.message === 'Failed to fetch') {
-        errorMessage = 'Erro de conexão. A geração pode estar demorando. Verifique na lista de cursos se foi criado.';
+        errorMessage = 'Erro de conexão. Verifique sua internet e tente novamente.';
       }
       
       toast({
@@ -159,9 +249,17 @@ export default function CreateCourseAI() {
         description: errorMessage,
         variant: 'destructive',
       });
-    } finally {
-      setIsGenerating(false);
     }
+  };
+
+  const getEstimatedTime = () => {
+    if (!isO1Model) return '30 segundos a 2 minutos';
+    
+    const depth = formData.contentDepth;
+    if (depth === 'enciclopedico' || depth === 'profissional') {
+      return '3 a 5 minutos';
+    }
+    return '2 a 4 minutos';
   };
 
   return (
@@ -285,9 +383,9 @@ export default function CreateCourseAI() {
                       </SelectItem>
                     </SelectContent>
                   </Select>
-                  {(formData.openaiModel.startsWith('o1') || formData.openaiModel.startsWith('o3')) && (
+                  {isO1Model && (
                     <p className="text-xs text-primary bg-primary/10 p-2 rounded-md">
-                      ℹ️ Modelos O1/O3 permitem gerar conteúdo muito mais extenso (até 10.000 palavras por módulo) em uma única requisição.
+                      ℹ️ Modelos O1/O3 processam em segundo plano (2-5 min) e suportam conteúdo muito mais extenso.
                     </p>
                   )}
                   <p className="text-xs text-muted-foreground">
@@ -310,9 +408,7 @@ export default function CreateCourseAI() {
                         <div className="flex flex-col">
                           <span>📝 Básico</span>
                           <span className="text-xs text-muted-foreground">
-                            {formData.openaiModel.startsWith('o1') || formData.openaiModel.startsWith('o3') 
-                              ? '~500 palavras/módulo' 
-                              : '~500 palavras/módulo'}
+                            {isO1Model ? '~500 palavras/módulo' : '~500 palavras/módulo'}
                           </span>
                         </div>
                       </SelectItem>
@@ -320,9 +416,7 @@ export default function CreateCourseAI() {
                         <div className="flex flex-col">
                           <span>📄 Detalhado</span>
                           <span className="text-xs text-muted-foreground">
-                            {formData.openaiModel.startsWith('o1') || formData.openaiModel.startsWith('o3') 
-                              ? '~1.500 palavras/módulo' 
-                              : '~1.000 palavras/módulo'}
+                            {isO1Model ? '~1.500 palavras/módulo' : '~1.000 palavras/módulo'}
                           </span>
                         </div>
                       </SelectItem>
@@ -330,9 +424,7 @@ export default function CreateCourseAI() {
                         <div className="flex flex-col">
                           <span>📚 Extenso</span>
                           <span className="text-xs text-muted-foreground">
-                            {formData.openaiModel.startsWith('o1') || formData.openaiModel.startsWith('o3') 
-                              ? '~3.000 palavras/módulo' 
-                              : '~2.000 palavras/módulo'}
+                            {isO1Model ? '~3.000 palavras/módulo' : '~2.000 palavras/módulo'}
                           </span>
                         </div>
                       </SelectItem>
@@ -340,9 +432,7 @@ export default function CreateCourseAI() {
                         <div className="flex flex-col">
                           <span>📖 Muito Extenso</span>
                           <span className="text-xs text-muted-foreground">
-                            {formData.openaiModel.startsWith('o1') || formData.openaiModel.startsWith('o3') 
-                              ? '~5.000 palavras/módulo' 
-                              : '~3.000 palavras/módulo'}
+                            {isO1Model ? '~5.000 palavras/módulo' : '~3.000 palavras/módulo'}
                           </span>
                         </div>
                       </SelectItem>
@@ -350,9 +440,7 @@ export default function CreateCourseAI() {
                         <div className="flex flex-col">
                           <span>🎓 Profissional</span>
                           <span className="text-xs text-muted-foreground">
-                            {formData.openaiModel.startsWith('o1') || formData.openaiModel.startsWith('o3') 
-                              ? '~7.000 palavras/módulo ⭐' 
-                              : '~4.000 palavras/módulo'}
+                            {isO1Model ? '~7.000 palavras/módulo ⭐' : '~4.000 palavras/módulo'}
                           </span>
                         </div>
                       </SelectItem>
@@ -360,16 +448,14 @@ export default function CreateCourseAI() {
                         <div className="flex flex-col">
                           <span>📕 Enciclopédico</span>
                           <span className="text-xs text-muted-foreground">
-                            {formData.openaiModel.startsWith('o1') || formData.openaiModel.startsWith('o3') 
-                              ? '~10.000 palavras/módulo ⭐⭐' 
-                              : '~5.000 palavras/módulo'}
+                            {isO1Model ? '~10.000 palavras/módulo ⭐⭐' : '~5.000 palavras/módulo'}
                           </span>
                         </div>
                       </SelectItem>
                     </SelectContent>
                   </Select>
                   <p className="text-xs text-muted-foreground">
-                    {formData.openaiModel.startsWith('o1') || formData.openaiModel.startsWith('o3')
+                    {isO1Model
                       ? 'Modelos O1/O3 suportam conteúdo muito mais extenso'
                       : 'Define a quantidade de texto e detalhes em cada módulo'}
                   </p>
@@ -435,8 +521,8 @@ export default function CreateCourseAI() {
                 >
                   {isGenerating ? (
                     <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-primary-foreground mr-2" />
-                      Gerando com IA...
+                      <RefreshCw className="h-4 w-4 animate-spin mr-2" />
+                      {activeJob ? 'Processando...' : 'Gerando com IA...'}
                     </>
                   ) : (
                     <>
@@ -505,21 +591,43 @@ export default function CreateCourseAI() {
               {isGenerating && (
                 <div className="p-4 bg-primary/5 rounded-lg">
                   <p className="text-sm font-medium text-primary flex items-center gap-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-primary" />
-                    {steps[currentStep]?.label}
+                    <RefreshCw className="h-4 w-4 animate-spin" />
+                    {activeJob ? `Gerando: "${activeJob.topic}"` : steps[currentStep]?.label}
                   </p>
                   <div className="mt-2 h-2 bg-secondary rounded-full overflow-hidden">
                     <motion.div
                       className="h-full bg-primary"
                       initial={{ width: '0%' }}
-                      animate={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
+                      animate={{ 
+                        width: activeJob 
+                          ? activeJob.status === 'processing' ? '60%' : '20%'
+                          : `${((currentStep + 1) / steps.length) * 100}%` 
+                      }}
                       transition={{ duration: 0.5 }}
                     />
                   </div>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Isso pode levar alguns segundos...
+                  <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    Tempo estimado: {getEstimatedTime()}
+                    {activeJob && ' (processamento em segundo plano)'}
                   </p>
                 </div>
+              )}
+
+              {activeJob?.status === 'failed' && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="p-4 bg-destructive/10 rounded-lg border border-destructive"
+                >
+                  <p className="font-medium text-destructive flex items-center gap-2">
+                    <AlertCircle className="h-5 w-5" />
+                    Erro na geração
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {activeJob.error_message || 'Ocorreu um erro. Tente novamente.'}
+                  </p>
+                </motion.div>
               )}
 
               {generatedCourse && (
@@ -547,8 +655,9 @@ export default function CreateCourseAI() {
                 <div className="text-sm text-muted-foreground">
                   <p className="font-medium text-foreground">Dica</p>
                   <p>
-                    Seja específico no tema do curso para obter melhores resultados. 
-                    Por exemplo, ao invés de "Excel", use "Excel para Gestão Financeira de Pequenas Empresas".
+                    {isO1Model 
+                      ? 'Modelos O1/O3 processam em segundo plano. Você pode fechar esta página - o curso será criado automaticamente.'
+                      : 'Seja específico no tema do curso para obter melhores resultados. Por exemplo, ao invés de "Excel", use "Excel para Gestão Financeira de Pequenas Empresas".'}
                   </p>
                 </div>
               </div>

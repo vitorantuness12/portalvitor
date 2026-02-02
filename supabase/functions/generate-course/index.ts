@@ -12,9 +12,10 @@ interface CourseRequest {
   duration: number;
   categoryId?: string;
   price?: number;
-  contentDepth?: string; // "basico", "detalhado", "extenso"
-  openaiModel?: string; // "gpt-4o-mini" or "gpt-4o"
+  contentDepth?: string;
+  openaiModel?: string;
   additionalInstructions?: string;
+  jobId?: string; // For async processing
 }
 
 // Tool schemas for structured output
@@ -109,78 +110,39 @@ const examTool = {
   }
 };
 
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+// Main generation function - runs in background for O1/O3 models
+async function generateCourseContent(
+  supabase: any,
+  jobId: string,
+  topic: string,
+  level: string,
+  duration: number,
+  categoryId: string | undefined,
+  price: number,
+  contentDepth: string,
+  selectedModel: string,
+  additionalInstructions: string | undefined
+) {
+  const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
+  const apiEndpoint = "https://api.openai.com/v1/chat/completions";
+  const isO1Model = selectedModel?.startsWith("o1") || selectedModel?.startsWith("o3");
 
   try {
-    const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
-    if (!OPENAI_API_KEY) {
-      throw new Error("OPENAI_API_KEY is not configured");
-    }
-    
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    // Update job status to processing
+    await supabase
+      .from("course_generation_jobs")
+      .update({ status: "processing" })
+      .eq("id", jobId);
 
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    console.log("Background: Starting generation for job:", jobId, "model:", selectedModel);
 
-    const token = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    
-    if (authError || !user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const { data: roleData } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user.id)
-      .eq("role", "admin")
-      .single();
-
-    if (!roleData) {
-      return new Response(JSON.stringify({ error: "Admin access required" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const { topic, level, duration, categoryId, price, contentDepth, openaiModel, additionalInstructions }: CourseRequest = await req.json();
-
-    // All models use OpenAI directly
-    const validModels = ["gpt-4o-mini", "gpt-4o", "o1", "o1-mini", "o3-mini"];
-    const selectedModel = validModels.includes(openaiModel || "") ? openaiModel : "gpt-4o-mini";
-    
-    // O1 models use max_completion_tokens instead of max_tokens
-    const isO1Model = selectedModel?.startsWith("o1") || selectedModel?.startsWith("o3");
-
-    const apiEndpoint = "https://api.openai.com/v1/chat/completions";
-    const apiKey = OPENAI_API_KEY;
-
-    console.log("Generating course with AI:", { topic, level, duration, price, contentDepth, model: selectedModel });
-
-    // Step 1: Generate course content using tool calling
+    // Generate content
     const moduleCount = duration <= 10 ? 3 : duration <= 20 ? 4 : duration <= 40 ? 5 : duration <= 60 ? 6 : 8;
     
-    // Define content depth parameters - DYNAMIC based on model
-    // O1/O3 models support much higher output limits (65k-100k tokens)
-    // GPT-4o models are limited to 16384 output tokens
     const getDepthConfig = (model: string) => {
       const isHighTokenModel = model?.startsWith("o1") || model?.startsWith("o3");
       
       if (isHighTokenModel) {
-        // O1/O3 models support much more tokens
         return {
           basico: { minWords: 500, maxTokens: 12000, description: "resumido e direto ao ponto" },
           detalhado: { minWords: 1500, maxTokens: 20000, description: "com bom nível de detalhes e exemplos" },
@@ -191,7 +153,6 @@ serve(async (req) => {
         };
       }
       
-      // GPT-4o models limited to 16k
       return {
         basico: { minWords: 500, maxTokens: 8000, description: "resumido e direto ao ponto" },
         detalhado: { minWords: 1000, maxTokens: 12000, description: "com bom nível de detalhes e exemplos" },
@@ -205,9 +166,8 @@ serve(async (req) => {
     const depthConfig = getDepthConfig(selectedModel || "gpt-4o-mini");
     const depth = depthConfig[contentDepth as keyof typeof depthConfig] || depthConfig.detalhado;
     
-    console.log("Using depth config for model:", selectedModel, "->", depth);
+    console.log("Background: Using depth config:", depth);
     
-    // Build the content prompt with anti-truncation instructions for high-token models
     const antiTruncationNote = isO1Model ? `
 ⚠️ IMPORTANTE: Você tem tokens suficientes (${depth.maxTokens}) para gerar conteúdo COMPLETO.
 NÃO adicione notas como "versão reduzida", "seria necessário detalhar", "em uma versão completa".
@@ -269,17 +229,17 @@ Use **negrito**, *itálico*, listas numeradas, tabelas. O aluno deve conseguir a
       tool_choice: { type: "function", function: { name: "create_course_content" } },
     };
     
-    // O1 models use max_completion_tokens, others use max_tokens
     if (isO1Model) {
       contentRequestBody.max_completion_tokens = depth.maxTokens;
     } else {
       contentRequestBody.max_tokens = depth.maxTokens;
     }
 
+    console.log("Background: Calling OpenAI for content...");
     const contentResponse = await fetch(apiEndpoint, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${apiKey}`,
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(contentRequestBody),
@@ -287,14 +247,8 @@ Use **negrito**, *itálico*, listas numeradas, tabelas. O aluno deve conseguir a
 
     if (!contentResponse.ok) {
       const errorText = await contentResponse.text();
-      console.error("AI content generation error:", contentResponse.status, errorText);
-      if (contentResponse.status === 429) {
-        throw new Error("Limite de requisições excedido. Tente novamente em alguns minutos.");
-      }
-      if (contentResponse.status === 402 || contentResponse.status === 401) {
-        throw new Error("Erro de autenticação na API OpenAI. Verifique sua chave API.");
-      }
-      throw new Error("Falha ao gerar conteúdo do curso: " + errorText);
+      console.error("Background: AI content error:", contentResponse.status, errorText);
+      throw new Error(`Falha ao gerar conteúdo: ${errorText}`);
     }
 
     const contentData = await contentResponse.json();
@@ -305,20 +259,18 @@ Use **negrito**, *itálico*, listas numeradas, tabelas. O aluno deve conseguir a
       if (toolCall && toolCall.function.arguments) {
         courseContent = JSON.parse(toolCall.function.arguments);
       } else {
-        // Fallback: try to parse from content
         const rawContent = contentData.choices[0].message.content || "";
         const jsonMatch = rawContent.match(/```(?:json)?\s*([\s\S]*?)```/) || [null, rawContent];
         courseContent = JSON.parse(jsonMatch[1].trim());
       }
     } catch (e) {
-      console.error("Failed to parse course content:", e);
-      console.error("Raw response:", JSON.stringify(contentData));
-      throw new Error("Failed to parse AI response for course content");
+      console.error("Background: Failed to parse course content:", e);
+      throw new Error("Falha ao processar resposta da IA para conteúdo");
     }
 
-    console.log("Course content generated:", courseContent.title);
+    console.log("Background: Course content generated:", courseContent.title);
 
-    // Step 2: Generate exercises using tool calling
+    // Generate exercises
     const exercisesPrompt = `Crie 10 exercícios de múltipla escolha para o curso "${courseContent.title}" sobre "${topic}". 
 As questões devem testar a compreensão do conteúdo e ter níveis variados de dificuldade.`;
 
@@ -338,17 +290,409 @@ As questões devem testar a compreensão do conteúdo e ter níveis variados de 
       exercisesRequestBody.max_tokens = 4000;
     }
 
+    console.log("Background: Calling OpenAI for exercises...");
     const exercisesResponse = await fetch(apiEndpoint, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${apiKey}`,
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(exercisesRequestBody),
     });
 
     if (!exercisesResponse.ok) {
-      console.error("AI exercises generation error:", exercisesResponse.status);
+      console.error("Background: AI exercises error:", exercisesResponse.status);
+      throw new Error("Falha ao gerar exercícios");
+    }
+
+    const exercisesData = await exercisesResponse.json();
+    let exercises;
+    
+    try {
+      const toolCall = exercisesData.choices[0].message.tool_calls?.[0];
+      if (toolCall && toolCall.function.arguments) {
+        exercises = JSON.parse(toolCall.function.arguments);
+      } else {
+        const rawExercises = exercisesData.choices[0].message.content || "";
+        const jsonMatch = rawExercises.match(/```(?:json)?\s*([\s\S]*?)```/) || [null, rawExercises];
+        exercises = JSON.parse(jsonMatch[1].trim());
+      }
+    } catch (e) {
+      console.error("Background: Failed to parse exercises:", e);
+      throw new Error("Falha ao processar exercícios");
+    }
+
+    console.log("Background: Exercises generated:", exercises.exercises?.length || 0);
+
+    // Generate final exam
+    const examPrompt = `Crie uma prova final com 15 questões de múltipla escolha para o curso "${courseContent.title}" sobre "${topic}".
+A prova deve cobrir todos os módulos e ter questões de diferentes níveis de dificuldade.`;
+
+    const examRequestBody: any = {
+      model: selectedModel,
+      messages: [
+        ...(isO1Model ? [] : [{ role: "system", content: "Você é um especialista em avaliação educacional. Use a função fornecida para criar a prova." }]),
+        { role: "user", content: isO1Model ? `Você é um especialista em avaliação educacional. Use a função fornecida para criar a prova.\n\n${examPrompt}` : examPrompt },
+      ],
+      tools: [examTool],
+      tool_choice: { type: "function", function: { name: "create_exam" } },
+    };
+    
+    if (isO1Model) {
+      examRequestBody.max_completion_tokens = 6000;
+    } else {
+      examRequestBody.max_tokens = 6000;
+    }
+
+    console.log("Background: Calling OpenAI for exam...");
+    const examResponse = await fetch(apiEndpoint, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(examRequestBody),
+    });
+
+    if (!examResponse.ok) {
+      console.error("Background: AI exam error:", examResponse.status);
+      throw new Error("Falha ao gerar prova");
+    }
+
+    const examData = await examResponse.json();
+    let exam;
+    
+    try {
+      const toolCall = examData.choices[0].message.tool_calls?.[0];
+      if (toolCall && toolCall.function.arguments) {
+        exam = JSON.parse(toolCall.function.arguments);
+      } else {
+        const rawExam = examData.choices[0].message.content || "";
+        const jsonMatch = rawExam.match(/```(?:json)?\s*([\s\S]*?)```/) || [null, rawExam];
+        exam = JSON.parse(jsonMatch[1].trim());
+      }
+    } catch (e) {
+      console.error("Background: Failed to parse exam:", e);
+      throw new Error("Falha ao processar prova");
+    }
+
+    console.log("Background: Exam generated:", exam.examQuestions?.length || 0);
+
+    // Save to database
+    const { data: courseData, error: courseError } = await supabase
+      .from("courses")
+      .insert({
+        title: courseContent.title,
+        description: courseContent.description,
+        short_description: courseContent.subtitle,
+        category_id: categoryId || null,
+        price: price || 0,
+        duration_hours: duration,
+        level: level,
+        status: "active",
+        content_pdf_url: JSON.stringify(courseContent.modules),
+      })
+      .select()
+      .single();
+
+    if (courseError) {
+      console.error("Background: Failed to save course:", courseError);
+      throw new Error(`Falha ao salvar curso: ${courseError.message}`);
+    }
+
+    console.log("Background: Course saved with ID:", courseData.id);
+
+    // Save exercises
+    if (exercises.exercises && exercises.exercises.length > 0) {
+      const exercisesInsert = exercises.exercises.map((ex: any, index: number) => ({
+        course_id: courseData.id,
+        question: ex.question,
+        options: ex.options,
+        correct_answer: ex.correctAnswer,
+        order_index: index,
+      }));
+
+      const { error: exercisesError } = await supabase
+        .from("course_exercises")
+        .insert(exercisesInsert);
+
+      if (exercisesError) {
+        console.error("Background: Failed to save exercises:", exercisesError);
+      }
+    }
+
+    // Save exam
+    if (exam.examQuestions && exam.examQuestions.length > 0) {
+      const examInsert = exam.examQuestions.map((q: any, index: number) => ({
+        course_id: courseData.id,
+        question: q.question,
+        options: q.options,
+        correct_answer: q.correctAnswer,
+        order_index: index,
+      }));
+
+      const { error: examError } = await supabase
+        .from("course_exams")
+        .insert(examInsert);
+
+      if (examError) {
+        console.error("Background: Failed to save exam:", examError);
+      }
+    }
+
+    // Update job as completed
+    await supabase
+      .from("course_generation_jobs")
+      .update({ 
+        status: "completed",
+        course_id: courseData.id,
+        completed_at: new Date().toISOString()
+      })
+      .eq("id", jobId);
+
+    console.log("Background: Job completed successfully:", jobId);
+
+  } catch (error: any) {
+    console.error("Background: Generation failed:", error);
+    
+    // Update job as failed
+    await supabase
+      .from("course_generation_jobs")
+      .update({ 
+        status: "failed",
+        error_message: error.message || "Erro desconhecido",
+        completed_at: new Date().toISOString()
+      })
+      .eq("id", jobId);
+  }
+}
+
+serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
+    if (!OPENAI_API_KEY) {
+      throw new Error("OPENAI_API_KEY is not configured");
+    }
+    
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const { data: roleData } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .eq("role", "admin")
+      .single();
+
+    if (!roleData) {
+      return new Response(JSON.stringify({ error: "Admin access required" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const { topic, level, duration, categoryId, price, contentDepth, openaiModel, additionalInstructions }: CourseRequest = await req.json();
+
+    const validModels = ["gpt-4o-mini", "gpt-4o", "o1", "o1-mini", "o3-mini"];
+    const selectedModel = validModels.includes(openaiModel || "") ? openaiModel : "gpt-4o-mini";
+    const isO1Model = selectedModel?.startsWith("o1") || selectedModel?.startsWith("o3");
+
+    console.log("Request received:", { topic, level, duration, price, contentDepth, model: selectedModel });
+
+    // For O1/O3 models, use background processing to avoid timeout
+    if (isO1Model) {
+      // Create a job record first
+      const { data: job, error: jobError } = await supabase
+        .from("course_generation_jobs")
+        .insert({
+          user_id: user.id,
+          topic,
+          level,
+          duration,
+          category_id: categoryId || null,
+          price: price || 0,
+          content_depth: contentDepth || "detalhado",
+          openai_model: selectedModel,
+          additional_instructions: additionalInstructions,
+          status: "pending"
+        })
+        .select()
+        .single();
+
+      if (jobError) {
+        console.error("Failed to create job:", jobError);
+        throw new Error("Falha ao criar job de geração");
+      }
+
+      console.log("Job created:", job.id, "- Starting background processing...");
+
+      // Start background task - this doesn't block the response
+      // @ts-ignore - EdgeRuntime is available in Supabase Edge Functions
+      EdgeRuntime.waitUntil(
+        generateCourseContent(
+          supabase,
+          job.id,
+          topic,
+          level,
+          duration,
+          categoryId,
+          price || 0,
+          contentDepth || "detalhado",
+          selectedModel!,
+          additionalInstructions
+        )
+      );
+
+      // Return immediately with job ID
+      return new Response(
+        JSON.stringify({
+          success: true,
+          async: true,
+          jobId: job.id,
+          message: "Curso sendo gerado em segundo plano. Isso pode levar de 2 a 5 minutos para modelos O1/O3.",
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // For GPT-4o models, process synchronously (faster, no timeout issues)
+    const apiEndpoint = "https://api.openai.com/v1/chat/completions";
+
+    console.log("Generating course synchronously with GPT-4o model");
+
+    // Generate course content
+    const moduleCount = duration <= 10 ? 3 : duration <= 20 ? 4 : duration <= 40 ? 5 : duration <= 60 ? 6 : 8;
+    
+    const depthConfig = {
+      basico: { minWords: 500, maxTokens: 8000, description: "resumido e direto ao ponto" },
+      detalhado: { minWords: 1000, maxTokens: 12000, description: "com bom nível de detalhes e exemplos" },
+      extenso: { minWords: 2000, maxTokens: 16000, description: "extremamente completo como um livro didático profissional" },
+      muito_extenso: { minWords: 3000, maxTokens: 16000, description: "altamente detalhado com teoria e prática aprofundadas" },
+      profissional: { minWords: 4000, maxTokens: 16000, description: "conteúdo de nível profissional com cobertura completa" },
+      enciclopedico: { minWords: 5000, maxTokens: 16000, description: "conteúdo enciclopédico com máximo nível de detalhamento" }
+    };
+    
+    const depth = depthConfig[contentDepth as keyof typeof depthConfig] || depthConfig.detalhado;
+
+    const contentPrompt = `Você é um professor universitário renomado criando um curso online. O curso deve ser um material didático de alta qualidade.
+
+CURSO: "${topic}"
+NÍVEL: ${level}
+CARGA HORÁRIA: ${duration} horas
+NÚMERO DE MÓDULOS: ${moduleCount}
+PROFUNDIDADE DO CONTEÚDO: ${depth.description}
+MÍNIMO DE PALAVRAS POR MÓDULO: ${depth.minWords}
+${additionalInstructions ? `INSTRUÇÕES ADICIONAIS: ${additionalInstructions}` : ""}
+
+⚠️ REGRAS CRÍTICAS:
+
+1. CADA MÓDULO DEVE TER NO MÍNIMO ${depth.minWords} PALAVRAS de conteúdo educacional real
+2. NÃO ESCREVA frases como "Neste módulo vamos...", "Você aprenderá...", "Exploraremos..."
+3. ESCREVA O CONTEÚDO COMPLETO como um capítulo de livro didático
+
+ESTRUTURA PARA CADA MÓDULO:
+
+## [Título do Tópico Principal]
+
+### Introdução e Contexto
+### Fundamentos Teóricos
+### Técnicas e Metodologias
+### Exemplos Práticos
+### Erros Comuns
+### Exercícios de Fixação
+
+Use **negrito**, *itálico*, listas numeradas, tabelas.`;
+
+    const contentResponse = await fetch(apiEndpoint, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: selectedModel,
+        messages: [
+          { role: "system", content: "Você é um professor universitário especialista em educação online. Você cria conteúdo educacional REAL e PRÁTICO que ensina de verdade." },
+          { role: "user", content: contentPrompt },
+        ],
+        tools: [courseContentTool],
+        tool_choice: { type: "function", function: { name: "create_course_content" } },
+        max_tokens: depth.maxTokens,
+      }),
+    });
+
+    if (!contentResponse.ok) {
+      const errorText = await contentResponse.text();
+      console.error("AI content generation error:", contentResponse.status, errorText);
+      throw new Error("Falha ao gerar conteúdo do curso: " + errorText);
+    }
+
+    const contentData = await contentResponse.json();
+    let courseContent;
+    
+    try {
+      const toolCall = contentData.choices[0].message.tool_calls?.[0];
+      if (toolCall && toolCall.function.arguments) {
+        courseContent = JSON.parse(toolCall.function.arguments);
+      } else {
+        const rawContent = contentData.choices[0].message.content || "";
+        const jsonMatch = rawContent.match(/```(?:json)?\s*([\s\S]*?)```/) || [null, rawContent];
+        courseContent = JSON.parse(jsonMatch[1].trim());
+      }
+    } catch (e) {
+      console.error("Failed to parse course content:", e);
+      throw new Error("Failed to parse AI response for course content");
+    }
+
+    console.log("Course content generated:", courseContent.title);
+
+    // Generate exercises
+    const exercisesPrompt = `Crie 10 exercícios de múltipla escolha para o curso "${courseContent.title}" sobre "${topic}".`;
+
+    const exercisesResponse = await fetch(apiEndpoint, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: selectedModel,
+        messages: [
+          { role: "system", content: "Você é um especialista em avaliação educacional." },
+          { role: "user", content: exercisesPrompt },
+        ],
+        tools: [exercisesTool],
+        tool_choice: { type: "function", function: { name: "create_exercises" } },
+        max_tokens: 4000,
+      }),
+    });
+
+    if (!exercisesResponse.ok) {
       throw new Error("Failed to generate exercises");
     }
 
@@ -369,39 +713,28 @@ As questões devem testar a compreensão do conteúdo e ter níveis variados de 
       throw new Error("Failed to parse AI response for exercises");
     }
 
-    console.log("Exercises generated:", exercises.exercises?.length || 0);
-
-    // Step 3: Generate final exam using tool calling
-    const examPrompt = `Crie uma prova final com 15 questões de múltipla escolha para o curso "${courseContent.title}" sobre "${topic}".
-A prova deve cobrir todos os módulos e ter questões de diferentes níveis de dificuldade.`;
-
-    const examRequestBody: any = {
-      model: selectedModel,
-      messages: [
-        ...(isO1Model ? [] : [{ role: "system", content: "Você é um especialista em avaliação educacional. Use a função fornecida para criar a prova." }]),
-        { role: "user", content: isO1Model ? `Você é um especialista em avaliação educacional. Use a função fornecida para criar a prova.\n\n${examPrompt}` : examPrompt },
-      ],
-      tools: [examTool],
-      tool_choice: { type: "function", function: { name: "create_exam" } },
-    };
-    
-    if (isO1Model) {
-      examRequestBody.max_completion_tokens = 6000;
-    } else {
-      examRequestBody.max_tokens = 6000;
-    }
+    // Generate exam
+    const examPrompt = `Crie uma prova final com 15 questões de múltipla escolha para o curso "${courseContent.title}".`;
 
     const examResponse = await fetch(apiEndpoint, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${apiKey}`,
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(examRequestBody),
+      body: JSON.stringify({
+        model: selectedModel,
+        messages: [
+          { role: "system", content: "Você é um especialista em avaliação educacional." },
+          { role: "user", content: examPrompt },
+        ],
+        tools: [examTool],
+        tool_choice: { type: "function", function: { name: "create_exam" } },
+        max_tokens: 6000,
+      }),
     });
 
     if (!examResponse.ok) {
-      console.error("AI exam generation error:", examResponse.status);
       throw new Error("Failed to generate exam");
     }
 
@@ -422,19 +755,17 @@ A prova deve cobrir todos os módulos e ter questões de diferentes níveis de d
       throw new Error("Failed to parse AI response for exam");
     }
 
-    console.log("Exam generated:", exam.examQuestions?.length || 0);
-
-    // Step 4: Save everything to database
-    const { data: course, error: courseError } = await supabase
+    // Save to database
+    const { data: courseData, error: courseError } = await supabase
       .from("courses")
       .insert({
         title: courseContent.title,
         description: courseContent.description,
-        short_description: (courseContent.subtitle || courseContent.shortDescription)?.substring(0, 150),
+        short_description: courseContent.subtitle,
         category_id: categoryId || null,
+        price: price || 0,
         duration_hours: duration,
         level: level,
-        price: price || 0,
         status: "active",
         content_pdf_url: JSON.stringify(courseContent.modules),
       })
@@ -442,71 +773,57 @@ A prova deve cobrir todos os módulos e ter questões de diferentes níveis de d
       .single();
 
     if (courseError) {
-      console.error("Error creating course:", courseError);
-      throw new Error("Failed to save course to database");
+      console.error("Failed to save course:", courseError);
+      throw new Error(`Failed to save course: ${courseError.message}`);
     }
 
-    console.log("Course saved:", course.id);
-
-    // Insert exercises
+    // Save exercises
     if (exercises.exercises && exercises.exercises.length > 0) {
-      const exercisesToInsert = exercises.exercises.map((ex: any, index: number) => ({
-        course_id: course.id,
+      const exercisesInsert = exercises.exercises.map((ex: any, index: number) => ({
+        course_id: courseData.id,
         question: ex.question,
         options: ex.options,
         correct_answer: ex.correctAnswer,
         order_index: index,
       }));
 
-      const { error: exercisesError } = await supabase
-        .from("course_exercises")
-        .insert(exercisesToInsert);
-
-      if (exercisesError) {
-        console.error("Error inserting exercises:", exercisesError);
-      }
+      await supabase.from("course_exercises").insert(exercisesInsert);
     }
 
-    // Insert exam questions
+    // Save exam
     if (exam.examQuestions && exam.examQuestions.length > 0) {
-      const examQuestionsToInsert = exam.examQuestions.map((q: any, index: number) => ({
-        course_id: course.id,
+      const examInsert = exam.examQuestions.map((q: any, index: number) => ({
+        course_id: courseData.id,
         question: q.question,
         options: q.options,
         correct_answer: q.correctAnswer,
         order_index: index,
       }));
 
-      const { error: examError } = await supabase
-        .from("course_exams")
-        .insert(examQuestionsToInsert);
-
-      if (examError) {
-        console.error("Error inserting exam questions:", examError);
-      }
+      await supabase.from("course_exams").insert(examInsert);
     }
 
-    console.log("Course generation complete!");
+    console.log("Course created successfully:", courseData.id);
 
     return new Response(
       JSON.stringify({
         success: true,
-        course: {
-          id: course.id,
-          title: course.title,
-          subtitle: courseContent.subtitle || courseContent.shortDescription,
-          exercisesCount: exercises.exercises?.length || 0,
-          examQuestionsCount: exam.examQuestions?.length || 0,
-        },
+        async: false,
+        course: courseData,
+        message: "Curso criado com sucesso!",
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
     );
-  } catch (error) {
-    console.error("Error in generate-course function:", error);
+
+  } catch (error: any) {
+    console.error("Error in generate-course:", error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
+      JSON.stringify({ 
+        error: error.message || "Erro interno do servidor",
+        success: false 
+      }),
       {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },

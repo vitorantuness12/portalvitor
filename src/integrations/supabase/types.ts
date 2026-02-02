@@ -276,6 +276,78 @@ export type Database = {
           },
         ]
       }
+      course_generation_jobs: {
+        Row: {
+          additional_instructions: string | null
+          category_id: string | null
+          completed_at: string | null
+          content_depth: string | null
+          course_id: string | null
+          created_at: string | null
+          duration: number
+          error_message: string | null
+          id: string
+          level: string
+          openai_model: string | null
+          price: number | null
+          status: string
+          topic: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          additional_instructions?: string | null
+          category_id?: string | null
+          completed_at?: string | null
+          content_depth?: string | null
+          course_id?: string | null
+          created_at?: string | null
+          duration: number
+          error_message?: string | null
+          id?: string
+          level: string
+          openai_model?: string | null
+          price?: number | null
+          status?: string
+          topic: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          additional_instructions?: string | null
+          category_id?: string | null
+          completed_at?: string | null
+          content_depth?: string | null
+          course_id?: string | null
+          created_at?: string | null
+          duration?: number
+          error_message?: string | null
+          id?: string
+          level?: string
+          openai_model?: string | null
+          price?: number | null
+          status?: string
+          topic?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_generation_jobs_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "course_generation_jobs_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       course_notes: {
         Row: {
           content: string

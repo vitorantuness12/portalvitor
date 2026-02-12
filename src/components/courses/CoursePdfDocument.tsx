@@ -18,15 +18,14 @@ const styles = StyleSheet.create({
     padding: 50,
     fontFamily: 'Helvetica',
     fontSize: 11,
-    lineHeight: 1.6,
     color: '#1a1a1a',
   },
   coverPage: {
-    padding: 50,
     paddingTop: 200,
+    paddingBottom: 50,
+    paddingHorizontal: 80,
     fontFamily: 'Helvetica',
     flexDirection: 'column',
-    alignItems: 'center',
   },
   coverTitle: {
     fontSize: 26,
@@ -40,15 +39,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#555555',
     marginBottom: 30,
-    maxWidth: 400,
   },
   coverMeta: {
     flexDirection: 'row',
+    justifyContent: 'center',
     marginTop: 10,
   },
   coverMetaBlock: {
     marginHorizontal: 15,
-    alignItems: 'center',
   },
   coverMetaItem: {
     fontSize: 10,
@@ -67,11 +65,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#0d9488',
     marginTop: 25,
     marginBottom: 25,
+    marginHorizontal: 'auto',
   },
   coverInstitution: {
     fontSize: 10,
     color: '#999999',
     marginTop: 40,
+    textAlign: 'center',
   },
   moduleTitle: {
     fontSize: 16,
@@ -84,9 +84,8 @@ const styles = StyleSheet.create({
   },
   paragraph: {
     fontSize: 11,
-    lineHeight: 1.7,
     color: '#333333',
-    marginBottom: 6,
+    marginBottom: 8,
   },
   pageNumber: {
     position: 'absolute',
@@ -123,10 +122,34 @@ function stripMarkdown(text: string): string {
 }
 
 function splitIntoParagraphs(text: string): string[] {
-  return stripMarkdown(text)
+  const cleaned = stripMarkdown(text);
+  const paragraphs = cleaned
     .split(/\n\n+/)
     .map(p => p.trim())
     .filter(p => p.length > 0);
+
+  // Break long paragraphs into smaller chunks to avoid layout engine overflow
+  const result: string[] = [];
+  for (const para of paragraphs) {
+    if (para.length <= 500) {
+      result.push(para);
+    } else {
+      // Split at sentence boundaries within the limit
+      const sentences = para.split(/(?<=[.!?])\s+/);
+      let chunk = '';
+      for (const sentence of sentences) {
+        if (chunk.length + sentence.length > 500 && chunk.length > 0) {
+          result.push(chunk.trim());
+          chunk = '';
+        }
+        chunk += (chunk ? ' ' : '') + sentence;
+      }
+      if (chunk.trim()) {
+        result.push(chunk.trim());
+      }
+    }
+  }
+  return result;
 }
 
 export function CoursePdfDocument({ title, description, level, durationHours, modules }: CoursePdfDocumentProps) {

@@ -23,12 +23,11 @@ const styles = StyleSheet.create({
   },
   coverPage: {
     padding: 50,
+    paddingTop: 200,
     fontFamily: 'Helvetica',
     display: 'flex',
     flexDirection: 'column',
-    justifyContent: 'center',
     alignItems: 'center',
-    height: '100%',
   },
   coverTitle: {
     fontSize: 28,

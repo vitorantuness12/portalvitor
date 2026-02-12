@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#0d9488',
     marginTop: 25,
     marginBottom: 25,
-    marginHorizontal: 'auto',
+    marginLeft: 175,
   },
   coverInstitution: {
     fontSize: 10,

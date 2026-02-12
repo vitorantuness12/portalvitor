@@ -1,111 +1,17 @@
-import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
+import jsPDF from 'jspdf';
 
 interface Module {
   title: string;
   content: string;
 }
 
-interface CoursePdfDocumentProps {
+interface GenerateCoursePdfProps {
   title: string;
   description: string;
   level: string;
   durationHours: number;
   modules: Module[];
 }
-
-const styles = StyleSheet.create({
-  page: {
-    padding: 50,
-    fontFamily: 'Helvetica',
-    fontSize: 11,
-    color: '#1a1a1a',
-  },
-  coverPage: {
-    paddingTop: 200,
-    paddingBottom: 50,
-    paddingHorizontal: 80,
-    fontFamily: 'Helvetica',
-    flexDirection: 'column',
-  },
-  coverTitle: {
-    fontSize: 26,
-    fontFamily: 'Helvetica-Bold',
-    textAlign: 'center',
-    marginBottom: 20,
-    color: '#0d9488',
-  },
-  coverDescription: {
-    fontSize: 12,
-    textAlign: 'center',
-    color: '#555555',
-    marginBottom: 30,
-  },
-  coverMeta: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 10,
-  },
-  coverMetaBlock: {
-    marginHorizontal: 15,
-  },
-  coverMetaItem: {
-    fontSize: 10,
-    color: '#777777',
-    textAlign: 'center',
-  },
-  coverMetaValue: {
-    fontSize: 14,
-    fontFamily: 'Helvetica-Bold',
-    color: '#333333',
-    textAlign: 'center',
-  },
-  coverDivider: {
-    width: 80,
-    height: 3,
-    backgroundColor: '#0d9488',
-    marginTop: 25,
-    marginBottom: 25,
-    marginLeft: 175,
-  },
-  coverInstitution: {
-    fontSize: 10,
-    color: '#999999',
-    marginTop: 40,
-    textAlign: 'center',
-  },
-  moduleTitle: {
-    fontSize: 16,
-    fontFamily: 'Helvetica-Bold',
-    marginBottom: 12,
-    color: '#0d9488',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
-    paddingBottom: 8,
-  },
-  paragraph: {
-    fontSize: 11,
-    color: '#333333',
-    marginBottom: 8,
-  },
-  pageNumber: {
-    position: 'absolute',
-    fontSize: 9,
-    bottom: 25,
-    right: 50,
-    color: '#aaaaaa',
-  },
-  header: {
-    position: 'absolute',
-    fontSize: 8,
-    top: 25,
-    left: 50,
-    right: 50,
-    color: '#cccccc',
-    borderBottomWidth: 0.5,
-    borderBottomColor: '#eeeeee',
-    paddingBottom: 5,
-  },
-});
 
 function stripMarkdown(text: string): string {
   return text
@@ -121,81 +27,137 @@ function stripMarkdown(text: string): string {
     .trim();
 }
 
-function splitIntoParagraphs(text: string): string[] {
-  const cleaned = stripMarkdown(text);
-  const paragraphs = cleaned
-    .split(/\n\n+/)
-    .map(p => p.trim())
-    .filter(p => p.length > 0);
+export function generateCoursePdf({ title, description, level, durationHours, modules }: GenerateCoursePdfProps): Blob {
+  const doc = new jsPDF('p', 'mm', 'a4');
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const marginLeft = 20;
+  const marginRight = 20;
+  const marginTop = 30;
+  const marginBottom = 25;
+  const contentWidth = pageWidth - marginLeft - marginRight;
+  const teal = [13, 148, 136] as const;
+  const darkGray = [51, 51, 51] as const;
+  const lightGray = [170, 170, 170] as const;
 
-  // Break long paragraphs into smaller chunks to avoid layout engine overflow
-  const result: string[] = [];
-  for (const para of paragraphs) {
-    if (para.length <= 500) {
-      result.push(para);
-    } else {
-      // Split at sentence boundaries within the limit
-      const sentences = para.split(/(?<=[.!?])\s+/);
-      let chunk = '';
-      for (const sentence of sentences) {
-        if (chunk.length + sentence.length > 500 && chunk.length > 0) {
-          result.push(chunk.trim());
-          chunk = '';
-        }
-        chunk += (chunk ? ' ' : '') + sentence;
-      }
-      if (chunk.trim()) {
-        result.push(chunk.trim());
-      }
-    }
-  }
-  return result;
-}
-
-export function CoursePdfDocument({ title, description, level, durationHours, modules }: CoursePdfDocumentProps) {
   const levelLabel = level === 'beginner' ? 'Iniciante' : level === 'intermediate' ? 'Intermediário' : 'Avançado';
 
-  return (
-    <Document>
-      <Page size="A4" style={styles.coverPage}>
-        <Text style={styles.coverTitle}>{title}</Text>
-        <View style={styles.coverDivider} />
-        <Text style={styles.coverDescription}>{description}</Text>
-        <View style={styles.coverMeta}>
-          <View style={styles.coverMetaBlock}>
-            <Text style={styles.coverMetaValue}>{durationHours}h</Text>
-            <Text style={styles.coverMetaItem}>Duração</Text>
-          </View>
-          <View style={styles.coverMetaBlock}>
-            <Text style={styles.coverMetaValue}>{levelLabel}</Text>
-            <Text style={styles.coverMetaItem}>Nível</Text>
-          </View>
-          <View style={styles.coverMetaBlock}>
-            <Text style={styles.coverMetaValue}>{String(modules.length)}</Text>
-            <Text style={styles.coverMetaItem}>Módulos</Text>
-          </View>
-        </View>
-        <Text style={styles.coverInstitution}>FORMAK - Cursos Livres</Text>
-      </Page>
+  // === COVER PAGE ===
+  let y = 100;
 
-      {modules.map((mod, index) => (
-        <Page key={index} size="A4" style={styles.page} wrap>
-          <Text style={styles.header} fixed>{title}</Text>
-          <Text style={styles.moduleTitle}>
-            {`Módulo ${index + 1}: ${mod.title}`}
-          </Text>
-          {splitIntoParagraphs(mod.content).map((para, pIdx) => (
-            <Text key={pIdx} style={styles.paragraph} wrap>
-              {para}
-            </Text>
-          ))}
-          <Text
-            style={styles.pageNumber}
-            render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`}
-            fixed
-          />
-        </Page>
-      ))}
-    </Document>
-  );
+  // Title
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(24);
+  doc.setTextColor(...teal);
+  const titleLines = doc.splitTextToSize(title, contentWidth);
+  doc.text(titleLines, pageWidth / 2, y, { align: 'center' });
+  y += titleLines.length * 10 + 10;
+
+  // Divider
+  const dividerWidth = 40;
+  doc.setDrawColor(...teal);
+  doc.setLineWidth(1);
+  doc.line(pageWidth / 2 - dividerWidth / 2, y, pageWidth / 2 + dividerWidth / 2, y);
+  y += 12;
+
+  // Description
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(11);
+  doc.setTextColor(85, 85, 85);
+  const descLines = doc.splitTextToSize(description, contentWidth - 20);
+  doc.text(descLines, pageWidth / 2, y, { align: 'center' });
+  y += descLines.length * 5 + 20;
+
+  // Meta info
+  doc.setFontSize(13);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...darkGray);
+  const metaText = `${durationHours}h  •  ${levelLabel}  •  ${modules.length} Módulos`;
+  doc.text(metaText, pageWidth / 2, y, { align: 'center' });
+  y += 30;
+
+  // Institution
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.setTextColor(153, 153, 153);
+  doc.text('FORMAK - Cursos Livres', pageWidth / 2, y, { align: 'center' });
+
+  // === MODULE PAGES ===
+  let totalPages = 1;
+
+  const addHeader = (pageNum: number) => {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(...lightGray);
+    doc.text(title, marginLeft, 15);
+    doc.setDrawColor(238, 238, 238);
+    doc.setLineWidth(0.2);
+    doc.line(marginLeft, 18, pageWidth - marginRight, 18);
+  };
+
+  const addPageNumber = (pageNum: number) => {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(...lightGray);
+    doc.text(`${pageNum}`, pageWidth - marginRight, pageHeight - 15, { align: 'right' });
+  };
+
+  for (let i = 0; i < modules.length; i++) {
+    const mod = modules[i];
+    doc.addPage();
+    totalPages++;
+    let currentPage = totalPages;
+
+    addHeader(currentPage);
+
+    y = marginTop;
+
+    // Module title
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.setTextColor(...teal);
+    const modTitle = `Módulo ${i + 1}: ${mod.title}`;
+    const modTitleLines = doc.splitTextToSize(modTitle, contentWidth);
+    doc.text(modTitleLines, marginLeft, y);
+    y += modTitleLines.length * 6 + 4;
+
+    // Divider under title
+    doc.setDrawColor(229, 231, 235);
+    doc.setLineWidth(0.3);
+    doc.line(marginLeft, y, pageWidth - marginRight, y);
+    y += 8;
+
+    // Content
+    const cleaned = stripMarkdown(mod.content);
+    const paragraphs = cleaned.split(/\n\n+/).map(p => p.trim()).filter(p => p.length > 0);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.setTextColor(...darkGray);
+
+    for (const para of paragraphs) {
+      const lines = doc.splitTextToSize(para, contentWidth);
+
+      for (const line of lines) {
+        if (y > pageHeight - marginBottom) {
+          addPageNumber(currentPage);
+          doc.addPage();
+          totalPages++;
+          currentPage = totalPages;
+          addHeader(currentPage);
+          y = marginTop;
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(10);
+          doc.setTextColor(...darkGray);
+        }
+        doc.text(line, marginLeft, y);
+        y += 5;
+      }
+      y += 3; // paragraph spacing
+    }
+
+    addPageNumber(currentPage);
+  }
+
+  return doc.output('blob');
 }

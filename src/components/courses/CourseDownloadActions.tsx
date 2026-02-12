@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { Download, Printer, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { pdf } from '@react-pdf/renderer';
-import { CoursePdfDocument } from './CoursePdfDocument';
+import { generateCoursePdf } from './CoursePdfDocument';
 import { useToast } from '@/hooks/use-toast';
 
 const WHATSAPP_NUMBER = '5567992963871';
@@ -42,15 +41,13 @@ export function CourseDownloadActions({
 
     setGenerating(true);
     try {
-      const blob = await pdf(
-        <CoursePdfDocument
-          title={courseTitle}
-          description={courseDescription}
-          level={courseLevel}
-          durationHours={courseDurationHours}
-          modules={modules}
-        />
-      ).toBlob();
+      const blob = generateCoursePdf({
+        title: courseTitle,
+        description: courseDescription,
+        level: courseLevel,
+        durationHours: courseDurationHours,
+        modules,
+      });
 
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');

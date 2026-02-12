@@ -50,6 +50,7 @@ export default function CourseStudy() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const isMobile = useIsMobile();
   
   const [activeTab, setActiveTab] = useState('conteudo');
   const [currentModuleIndex, setCurrentModuleIndex] = useState(0);
@@ -399,7 +400,6 @@ export default function CourseStudy() {
     return null;
   }
 
-  const isMobile = useIsMobile();
 
   const handlePrevModule = useCallback(() => {
     if (currentModuleIndex > 0) {

@@ -24,6 +24,7 @@ import { CourseNotes } from '@/components/courses/CourseNotes';
 import { FormattedContent } from '@/components/courses/FormattedContent';
 import { QuestionCard } from '@/components/courses/QuestionCard';
 import { MobileStudyNav } from '@/components/courses/MobileStudyNav';
+import { CourseDownloadActions } from '@/components/courses/CourseDownloadActions';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 
@@ -436,6 +437,13 @@ export default function CourseStudy() {
             <div className="flex items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
               <Progress value={currentProgress} className="flex-1 h-1.5 sm:h-2" />
               <span className="text-xs sm:text-sm font-medium whitespace-nowrap">{currentProgress}%</span>
+              <CourseDownloadActions
+                courseTitle={course.title}
+                courseDescription={course.description}
+                courseLevel={course.level}
+                courseDurationHours={course.duration_hours}
+                modules={modules}
+              />
             </div>
             
             {enrollment.status === 'passed' && (

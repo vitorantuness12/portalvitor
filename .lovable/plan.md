@@ -1,31 +1,34 @@
 
-# Baixar Curso em PDF e Comprar Impresso
+## Corrigir erro "unsupported number" na geracao de PDF
 
-## O que sera feito
+### Problema
+O erro `unsupported number: -1.9257742442982246e+21` ocorre no `@react-pdf/renderer` durante o `renderText` / `translate`. Isso e um bug conhecido da biblioteca causado por combinacoes de estilos que fazem o motor de layout calcular coordenadas invalidas.
 
-1. **Botao "Baixar PDF"** - Gera um PDF completo do curso com todos os modulos formatados, usando a biblioteca @react-pdf/renderer que ja esta instalada no projeto.
+### Causa raiz
+Tres problemas no `CoursePdfDocument.tsx`:
+1. **`maxWidth: 400`** na descricao da capa - causa calculo de posicao invalido quando combinado com `alignItems: 'center'`
+2. **`lineHeight` decimal** (1.6 e 1.7) - em algumas versoes do react-pdf, valores decimais de lineHeight causam overflow numerico em textos longos
+3. **Textos muito longos em um unico `<Text>`** - paragrafos extensos podem estourar o calculo de layout
 
-2. **Botao "Comprar Impresso"** - Redireciona para o WhatsApp com uma mensagem pre-formatada contendo o nome do curso e interesse na versao impressa.
+### Solucao
 
-3. **Onde os botoes aparecem** - Na pagina de estudo do curso (CourseStudy.tsx), no cabecalho, acessiveis tanto no desktop quanto no mobile.
+Editar `src/components/courses/CoursePdfDocument.tsx`:
 
-## Detalhes Tecnicos
+1. **Remover `maxWidth: 400`** do estilo `coverDescription` - substituir por padding lateral na pagina de capa
+2. **Trocar `lineHeight` decimal por valores inteiros** - usar `lineHeight: 2` em vez de `1.7`, ou remover completamente e usar `marginBottom` entre paragrafos para espacamento
+3. **Limitar tamanho dos paragrafos** - na funcao `splitIntoParagraphs`, quebrar textos maiores que ~500 caracteres em pedacos menores para evitar overflow no layout engine
+4. **Remover `alignItems: 'center'`** da capa e usar `textAlign: 'center'` nos textos individualmente - evita calculo de posicionamento complexo pelo layout engine
 
-### 1. Novo componente: `src/components/courses/CoursePdfDocument.tsx`
-- Componente React PDF que renderiza todos os modulos do curso em paginas A4
-- Capa com titulo do curso, duracao e nivel
-- Cada modulo em uma nova secao com titulo e conteudo formatado
-- Estilizacao profissional com cores da marca
+### Detalhes tecnicos
 
-### 2. Novo componente: `src/components/courses/CourseDownloadActions.tsx`
-- Dois botoes: "Baixar PDF" e "Comprar Impresso"
-- O botao PDF usa `@react-pdf/renderer` com `pdf().toBlob()` para gerar e baixar
-- O botao Impresso abre `https://wa.me/NUMERO?text=mensagem` com mensagem automatica
-- O numero do WhatsApp sera configuravel (vou pedir para voce digitar)
+```text
+Estilos problematicos         ->  Correcao
+------------------------------------------------------
+maxWidth: 400                 ->  Remover, usar padding
+lineHeight: 1.6 / 1.7        ->  Remover, usar marginBottom
+alignItems: 'center' (capa)  ->  textAlign: 'center' nos Text
+```
 
-### 3. Alteracao: `src/pages/CourseStudy.tsx`
-- Adicionar os botoes de acao no cabecalho da pagina, ao lado do progresso
-- Botoes aparecem tanto em mobile quanto desktop
+A funcao `splitIntoParagraphs` sera atualizada para tambem quebrar paragrafos individuais muito longos (>500 chars) em pedacos menores, evitando que o motor de layout tente renderizar blocos de texto enormes.
 
-### Numero do WhatsApp
-Preciso que voce me informe o numero do WhatsApp com DDD e codigo do pais (ex: 5511999999999) para configurar o botao "Comprar Impresso". Posso colocar um numero padrao e voce altera depois.
+Apenas o arquivo `src/components/courses/CoursePdfDocument.tsx` sera editado.

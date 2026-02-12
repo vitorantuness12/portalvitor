@@ -1,34 +1,52 @@
 
-## Corrigir erro "unsupported number" na geracao de PDF
 
-### Problema
-O erro `unsupported number: -1.9257742442982246e+21` ocorre no `@react-pdf/renderer` durante o `renderText` / `translate`. Isso e um bug conhecido da biblioteca causado por combinacoes de estilos que fazem o motor de layout calcular coordenadas invalidas.
+## Solucao definitiva: Substituir @react-pdf/renderer por jsPDF
 
-### Causa raiz
-Tres problemas no `CoursePdfDocument.tsx`:
-1. **`maxWidth: 400`** na descricao da capa - causa calculo de posicao invalido quando combinado com `alignItems: 'center'`
-2. **`lineHeight` decimal** (1.6 e 1.7) - em algumas versoes do react-pdf, valores decimais de lineHeight causam overflow numerico em textos longos
-3. **Textos muito longos em um unico `<Text>`** - paragrafos extensos podem estourar o calculo de layout
+### Problema raiz
+
+O `@react-pdf/renderer` tem um bug conhecido com textos longos - ele causa erro `unsupported number` quando o motor de layout tenta calcular posicoes para grandes volumes de texto. Os modulos deste curso tem entre 23.000 e 28.000 caracteres cada, totalizando mais de 200.000 caracteres. Nenhum ajuste de estilo resolve isso - e uma limitacao fundamental da biblioteca.
+
+Depois de 4 tentativas de corrigir via estilos, a unica solucao e trocar a biblioteca.
 
 ### Solucao
 
-Editar `src/components/courses/CoursePdfDocument.tsx`:
+Substituir `@react-pdf/renderer` pela biblioteca `jsPDF`, que e leve (~150KB), estavel com grandes volumes de texto e gera PDFs diretamente no navegador sem motor de layout complexo.
 
-1. **Remover `maxWidth: 400`** do estilo `coverDescription` - substituir por padding lateral na pagina de capa
-2. **Trocar `lineHeight` decimal por valores inteiros** - usar `lineHeight: 2` em vez de `1.7`, ou remover completamente e usar `marginBottom` entre paragrafos para espacamento
-3. **Limitar tamanho dos paragrafos** - na funcao `splitIntoParagraphs`, quebrar textos maiores que ~500 caracteres em pedacos menores para evitar overflow no layout engine
-4. **Remover `alignItems: 'center'`** da capa e usar `textAlign: 'center'` nos textos individualmente - evita calculo de posicionamento complexo pelo layout engine
+### O que sera feito
+
+1. **Instalar `jspdf`** como dependencia do projeto
+
+2. **Reescrever `CoursePdfDocument.tsx`** - Substituir o componente React por uma funcao utilitaria `generateCoursePdf()` que usa jsPDF para:
+   - Criar pagina de capa com titulo, descricao, nivel, duracao e numero de modulos
+   - Gerar paginas de conteudo para cada modulo com quebra automatica de texto
+   - Adicionar cabecalho com titulo do curso e numeracao de paginas
+   - Limpar markdown do conteudo antes de renderizar
+
+3. **Atualizar `CourseDownloadActions.tsx`** - Trocar a chamada de `pdf().toBlob()` do react-pdf pela nova funcao `generateCoursePdf()` que retorna o blob do jsPDF
+
+4. **Remover `@react-pdf/renderer`** das dependencias (se nao for usado em outros lugares do projeto)
 
 ### Detalhes tecnicos
 
+A nova funcao tera esta estrutura:
+
 ```text
-Estilos problematicos         ->  Correcao
-------------------------------------------------------
-maxWidth: 400                 ->  Remover, usar padding
-lineHeight: 1.6 / 1.7        ->  Remover, usar marginBottom
-alignItems: 'center' (capa)  ->  textAlign: 'center' nos Text
+generateCoursePdf(props) -> Blob
+  1. Criar instancia jsPDF (A4, portrait)
+  2. Renderizar capa (titulo centralizado, linha divisoria, meta dados)
+  3. Para cada modulo:
+     - Limpar markdown do conteudo
+     - Usar doc.text() com splitTextToSize() para quebra automatica
+     - Adicionar novas paginas automaticamente quando o texto ultrapassar a margem inferior
+     - Adicionar cabecalho e numero de pagina em cada pagina
+  4. Retornar doc.output('blob')
 ```
 
-A funcao `splitIntoParagraphs` sera atualizada para tambem quebrar paragrafos individuais muito longos (>500 chars) em pedacos menores, evitando que o motor de layout tente renderizar blocos de texto enormes.
+O jsPDF lida nativamente com textos de qualquer tamanho sem problemas de layout, pois nao usa motor de layout flexbox como o react-pdf.
 
-Apenas o arquivo `src/components/courses/CoursePdfDocument.tsx` sera editado.
+### Arquivos afetados
+
+- `src/components/courses/CoursePdfDocument.tsx` - Reescrito como funcao utilitaria
+- `src/components/courses/CourseDownloadActions.tsx` - Atualizado para usar nova funcao
+- `package.json` - Adicionar jspdf, verificar se react-pdf pode ser removido
+

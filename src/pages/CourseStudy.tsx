@@ -380,6 +380,20 @@ export default function CourseStudy() {
     }
   };
 
+  const handlePrevModule = useCallback(() => {
+    if (currentModuleIndex > 0) {
+      setCurrentModuleIndex(currentModuleIndex - 1);
+      setExpandedModules([currentModuleIndex - 1]);
+    }
+  }, [currentModuleIndex]);
+
+  const handleNextModule = useCallback(() => {
+    if (currentModuleIndex < modules.length - 1) {
+      setCurrentModuleIndex(currentModuleIndex + 1);
+      setExpandedModules([currentModuleIndex + 1]);
+    }
+  }, [currentModuleIndex, modules.length]);
+
   if (courseLoading || enrollmentLoading) {
     return (
       <div className="min-h-screen flex flex-col">
@@ -399,21 +413,6 @@ export default function CourseStudy() {
   if (!course || !enrollment) {
     return null;
   }
-
-
-  const handlePrevModule = useCallback(() => {
-    if (currentModuleIndex > 0) {
-      setCurrentModuleIndex(currentModuleIndex - 1);
-      setExpandedModules([currentModuleIndex - 1]);
-    }
-  }, [currentModuleIndex]);
-
-  const handleNextModule = useCallback(() => {
-    if (currentModuleIndex < modules.length - 1) {
-      setCurrentModuleIndex(currentModuleIndex + 1);
-      setExpandedModules([currentModuleIndex + 1]);
-    }
-  }, [currentModuleIndex, modules.length]);
 
   return (
     <div className="min-h-screen flex flex-col bg-muted/30">

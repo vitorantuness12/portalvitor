@@ -70,7 +70,11 @@ serve(async (req) => {
     }
 
     // Clean phone number - remove non-digits
-    const cleanNumber = number.replace(/\D/g, "");
+    let cleanNumber = number.replace(/\D/g, "");
+    // Auto-prefix Brazil country code if missing
+    if (!cleanNumber.startsWith("55")) {
+      cleanNumber = "55" + cleanNumber;
+    }
 
     // Build the Evolution API URL
     const baseUrl = EVOLUTION_API_URL.replace(/\/$/, "");

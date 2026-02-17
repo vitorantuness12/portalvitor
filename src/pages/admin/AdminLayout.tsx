@@ -17,6 +17,7 @@ import {
   CreditCard,
   Wallet,
   Activity,
+  Phone,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -39,6 +40,7 @@ const sidebarLinks = [
   { href: '/admin/certificados', icon: Award, label: 'Certificados' },
   { href: '/admin/config-certificado', icon: Settings, label: 'Editar Certificado' },
   { href: '/admin/carteirinhas', icon: CreditCard, label: 'Carteirinhas' },
+  { href: '/admin/whatsapp', icon: Phone, label: 'WhatsApp' },
   { href: '/admin/suporte', icon: Headphones, label: 'Suporte', badge: true },
 ];
 

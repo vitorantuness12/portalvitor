@@ -34,6 +34,7 @@ import TopicGenerator from "./pages/admin/TopicGenerator";
 import CertificateConfig from "./pages/admin/CertificateConfig";
 import AdminPayments from "./pages/admin/Payments";
 import JobsMonitor from "./pages/admin/JobsMonitor";
+import WhatsAppAdmin from "./pages/admin/WhatsApp";
 import NotFound from "./pages/NotFound";
 import Onboarding from "./pages/Onboarding";
 import { SupportChat } from "./components/support/SupportChat";
@@ -83,6 +84,7 @@ function App() {
                   <Route path="jobs" element={<JobsMonitor />} />
                   <Route path="carteirinhas" element={<AdminStudentCards />} />
                   <Route path="suporte" element={<AdminSupportTickets />} />
+                  <Route path="whatsapp" element={<WhatsAppAdmin />} />
                 </Route>
 
                 <Route path="*" element={<NotFound />} />

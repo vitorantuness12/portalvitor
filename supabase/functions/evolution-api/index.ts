@@ -91,10 +91,20 @@ serve(async (req) => {
       }
 
       case "restart": {
-        // Restart instance
+        // Restart instance - try DELETE+reconnect approach
+        const logoutRes = await fetch(
+          `${baseUrl}/instance/logout/${instance}`,
+          { method: "DELETE", headers }
+        );
+        // Ignore logout errors, then reconnect
+        if (logoutRes.ok) await logoutRes.json(); else await logoutRes.text();
+        
+        // Small delay before reconnecting
+        await new Promise(r => setTimeout(r, 1000));
+        
         const res = await fetch(
-          `${baseUrl}/instance/restart/${instance}`,
-          { method: "PUT", headers }
+          `${baseUrl}/instance/connect/${instance}`,
+          { headers }
         );
         if (!res.ok) {
           const text = await res.text();

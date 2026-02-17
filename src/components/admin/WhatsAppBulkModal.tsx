@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import {
@@ -16,7 +16,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { MessageSquare, Phone, ExternalLink, Users, AlertCircle, FileText, Plus, Trash2, Save, Info, Eye } from 'lucide-react';
+import { MessageSquare, Phone, Send, Users, AlertCircle, FileText, Plus, Trash2, Save, Info, Eye, Loader2, CheckCircle2, XCircle } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -101,6 +101,8 @@ export function WhatsAppBulkModal({ open, onOpenChange, courseId, courseTitle }:
   const [newTemplateName, setNewTemplateName] = useState('');
   const [newTemplateContent, setNewTemplateContent] = useState('');
   const [previewStudentId, setPreviewStudentId] = useState<string | null>(null);
+  const [sendingStatus, setSendingStatus] = useState<Record<string, 'pending' | 'sending' | 'sent' | 'error'>>({});
+  const [isBulkSending, setIsBulkSending] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -208,22 +210,69 @@ export function WhatsAppBulkModal({ open, onOpenChange, courseId, courseTitle }:
       .replace(/{dataHoje}/g, today);
   };
 
-  const generateWhatsAppLink = (phone: string, text: string) => {
-    const encodedMessage = encodeURIComponent(text);
-    return `https://wa.me/55${phone}?text=${encodedMessage}`;
-  };
-
-  const openAllLinks = () => {
-    if (!message.trim()) return;
+  const sendToStudent = useCallback(async (student: EnrolledStudent) => {
+    if (!student.profiles?.whatsapp || !message.trim()) return;
     
-    studentsWithWhatsApp.forEach((student, index) => {
-      if (student.profiles?.whatsapp) {
-        const personalizedMessage = replaceVariables(message, student);
-        setTimeout(() => {
-          window.open(generateWhatsAppLink(student.profiles!.whatsapp!, personalizedMessage), '_blank');
-        }, index * 500);
-      }
+    const personalizedMessage = replaceVariables(message, student);
+    const phone = student.profiles.whatsapp;
+    
+    setSendingStatus(prev => ({ ...prev, [student.user_id]: 'sending' }));
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('send-whatsapp', {
+        body: { number: phone, message: personalizedMessage },
+      });
+      
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.error || 'Erro ao enviar');
+      
+      setSendingStatus(prev => ({ ...prev, [student.user_id]: 'sent' }));
+    } catch (err) {
+      console.error('Erro ao enviar para', phone, err);
+      setSendingStatus(prev => ({ ...prev, [student.user_id]: 'error' }));
+    }
+  }, [message, courseTitle]);
+
+  const sendToAll = async () => {
+    if (!message.trim() || studentsWithWhatsApp.length === 0) return;
+    
+    setIsBulkSending(true);
+    
+    // Initialize all statuses
+    const initialStatus: Record<string, 'pending' | 'sending' | 'sent' | 'error'> = {};
+    studentsWithWhatsApp.forEach(s => { initialStatus[s.user_id] = 'pending'; });
+    setSendingStatus(initialStatus);
+    
+    let successCount = 0;
+    let errorCount = 0;
+    
+    for (const student of studentsWithWhatsApp) {
+      await sendToStudent(student);
+      // Small delay between messages to avoid rate limiting
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      setSendingStatus(prev => {
+        if (prev[student.user_id] === 'sent') successCount++;
+        else if (prev[student.user_id] === 'error') errorCount++;
+        return prev;
+      });
+    }
+    
+    // Count final results
+    setSendingStatus(prev => {
+      const sent = Object.values(prev).filter(s => s === 'sent').length;
+      const errors = Object.values(prev).filter(s => s === 'error').length;
+      
+      toast({
+        title: `Envio concluído`,
+        description: `${sent} enviadas com sucesso${errors > 0 ? `, ${errors} com erro` : ''}`,
+        variant: errors > 0 ? 'destructive' : 'default',
+      });
+      
+      return prev;
     });
+    
+    setIsBulkSending(false);
   };
 
   const applyTemplate = (template: string) => {
@@ -487,23 +536,33 @@ export function WhatsAppBulkModal({ open, onOpenChange, courseId, courseTitle }:
                           <span className="text-sm text-muted-foreground hidden sm:block">
                             {formatPhoneBR(student.profiles!.whatsapp!)}
                           </span>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            disabled={!message.trim()}
-                            onClick={() => {
-                              if (student.profiles?.whatsapp) {
-                                const personalizedMessage = replaceVariables(message, student);
-                                window.open(
-                                  generateWhatsAppLink(student.profiles.whatsapp, personalizedMessage),
-                                  '_blank'
-                                );
-                              }
-                            }}
-                          >
-                            <Phone className="h-3 w-3 mr-1" />
-                            <span className="hidden sm:inline">Enviar</span>
-                          </Button>
+                          {sendingStatus[student.user_id] === 'sending' ? (
+                            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                          ) : sendingStatus[student.user_id] === 'sent' ? (
+                            <CheckCircle2 className="h-4 w-4 text-green-500" />
+                          ) : sendingStatus[student.user_id] === 'error' ? (
+                            <div className="flex items-center gap-1">
+                              <XCircle className="h-4 w-4 text-destructive" />
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-7 px-2 text-xs"
+                                onClick={() => sendToStudent(student)}
+                              >
+                                Reenviar
+                              </Button>
+                            </div>
+                          ) : (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled={!message.trim() || isBulkSending}
+                              onClick={() => sendToStudent(student)}
+                            >
+                              <Send className="h-3 w-3 mr-1" />
+                              <span className="hidden sm:inline">Enviar</span>
+                            </Button>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -556,17 +615,26 @@ export function WhatsAppBulkModal({ open, onOpenChange, courseId, courseTitle }:
             </Button>
             <Button
               className="flex-1"
-              disabled={!message.trim() || studentsWithWhatsApp.length === 0}
-              onClick={openAllLinks}
+              disabled={!message.trim() || studentsWithWhatsApp.length === 0 || isBulkSending}
+              onClick={sendToAll}
             >
-              <ExternalLink className="h-4 w-4 mr-2" />
-              Abrir Todos ({studentsWithWhatsApp.length})
+              {isBulkSending ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Enviando...
+                </>
+              ) : (
+                <>
+                  <Send className="h-4 w-4 mr-2" />
+                  Enviar para Todos ({studentsWithWhatsApp.length})
+                </>
+              )}
             </Button>
           </div>
 
-          {studentsWithWhatsApp.length > 0 && (
+          {isBulkSending && (
             <p className="text-xs text-muted-foreground text-center">
-              Os links serão abertos em novas abas. Certifique-se de permitir pop-ups neste site.
+              Enviando mensagens via Evolution API... Não feche esta janela.
             </p>
           )}
         </div>

@@ -132,7 +132,11 @@ serve(async (req) => {
         const { number, message } = params;
         if (!number || !message) throw new Error("Número e mensagem obrigatórios");
 
-        const cleanNumber = number.replace(/\D/g, "");
+        let cleanNumber = number.replace(/\D/g, "");
+        // Auto-prefix Brazil country code if missing
+        if (!cleanNumber.startsWith("55")) {
+          cleanNumber = "55" + cleanNumber;
+        }
         const res = await fetch(
           `${baseUrl}/message/sendText/${instance}`,
           {

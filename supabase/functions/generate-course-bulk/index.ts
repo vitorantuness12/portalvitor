@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 interface BulkCourseRequest {
@@ -12,13 +12,13 @@ interface BulkCourseRequest {
   autoCategory?: boolean;
   price?: number;
   autoPrice?: boolean;
-  durationRange?: string; // "5-10", "10-20", "20-40", "60", "80"
-  contentDepth?: string; // "basico", "detalhado", "extenso"
-  openaiModel?: string; // "gpt-4o-mini" or "gpt-4o"
+  durationRange?: string;
+  contentDepth?: string;
+  openaiModel?: string;
   additionalInstructions?: string;
 }
 
-// Tool schemas for structured output - will be updated dynamically with categories
+// Tool schema for analysis
 const createCourseAnalysisTool = (categoryNames: string[], includePrice: boolean) => ({
   type: "function",
   function: {
@@ -38,108 +38,28 @@ const createCourseAnalysisTool = (categoryNames: string[], includePrice: boolean
         },
         moduleCount: {
           type: "number",
-          description: "Recommended number of modules based on duration: 5h=3 modules, 10h=4 modules, 20h=5 modules, 40h=7 modules, 60h=9 modules, 80h=12 modules. More hours = more modules for complete coverage."
+          description: "Recommended number of modules based on duration: 5h=3, 10h=4, 20h=5, 40h=7, 60h=9, 80h=12"
         },
         suggestedCategory: {
           type: "string",
           enum: categoryNames,
-          description: "The most appropriate category for this course based on its topic"
+          description: "The most appropriate category for this course"
         },
         ...(includePrice ? {
           suggestedPrice: {
             type: "number",
-            description: "Suggested price in BRL (Brazilian Reais). Consider: free (0) for basic intro courses, 29-49 for short beginner courses, 79-149 for intermediate courses, 199-399 for advanced/specialized courses, 499+ for comprehensive professional courses. Base on duration, complexity, and market value."
+            description: "Suggested price in BRL following pricing rules"
           }
         } : {}),
         reasoning: {
           type: "string",
-          description: "Brief explanation of why this level, duration, category, and price were chosen"
+          description: "Brief explanation of choices"
         }
       },
       required: ["level", "duration", "moduleCount", "suggestedCategory", ...(includePrice ? ["suggestedPrice"] : []), "reasoning"]
     }
   }
 });
-
-const courseContentTool = {
-  type: "function",
-  function: {
-    name: "create_course_content",
-    description: "Create complete educational course content with EXTENSIVE teaching material. Each module MUST have minimum 1500-2000 words of comprehensive content.",
-    parameters: {
-      type: "object",
-      properties: {
-        title: { type: "string", description: "Course title - clear and professional" },
-        subtitle: { type: "string", description: "Catchy subtitle (max 150 chars)" },
-        description: { type: "string", description: "Full course description (2-3 paragraphs)" },
-        modules: {
-          type: "array",
-          items: {
-            type: "object",
-            properties: {
-              title: { type: "string", description: "Module title" },
-              content: { type: "string", description: "EXTENSIVE educational content with MINIMUM 1500-2000 words. Include: detailed theory, multiple practical examples, real case studies, step-by-step tutorials, best practices, common mistakes, and exercises. Write like a complete textbook chapter." }
-            },
-            required: ["title", "content"]
-          }
-        }
-      },
-      required: ["title", "subtitle", "description", "modules"]
-    }
-  }
-};
-
-const exercisesTool = {
-  type: "function",
-  function: {
-    name: "create_exercises",
-    description: "Create practice exercises",
-    parameters: {
-      type: "object",
-      properties: {
-        exercises: {
-          type: "array",
-          items: {
-            type: "object",
-            properties: {
-              question: { type: "string" },
-              options: { type: "array", items: { type: "string" } },
-              correctAnswer: { type: "number" }
-            },
-            required: ["question", "options", "correctAnswer"]
-          }
-        }
-      },
-      required: ["exercises"]
-    }
-  }
-};
-
-const examTool = {
-  type: "function",
-  function: {
-    name: "create_exam",
-    description: "Create final exam questions",
-    parameters: {
-      type: "object",
-      properties: {
-        examQuestions: {
-          type: "array",
-          items: {
-            type: "object",
-            properties: {
-              question: { type: "string" },
-              options: { type: "array", items: { type: "string" } },
-              correctAnswer: { type: "number" }
-            },
-            required: ["question", "options", "correctAnswer"]
-          }
-        }
-      },
-      required: ["examQuestions"]
-    }
-  }
-};
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -190,14 +110,13 @@ serve(async (req) => {
 
     const { topic, categoryId, autoCategory, price, autoPrice, durationRange, contentDepth, openaiModel, additionalInstructions }: BulkCourseRequest = await req.json();
 
-    // All models use OpenAI directly
     const validModels = ["gpt-4o-mini", "gpt-4o", "o1", "o1-mini", "o3-mini"];
     const selectedModel = validModels.includes(openaiModel || "") ? openaiModel : "gpt-4o-mini";
+    const isO1Model = selectedModel?.startsWith("o1") || selectedModel?.startsWith("o3");
 
     const apiEndpoint = "https://api.openai.com/v1/chat/completions";
-    const apiKey = OPENAI_API_KEY;
 
-    console.log("Bulk generating course with AI:", { topic, price, autoCategory, autoPrice, durationRange, contentDepth, model: selectedModel });
+    console.log("Bulk analyzing course:", { topic, autoCategory, autoPrice, durationRange, contentDepth, model: selectedModel });
 
     // Fetch categories if auto-category is enabled
     let categories: { id: string; name: string }[] = [];
@@ -221,30 +140,15 @@ serve(async (req) => {
     
     if (durationRange) {
       switch (durationRange) {
-        case "5-10":
-          forcedDuration = 10;
-          forcedModuleCount = 4;
-          break;
-        case "10-20":
-          forcedDuration = 20;
-          forcedModuleCount = 5;
-          break;
-        case "20-40":
-          forcedDuration = 40;
-          forcedModuleCount = 7;
-          break;
-        case "60":
-          forcedDuration = 60;
-          forcedModuleCount = 9;
-          break;
-        case "80":
-          forcedDuration = 80;
-          forcedModuleCount = 12;
-          break;
+        case "5-10": forcedDuration = 10; forcedModuleCount = 4; break;
+        case "10-20": forcedDuration = 20; forcedModuleCount = 5; break;
+        case "20-40": forcedDuration = 40; forcedModuleCount = 7; break;
+        case "60": forcedDuration = 60; forcedModuleCount = 9; break;
+        case "80": forcedDuration = 80; forcedModuleCount = 12; break;
       }
     }
 
-    // Step 1: Analyze topic to determine level, duration, category, and optionally price
+    // Step 1: Analyze topic (quick call)
     let analysisPrompt = `Analise este tema de curso e determine:
 1. O nível (iniciante, intermediario ou avancado)`;
     
@@ -261,60 +165,50 @@ serve(async (req) => {
     if (autoPrice) {
       analysisPrompt += `\n${autoCategory ? '4' : '3'}. O preço sugerido em Reais (R$) considerando:
    - Gratuito (0): cursos introdutórios básicos
-   - R$ 29-49: cursos curtos para iniciantes
-   - R$ 79-149: cursos intermediários
-   - R$ 199-399: cursos avançados/especializados
-   - R$ 499+: cursos profissionais completos`;
+   - R$ 9,90-14,90: cursos de 5-10 horas
+   - R$ 19,90-29,90: cursos de 10-20 horas
+   - R$ 39,90-49,90: cursos de 20-40 horas
+   - R$ 59,90-69,90: cursos de 60 horas
+   - R$ 89,90-99,90: cursos de 80 horas`;
     }
 
     analysisPrompt += `
 
 TEMA: "${topic}"
 ${additionalInstructions ? `CONTEXTO ADICIONAL: ${additionalInstructions}` : ""}
-${forcedDuration ? `\nIMPORTANTE: A duração DEVE ser ${forcedDuration} horas. O usuário escolheu essa carga horária.` : ""}
+${forcedDuration ? `\nIMPORTANTE: A duração DEVE ser ${forcedDuration} horas.` : ""}
 
-Considere:
-- Temas básicos ou introdutórios = iniciante, 5-10h, 3-4 módulos
-- Temas que requerem conhecimento prévio = intermediario, 20-40h, 5-7 módulos
-- Temas especializados ou complexos = avancado, 40-80h, 7-12 módulos
-
-REGRA DE MÓDULOS (muito importante):
+REGRA DE MÓDULOS:
 - 5 horas = 3 módulos
 - 10 horas = 4 módulos
 - 20 horas = 5-6 módulos
 - 40 horas = 7-8 módulos
 - 60 horas = 9-10 módulos
-- 80 horas = 11-12 módulos
+- 80 horas = 11-12 módulos`;
 
-REGRA DE PREÇOS (OBRIGATÓRIO seguir esta tabela):
-- Cursos de 5-10 horas: R$ 9,90 a R$ 14,90
-- Cursos de 10-20 horas: R$ 19,90 a R$ 29,90
-- Cursos de 20-40 horas: R$ 39,90 a R$ 49,90
-- Cursos de 60 horas: R$ 59,90 a R$ 69,90
-- Cursos de 80 horas: R$ 89,90 a R$ 99,90
-Use valores quebrados como 19.90, 29.90, 39.90, etc.`;
+    const analysisRequestBody: any = {
+      model: selectedModel,
+      messages: [
+        ...(isO1Model ? [] : [{ role: "system", content: "Você é um especialista em design instrucional." }]),
+        { role: "user", content: isO1Model ? `Você é um especialista em design instrucional.\n\n${analysisPrompt}` : analysisPrompt },
+      ],
+      tools: [courseAnalysisTool],
+      tool_choice: { type: "function", function: { name: "analyze_course_topic" } },
+    };
+
+    if (isO1Model) {
+      analysisRequestBody.max_completion_tokens = 2000;
+    } else {
+      analysisRequestBody.max_tokens = 2000;
+    }
 
     const analysisResponse = await fetch(apiEndpoint, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${apiKey}`,
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        model: selectedModel,
-        messages: [
-          { 
-            role: "system", 
-            content: "Você é um especialista em design instrucional. Analise o tema do curso e determine o nível de dificuldade apropriado, a carga horária recomendada e a categoria mais adequada baseado na complexidade e natureza do assunto." 
-          },
-          { 
-            role: "user", 
-            content: analysisPrompt
-          },
-        ],
-        tools: [courseAnalysisTool],
-        tool_choice: { type: "function", function: { name: "analyze_course_topic" } },
-      }),
+      body: JSON.stringify(analysisRequestBody),
     });
 
     if (!analysisResponse.ok) {
@@ -343,7 +237,6 @@ Use valores quebrados como 19.90, 29.90, 39.90, etc.`;
       if (toolCall && toolCall.function.arguments) {
         analysis = JSON.parse(toolCall.function.arguments);
       } else {
-        // Default values if analysis fails
         analysis = { level: "iniciante", duration: 10, moduleCount: 4 };
       }
     } catch (e) {
@@ -354,368 +247,73 @@ Use valores quebrados como 19.90, 29.90, 39.90, etc.`;
     console.log("Course analysis:", analysis);
 
     const { level, suggestedCategory, suggestedPrice } = analysis;
-    
-    // Use forced duration/moduleCount if provided, otherwise use AI suggestion
     const finalDuration = forcedDuration || analysis.duration || 10;
     const finalModuleCount = forcedModuleCount || analysis.moduleCount || Math.max(3, Math.min(12, Math.floor(finalDuration / 6) + 2));
 
     // Determine final category ID
     let finalCategoryId = categoryId;
+    let finalCategoryName = suggestedCategory || null;
     if (autoCategory && suggestedCategory && categories.length > 0) {
       const matchedCategory = categories.find(c => c.name === suggestedCategory);
       if (matchedCategory) {
         finalCategoryId = matchedCategory.id;
-        console.log("AI suggested category:", suggestedCategory, "->", finalCategoryId);
+        finalCategoryName = matchedCategory.name;
       }
     }
 
-    // Determine final price
     const finalPrice = autoPrice && suggestedPrice !== undefined ? suggestedPrice : (price || 0);
-    console.log("Final price:", finalPrice, autoPrice ? "(AI suggested)" : "(manual)");
-    console.log("Final duration:", finalDuration, forcedDuration ? "(user selected)" : "(AI suggested)");
-    console.log("Final module count:", finalModuleCount);
-    
-    // Define content depth parameters - DYNAMIC based on model
-    // O1/O3 models support much higher output limits (65k-100k tokens)
-    // GPT-4o models are limited to 16384 output tokens
-    const isO1Model = selectedModel?.startsWith("o1") || selectedModel?.startsWith("o3");
-    
-    const getDepthConfig = (model: string) => {
-      const isHighTokenModel = model?.startsWith("o1") || model?.startsWith("o3");
-      
-      if (isHighTokenModel) {
-        return {
-          basico: { minWords: 500, maxTokens: 12000, description: "resumido e direto ao ponto" },
-          detalhado: { minWords: 1500, maxTokens: 20000, description: "com bom nível de detalhes e exemplos" },
-          extenso: { minWords: 3000, maxTokens: 35000, description: "extremamente completo como um livro didático profissional" },
-          muito_extenso: { minWords: 5000, maxTokens: 50000, description: "altamente detalhado com teoria e prática aprofundadas" },
-          profissional: { minWords: 7000, maxTokens: 65000, description: "conteúdo de nível profissional com cobertura completa" },
-          enciclopedico: { minWords: 10000, maxTokens: 80000, description: "conteúdo enciclopédico com máximo nível de detalhamento" }
-        };
-      }
-      
-      return {
-        basico: { minWords: 500, maxTokens: 8000, description: "resumido e direto ao ponto" },
-        detalhado: { minWords: 1000, maxTokens: 12000, description: "com bom nível de detalhes e exemplos" },
-        extenso: { minWords: 2000, maxTokens: 16000, description: "extremamente completo como um livro didático profissional" },
-        muito_extenso: { minWords: 3000, maxTokens: 16000, description: "altamente detalhado com teoria e prática aprofundadas" },
-        profissional: { minWords: 4000, maxTokens: 16000, description: "conteúdo de nível profissional com cobertura completa" },
-        enciclopedico: { minWords: 5000, maxTokens: 16000, description: "conteúdo enciclopédico com máximo nível de detalhamento" }
-      };
-    };
-    
-    let depth;
-    if (contentDepth === 'auto' || !contentDepth) {
-      const depthConfig = getDepthConfig(selectedModel || "gpt-4o-mini");
-      if (level === 'avancado' || finalDuration >= 60) {
-        depth = depthConfig.extenso;
-      } else if (level === 'intermediario' || finalDuration >= 20) {
-        depth = depthConfig.detalhado;
-      } else {
-        depth = depthConfig.basico;
-      }
-      console.log("AI decided content depth based on level:", level, "duration:", finalDuration);
-    } else {
-      const depthConfig = getDepthConfig(selectedModel || "gpt-4o-mini");
-      depth = depthConfig[contentDepth as keyof typeof depthConfig] || depthConfig.detalhado;
-    }
-    
-    console.log("Using depth config for model:", selectedModel, "->", depth);
-    
-    // Step 2: Generate course content
-    // Build the content prompt with anti-truncation instructions for high-token models
-    const antiTruncationNote = isO1Model ? `
-⚠️ IMPORTANTE: Você tem tokens suficientes (${depth.maxTokens}) para gerar conteúdo COMPLETO.
-NÃO adicione notas como "versão reduzida", "seria necessário detalhar", "em uma versão completa".
-Gere o conteúdo COMPLETO e EXTENSO sem truncamento ou avisos de incompletude.
-` : "";
 
-    const contentPrompt = `Você é um professor universitário renomado criando um curso online. O curso deve ser um material didático de alta qualidade.
+    console.log("Analysis complete:", { level, finalDuration, finalCategoryId, finalCategoryName, finalPrice });
 
-CURSO: "${topic}"
-NÍVEL: ${level}
-CARGA HORÁRIA: ${finalDuration} horas
-NÚMERO DE MÓDULOS: ${finalModuleCount} (OBRIGATÓRIO - crie EXATAMENTE ${finalModuleCount} módulos)
-PROFUNDIDADE DO CONTEÚDO: ${depth.description}
-MÍNIMO DE PALAVRAS POR MÓDULO: ${depth.minWords}
-${additionalInstructions ? `INSTRUÇÕES ADICIONAIS: ${additionalInstructions}` : ""}
-${antiTruncationNote}
-
-⚠️ REGRAS CRÍTICAS:
-
-1. CADA MÓDULO DEVE TER NO MÍNIMO ${depth.minWords} PALAVRAS de conteúdo educacional real
-2. NÃO ESCREVA frases como "Neste módulo vamos...", "Você aprenderá...", "Exploraremos..."
-3. ESCREVA O CONTEÚDO COMPLETO como um capítulo de livro didático
-4. NÃO adicione notas sobre "versão reduzida" ou "seria necessário detalhar mais"
-
-ESTRUTURA PARA CADA MÓDULO:
-
-## [Título do Tópico]
-
-### Introdução e Contexto
-- O QUE é, POR QUE é importante, COMO se aplica
-
-### Fundamentos Teóricos
-- Definições detalhadas, princípios, conceitos em profundidade
-
-### Técnicas e Metodologias
-- Passo a passo detalhado, quando usar, variações
-
-### Exemplos Práticos
-- Exemplos reais e detalhados com dados específicos
-
-### Erros Comuns
-- Lista de erros frequentes e como evitar
-
-### Exercícios
-- Perguntas para reflexão e atividades práticas
-
-Use **negrito**, *itálico*, listas, tabelas.
-IMPORTANTE: Crie EXATAMENTE ${finalModuleCount} módulos para ${finalDuration}h de curso.`;
-
-    // Build request body - O1 models need different handling
-    const contentRequestBody: any = {
-      model: selectedModel,
-      messages: [
-        ...(isO1Model ? [] : [{ role: "system", content: "Você é um professor universitário especialista em educação online. Você cria conteúdo educacional REAL e PRÁTICO que ensina de verdade. Use a função fornecida para estruturar o curso." }]),
-        { role: "user", content: isO1Model ? `Você é um professor universitário especialista em educação online. Você cria conteúdo educacional REAL e PRÁTICO que ensina de verdade.\n\n${contentPrompt}` : contentPrompt },
-      ],
-      tools: [courseContentTool],
-      tool_choice: { type: "function", function: { name: "create_course_content" } },
-    };
-    
-    // O1 models use max_completion_tokens, others use max_tokens
-    if (isO1Model) {
-      contentRequestBody.max_completion_tokens = depth.maxTokens;
-    } else {
-      contentRequestBody.max_tokens = depth.maxTokens;
-    }
-
-    const contentResponse = await fetch(apiEndpoint, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(contentRequestBody),
-    });
-
-    if (!contentResponse.ok) {
-      if (contentResponse.status === 429) {
-        return new Response(JSON.stringify({ error: "Limite de requisições excedido. Tente novamente em alguns minutos." }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      if (contentResponse.status === 402) {
-        return new Response(JSON.stringify({ error: "Créditos de IA esgotados." }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      throw new Error("Failed to generate course content");
-    }
-
-    const contentData = await contentResponse.json();
-    let courseContent;
-    
-    try {
-      const toolCall = contentData.choices[0].message.tool_calls?.[0];
-      if (toolCall && toolCall.function.arguments) {
-        courseContent = JSON.parse(toolCall.function.arguments);
-      } else {
-        throw new Error("No tool call in response");
-      }
-    } catch (e) {
-      console.error("Failed to parse course content:", e);
-      throw new Error("Failed to parse AI response for course content");
-    }
-
-    console.log("Course content generated:", courseContent.title);
-
-    // Step 3: Generate exercises
-    const exercisesPrompt = `Crie 10 exercícios de múltipla escolha para o curso "${courseContent.title}" sobre "${topic}". 
-As questões devem testar a compreensão do conteúdo e ter níveis variados de dificuldade.`;
-
-    const exercisesRequestBody: any = {
-      model: selectedModel,
-      messages: [
-        ...(isO1Model ? [] : [{ role: "system", content: "Você é um especialista em avaliação educacional. Crie exercícios de múltipla escolha concisos e diretos. Use a função fornecida." }]),
-        { role: "user", content: isO1Model ? `Você é um especialista em avaliação educacional. Crie exercícios de múltipla escolha concisos e diretos.\n\n${exercisesPrompt}` : exercisesPrompt },
-      ],
-      tools: [exercisesTool],
-      tool_choice: { type: "function", function: { name: "create_exercises" } },
-    };
-    
-    if (isO1Model) {
-      exercisesRequestBody.max_completion_tokens = 8000;
-    } else {
-      exercisesRequestBody.max_tokens = 8000;
-    }
-
-    const exercisesResponse = await fetch(apiEndpoint, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(exercisesRequestBody),
-    });
-
-    let exercises = { exercises: [] };
-    if (exercisesResponse.ok) {
-      try {
-        const exercisesData = await exercisesResponse.json();
-        const toolCall = exercisesData.choices[0].message.tool_calls?.[0];
-        if (toolCall && toolCall.function.arguments) {
-          let argsStr = toolCall.function.arguments;
-          // Try to fix truncated JSON by closing arrays/objects
-          if (!argsStr.endsWith('}')) {
-            // Find last complete exercise and close properly
-            const lastCompleteExercise = argsStr.lastIndexOf('},');
-            if (lastCompleteExercise > 0) {
-              argsStr = argsStr.substring(0, lastCompleteExercise + 1) + ']}';
-            } else {
-              argsStr = '{"exercises":[]}';
-            }
-          }
-          exercises = JSON.parse(argsStr);
-        }
-      } catch (e) {
-        console.error("Failed to parse exercises:", e);
-        exercises = { exercises: [] };
-      }
-    }
-
-    console.log("Exercises generated:", exercises.exercises?.length || 0);
-
-    // Step 4: Generate exam
-    const examPrompt = `Crie uma prova final com 15 questões de múltipla escolha para o curso "${courseContent.title}" sobre "${topic}".`;
-
-    const examRequestBody: any = {
-      model: selectedModel,
-      messages: [
-        ...(isO1Model ? [] : [{ role: "system", content: "Você é um especialista em avaliação educacional. Use a função fornecida para criar a prova." }]),
-        { role: "user", content: isO1Model ? `Você é um especialista em avaliação educacional. Use a função fornecida para criar a prova.\n\n${examPrompt}` : examPrompt },
-      ],
-      tools: [examTool],
-      tool_choice: { type: "function", function: { name: "create_exam" } },
-    };
-    
-    if (isO1Model) {
-      examRequestBody.max_completion_tokens = 6000;
-    } else {
-      examRequestBody.max_tokens = 6000;
-    }
-
-    const examResponse = await fetch(apiEndpoint, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(examRequestBody),
-    });
-
-    let exam = { examQuestions: [] };
-    if (examResponse.ok) {
-      try {
-        const examData = await examResponse.json();
-        const toolCall = examData.choices[0].message.tool_calls?.[0];
-        if (toolCall && toolCall.function.arguments) {
-          exam = JSON.parse(toolCall.function.arguments);
-        }
-      } catch (e) {
-        console.error("Failed to parse exam:", e);
-      }
-    }
-
-    console.log("Exam generated:", exam.examQuestions?.length || 0);
-
-    // Step 5: Save to database
-    const { data: course, error: courseError } = await supabase
-      .from("courses")
+    // Step 2: Create a job in course_generation_jobs with resolved params
+    const { data: job, error: jobError } = await supabase
+      .from("course_generation_jobs")
       .insert({
-        title: courseContent.title,
-        description: courseContent.description,
-        short_description: courseContent.subtitle?.substring(0, 150),
+        user_id: user.id,
+        topic,
+        level,
+        duration: finalDuration,
         category_id: finalCategoryId || null,
-        duration_hours: finalDuration,
-        level: level,
         price: finalPrice,
-        status: "active",
-        content_pdf_url: JSON.stringify(courseContent.modules),
+        content_depth: contentDepth || "detalhado",
+        openai_model: selectedModel,
+        additional_instructions: additionalInstructions,
+        status: "pending",
+        progress_detail: "Análise concluída, aguardando processamento..."
       })
       .select()
       .single();
 
-    if (courseError) {
-      console.error("Error creating course:", courseError);
-      throw new Error("Failed to save course to database");
+    if (jobError) {
+      console.error("Failed to create job:", jobError);
+      throw new Error("Falha ao criar job de geração");
     }
 
-    console.log("Course saved:", course.id);
+    console.log("Job created:", job.id, "for topic:", topic);
 
-    // Insert exercises
-    if (exercises.exercises && exercises.exercises.length > 0) {
-      const exercisesToInsert = exercises.exercises.map((ex: any, index: number) => ({
-        course_id: course.id,
-        question: ex.question,
-        options: ex.options,
-        correct_answer: ex.correctAnswer,
-        order_index: index,
-      }));
-
-      const { error: exercisesError } = await supabase
-        .from("course_exercises")
-        .insert(exercisesToInsert);
-
-      if (exercisesError) {
-        console.error("Error inserting exercises:", exercisesError);
-      }
-    }
-
-    // Insert exam questions
-    if (exam.examQuestions && exam.examQuestions.length > 0) {
-      const examQuestionsToInsert = exam.examQuestions.map((q: any, index: number) => ({
-        course_id: course.id,
-        question: q.question,
-        options: q.options,
-        correct_answer: q.correctAnswer,
-        order_index: index,
-      }));
-
-      const { error: examError } = await supabase
-        .from("course_exams")
-        .insert(examQuestionsToInsert);
-
-      if (examError) {
-        console.error("Error inserting exam questions:", examError);
-      }
-    }
-
-    console.log("Bulk course generation complete!");
-
+    // Return the job info + analysis results so frontend can show them
     return new Response(
       JSON.stringify({
         success: true,
-        course: {
-          id: course.id,
-          title: course.title,
-          level: level,
+        async: true,
+        jobId: job.id,
+        analysis: {
+          level,
           duration: finalDuration,
-          category: suggestedCategory || null,
+          moduleCount: finalModuleCount,
+          category: finalCategoryName,
           price: finalPrice,
-          exercisesCount: exercises.exercises?.length || 0,
-          examQuestionsCount: exam.examQuestions?.length || 0,
+          reasoning: analysis.reasoning,
         },
+        message: "Análise concluída. Job criado para processamento.",
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
     );
+
   } catch (error) {
-    console.error("Error in generate-course-bulk function:", error);
+    console.error("Error in generate-course-bulk:", error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
       {

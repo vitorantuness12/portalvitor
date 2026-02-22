@@ -39,6 +39,11 @@ export function Footer() {
                   Validar Certificado
                 </Link>
               </li>
+              <li>
+                <Link to="/validar-carteirinha" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  Validar Carteirinha
+                </Link>
+              </li>
             </ul>
           </div>
 

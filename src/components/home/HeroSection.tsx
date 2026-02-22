@@ -64,7 +64,7 @@ export function HeroSection() {
               <div className="space-y-0.5 sm:space-y-1 text-center md:text-left">
                 <div className="flex flex-col md:flex-row items-center gap-0.5 sm:gap-1 md:gap-2 text-lg sm:text-2xl md:text-3xl font-bold">
                   <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-primary" />
-                  <span>50+</span>
+                  <span>200+</span>
                 </div>
                 <p className="text-[10px] sm:text-xs md:text-sm text-muted-foreground leading-tight">Cursos disponíveis</p>
               </div>

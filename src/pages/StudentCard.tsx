@@ -162,7 +162,7 @@ export default function StudentCard() {
     }
   };
 
-  const siteBaseUrl = 'https://portalvitor.lovable.app';
+  const siteBaseUrl = 'https://formak.com.br';
   const validationUrl = studentCard
     ? `${siteBaseUrl}/validar-carteirinha?codigo=${studentCard.card_code}`
     : '';

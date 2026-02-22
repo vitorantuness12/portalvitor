@@ -27,14 +27,14 @@ export function HeroSection() {
             </div>
 
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-display font-bold leading-tight">
-              Transforme sua{' '}
-              <span className="hero-gradient-text">carreira</span>
+              Aprenda algo{' '}
+              <span className="hero-gradient-text">novo</span>
               {' '}com cursos online
             </h1>
 
             <p className="text-base sm:text-lg text-muted-foreground max-w-lg">
-              Aprenda no seu ritmo com cursos desenvolvidos por especialistas.
-              Obtenha certificados e impulsione sua carreira profissional.
+              Estude no seu ritmo com cursos de diversas áreas do conhecimento.
+              Obtenha certificados e amplie suas habilidades.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">

@@ -162,8 +162,9 @@ export default function StudentCard() {
     }
   };
 
+  const siteBaseUrl = 'https://portalvitor.lovable.app';
   const validationUrl = studentCard
-    ? `${window.location.origin}/validar-carteirinha?codigo=${studentCard.card_code}`
+    ? `${siteBaseUrl}/validar-carteirinha?codigo=${studentCard.card_code}`
     : '';
 
   if (authLoading) {

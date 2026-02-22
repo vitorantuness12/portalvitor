@@ -3,6 +3,7 @@ import { Download, Printer, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { generateCoursePdf } from './CoursePdfDocument';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 
 const WHATSAPP_NUMBER = '5567992963871';
 
@@ -28,6 +29,7 @@ export function CourseDownloadActions({
 }: CourseDownloadActionsProps) {
   const [generating, setGenerating] = useState(false);
   const { toast } = useToast();
+  const { isAdmin } = useAuth();
 
   const handleDownloadPdf = async () => {
     if (modules.length === 0) {
@@ -83,20 +85,22 @@ export function CourseDownloadActions({
 
   return (
     <div className="flex items-center gap-2">
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={handleDownloadPdf}
-        disabled={generating}
-        className="gap-1.5"
-      >
-        {generating ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          <Download className="h-4 w-4" />
-        )}
-        <span className="hidden sm:inline">Baixar PDF</span>
-      </Button>
+      {isAdmin && (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleDownloadPdf}
+          disabled={generating}
+          className="gap-1.5"
+        >
+          {generating ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Download className="h-4 w-4" />
+          )}
+          <span className="hidden sm:inline">Baixar PDF</span>
+        </Button>
+      )}
       <Button
         variant="outline"
         size="sm"

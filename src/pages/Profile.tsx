@@ -17,6 +17,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { useIsPwa } from '@/hooks/useIsPwa';
+import { PwaBottomNav } from '@/components/pwa/PwaBottomNav';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { formatPhoneBR, unformatPhone, isValidPhoneBR } from '@/lib/masks';
@@ -232,7 +233,7 @@ export default function Profile() {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      <main className="flex-1 py-8">
+      <main className={`flex-1 ${isPwa ? 'pt-4 pb-24' : 'py-8'}`}>
         <div className="container mx-auto px-4 max-w-2xl">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -481,7 +482,7 @@ export default function Profile() {
           </motion.div>
         </div>
       </main>
-      {!isPwa && <Footer />}
+      {isPwa ? <PwaBottomNav /> : <Footer />}
     </div>
   );
 }

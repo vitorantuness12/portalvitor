@@ -10,6 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useIsPwa } from '@/hooks/useIsPwa';
+import { PwaBottomNav } from '@/components/pwa/PwaBottomNav';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -81,7 +82,7 @@ export default function MyCertificates() {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      <main className="flex-1 container mx-auto px-4 py-6 sm:py-8">
+      <main className={`flex-1 container mx-auto px-4 ${isPwa ? 'pt-4 pb-24' : 'py-6 sm:py-8'}`}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -193,7 +194,7 @@ export default function MyCertificates() {
           )}
         </motion.div>
       </main>
-      {!isPwa && <Footer />}
+      {isPwa ? <PwaBottomNav /> : <Footer />}
     </div>
   );
 }

@@ -243,6 +243,19 @@
   }
 }
 
+@keyframes blob1 {
+  0%, 100% { transform: scale(1) translate(0, 0); }
+  50% { transform: scale(1.2) translate(20px, -15px); }
+}
+@keyframes blob2 {
+  0%, 100% { transform: scale(1.1) translate(0, 0); }
+  50% { transform: scale(1) translate(-10px, 20px); }
+}
+@keyframes blob3 {
+  0%, 100% { transform: scale(1) translate(-50%, -50%); }
+  50% { transform: scale(1.3) translate(-50%, -50%); }
+}
+
 /* Hide Lovable badge */
 aside#lovable-badge,
 a[href*="lovable.dev"],

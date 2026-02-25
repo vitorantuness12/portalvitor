@@ -34,6 +34,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Skeleton } from '@/components/ui/skeleton';
 import html2canvas from 'html2canvas';
+import { useIsPwa } from '@/hooks/useIsPwa';
 import logoWhite from '@/assets/logo_formak_white.png';
 
 type StudentCardType = {
@@ -87,6 +88,7 @@ export default function StudentCard() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const isPwa = useIsPwa();
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
@@ -527,7 +529,7 @@ export default function StudentCard() {
           </DialogContent>
         </Dialog>
       </main>
-      <Footer />
+      {!isPwa && <Footer />}
     </div>
   );
 }

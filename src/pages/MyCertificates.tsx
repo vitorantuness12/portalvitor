@@ -9,6 +9,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { useIsPwa } from '@/hooks/useIsPwa';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -26,6 +27,7 @@ interface Certificate {
 
 export default function MyCertificates() {
   const { user } = useAuth();
+  const isPwa = useIsPwa();
 
   const { data: certificates, isLoading } = useQuery({
     queryKey: ['my-certificates', user?.id],
@@ -71,7 +73,7 @@ export default function MyCertificates() {
             </CardContent>
           </Card>
         </main>
-        <Footer />
+        {!isPwa && <Footer />}
       </div>
     );
   }
@@ -191,7 +193,7 @@ export default function MyCertificates() {
           )}
         </motion.div>
       </main>
-      <Footer />
+      {!isPwa && <Footer />}
     </div>
   );
 }

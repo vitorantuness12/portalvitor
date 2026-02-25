@@ -16,6 +16,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import { useIsPwa } from '@/hooks/useIsPwa';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { formatPhoneBR, unformatPhone, isValidPhoneBR } from '@/lib/masks';
@@ -31,6 +32,7 @@ export default function Profile() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const isPwa = useIsPwa();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [fullName, setFullName] = useState('');
   const [whatsapp, setWhatsapp] = useState('');
@@ -479,7 +481,7 @@ export default function Profile() {
           </motion.div>
         </div>
       </main>
-      <Footer />
+      {!isPwa && <Footer />}
     </div>
   );
 }

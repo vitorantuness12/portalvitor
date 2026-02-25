@@ -11,10 +11,12 @@ import { useAuth } from '@/hooks/useAuth';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useIsPwa } from '@/hooks/useIsPwa';
 
 export default function MyCourses() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const isPwa = useIsPwa();
 
   useEffect(() => {
     if (!loading && !user) {
@@ -247,7 +249,7 @@ export default function MyCourses() {
           )}
         </div>
       </main>
-      <Footer />
+      {!isPwa && <Footer />}
     </div>
   );
 }

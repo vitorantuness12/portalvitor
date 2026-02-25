@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Menu, X, LogOut, LayoutDashboard, TrendingUp, Settings, BookOpen, Award, IdCard } from 'lucide-react';
+import { Menu, X, LogOut, LayoutDashboard, TrendingUp, Settings, BookOpen, Award, IdCard, Download } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
@@ -140,6 +140,13 @@ export function Header() {
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/install" className="cursor-pointer">
+                      <Download className="mr-2 h-4 w-4" />
+                      Baixar App
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-destructive">
                     <LogOut className="mr-2 h-4 w-4" />
                     Sair
@@ -252,6 +259,14 @@ export function Header() {
                       Painel Admin
                     </Link>
                   )}
+                  <Link
+                    to="/install"
+                    className="text-sm font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-2"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Download className="h-4 w-4" />
+                    Baixar App
+                  </Link>
                   <Button onClick={handleSignOut} variant="destructive" className="w-full">
                     Sair
                   </Button>

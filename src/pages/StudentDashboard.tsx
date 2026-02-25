@@ -24,7 +24,6 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useIsPwa } from '@/hooks/useIsPwa';
-import { PwaBottomNav } from '@/components/pwa/PwaBottomNav';
 import { format, differenceInDays, subDays, isAfter, startOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -161,7 +160,7 @@ export default function StudentDashboard() {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      <main className={`flex-1 ${isPwa ? 'pt-4 pb-24' : 'py-8'}`}>
+      <main className="flex-1 py-8">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -556,7 +555,7 @@ export default function StudentDashboard() {
           </div>
         </div>
       </main>
-      {isPwa ? <PwaBottomNav /> : <Footer />}
+      {!isPwa && <Footer />}
     </div>
   );
 }

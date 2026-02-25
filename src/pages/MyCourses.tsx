@@ -13,7 +13,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useIsPwa } from '@/hooks/useIsPwa';
 import { CreditCard, GraduationCap } from 'lucide-react';
-import { PwaBottomNav } from '@/components/pwa/PwaBottomNav';
 
 export default function MyCourses() {
   const { user, loading } = useAuth();
@@ -98,7 +97,7 @@ export default function MyCourses() {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      <main className={`flex-1 ${isPwa ? 'pt-4 pb-24' : 'py-8'}`}>
+      <main className={`flex-1 ${isPwa ? 'pt-4 pb-8' : 'py-8'}`}>
         <div className="container mx-auto px-4">
           {/* Quick Access Buttons */}
           <motion.div 
@@ -249,7 +248,7 @@ export default function MyCourses() {
           )}
         </div>
       </main>
-      {isPwa ? <PwaBottomNav /> : <Footer />}
+      {!isPwa && <Footer />}
     </div>
   );
 }

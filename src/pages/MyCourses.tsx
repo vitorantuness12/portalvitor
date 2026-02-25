@@ -96,8 +96,8 @@ export default function MyCourses() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Header />
-      <main className={`flex-1 ${isPwa ? 'pt-4 pb-8' : 'py-8'}`}>
+      {!isPwa && <Header />}
+      <main className={`flex-1 ${isPwa ? 'pt-14 pb-8' : 'py-8'}`}>
         <div className="container mx-auto px-4">
           {/* Quick Access Buttons */}
           <motion.div 

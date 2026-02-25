@@ -37,6 +37,8 @@ import JobsMonitor from "./pages/admin/JobsMonitor";
 import WhatsAppAdmin from "./pages/admin/WhatsApp";
 import NotFound from "./pages/NotFound";
 import Onboarding from "./pages/Onboarding";
+import AppLogin from "./pages/AppLogin";
+import InstallApp from "./pages/InstallApp";
 import { SupportChat } from "./components/support/SupportChat";
 
 const queryClient = new QueryClient();
@@ -55,6 +57,8 @@ function App() {
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
+                <Route path="/app-login" element={<AppLogin />} />
+                <Route path="/install" element={<InstallApp />} />
                 <Route path="/onboarding" element={<Onboarding />} />
                 <Route path="/cursos" element={<Courses />} />
                 <Route path="/meus-cursos" element={<MyCourses />} />

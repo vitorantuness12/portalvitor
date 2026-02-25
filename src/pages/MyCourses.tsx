@@ -101,30 +101,30 @@ export default function MyCourses() {
         <div className="container mx-auto px-4">
           {/* Quick Access Buttons */}
           <motion.div 
-            className="flex gap-2 mb-4 overflow-x-auto pb-1 md:hidden"
+            className="grid grid-cols-2 gap-2 mb-4 md:hidden"
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <Link to="/cursos" className="flex-shrink-0 flex-1">
+            <Link to="/cursos">
               <Button variant="outline" className="w-full text-sm" size="sm">
                 <BookOpen className="h-4 w-4 mr-1.5" />
                 Cursos
               </Button>
             </Link>
-            <Link to="/meu-progresso" className="flex-shrink-0 flex-1">
+            <Link to="/meu-progresso">
               <Button variant="outline" className="w-full text-sm" size="sm">
                 <Award className="h-4 w-4 mr-1.5" />
                 Progresso
               </Button>
             </Link>
-            <Link to="/meus-certificados" className="flex-shrink-0 flex-1">
+            <Link to="/meus-certificados">
               <Button variant="outline" className="w-full text-sm" size="sm">
                 <GraduationCap className="h-4 w-4 mr-1.5" />
                 Certificados
               </Button>
             </Link>
-            <Link to="/carteirinha" className="flex-shrink-0 flex-1">
+            <Link to="/minha-carteirinha">
               <Button variant="outline" className="w-full text-sm" size="sm">
                 <CreditCard className="h-4 w-4 mr-1.5" />
                 Carteirinha

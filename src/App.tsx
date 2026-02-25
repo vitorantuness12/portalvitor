@@ -40,6 +40,7 @@ import Onboarding from "./pages/Onboarding";
 import AppLogin from "./pages/AppLogin";
 import InstallApp from "./pages/InstallApp";
 import { SupportChat } from "./components/support/SupportChat";
+import { PwaRedirect } from "./components/PwaRedirect";
 
 const queryClient = new QueryClient();
 
@@ -93,6 +94,7 @@ function App() {
 
                 <Route path="*" element={<NotFound />} />
               </Routes>
+              <PwaRedirect />
               <SupportChat />
             </BrowserRouter>
           </TooltipProvider>

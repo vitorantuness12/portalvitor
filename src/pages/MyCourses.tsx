@@ -12,6 +12,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useIsPwa } from '@/hooks/useIsPwa';
+import { CreditCard, GraduationCap } from 'lucide-react';
 
 export default function MyCourses() {
   const { user, loading } = useAuth();
@@ -96,41 +97,39 @@ export default function MyCourses() {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      <main className="flex-1 py-8">
+      <main className={`flex-1 ${isPwa ? 'pt-4 pb-8' : 'py-8'}`}>
         <div className="container mx-auto px-4">
-          {/* Mobile Quick Access Buttons */}
+          {/* Quick Access Buttons */}
           <motion.div 
-            className="flex gap-2 mb-4 md:hidden"
+            className="flex gap-2 mb-4 overflow-x-auto pb-1 md:hidden"
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <motion.div
-              className="flex-1"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.1, duration: 0.3 }}
-            >
-              <Link to="/cursos" className="block">
-                <Button variant="outline" className="w-full">
-                  <BookOpen className="h-4 w-4 mr-2" />
-                  Cursos
-                </Button>
-              </Link>
-            </motion.div>
-            <motion.div
-              className="flex-1"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2, duration: 0.3 }}
-            >
-              <Link to="/meu-progresso" className="block">
-                <Button variant="outline" className="w-full">
-                  <Award className="h-4 w-4 mr-2" />
-                  Meu Progresso
-                </Button>
-              </Link>
-            </motion.div>
+            <Link to="/cursos" className="flex-shrink-0 flex-1">
+              <Button variant="outline" className="w-full text-sm" size="sm">
+                <BookOpen className="h-4 w-4 mr-1.5" />
+                Cursos
+              </Button>
+            </Link>
+            <Link to="/meu-progresso" className="flex-shrink-0 flex-1">
+              <Button variant="outline" className="w-full text-sm" size="sm">
+                <Award className="h-4 w-4 mr-1.5" />
+                Progresso
+              </Button>
+            </Link>
+            <Link to="/meus-certificados" className="flex-shrink-0 flex-1">
+              <Button variant="outline" className="w-full text-sm" size="sm">
+                <GraduationCap className="h-4 w-4 mr-1.5" />
+                Certificados
+              </Button>
+            </Link>
+            <Link to="/carteirinha" className="flex-shrink-0 flex-1">
+              <Button variant="outline" className="w-full text-sm" size="sm">
+                <CreditCard className="h-4 w-4 mr-1.5" />
+                Carteirinha
+              </Button>
+            </Link>
           </motion.div>
 
           <motion.div

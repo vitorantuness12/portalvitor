@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Play, Award, Users, BookOpen } from 'lucide-react';
+import { ArrowRight, Play, Award, Users, BookOpen, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export function HeroSection() {
@@ -51,6 +51,13 @@ export function HeroSection() {
                 </Button>
               </Link>
             </div>
+
+            <Link to="/install" className="inline-flex w-full sm:w-auto">
+              <Button variant="secondary" size="lg" className="gap-2 w-full sm:w-auto">
+                <Download className="h-5 w-5" />
+                Baixar App Formak
+              </Button>
+            </Link>
 
             {/* Stats */}
             <div className="grid grid-cols-3 gap-2 sm:gap-4 md:flex md:flex-wrap md:gap-8 pt-6 sm:pt-8 border-t border-border">

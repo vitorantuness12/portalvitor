@@ -53,7 +53,7 @@ export function Header() {
     <motion.header
       initial={{ y: -100 }}
       animate={{ y: 0 }}
-      className="sticky top-0 z-50 glass border-b border-border/50"
+      className="sticky top-0 z-50 glass border-b border-border/50 pt-[env(safe-area-inset-top,0px)]"
     >
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">

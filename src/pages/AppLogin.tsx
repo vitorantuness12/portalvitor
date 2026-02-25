@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import logoWhite from '@/assets/logo_formak_white.png';
+import logoFormak from '@/assets/logo_formak.png';
 
 export default function AppLogin() {
   const [email, setEmail] = useState('');
@@ -32,7 +32,7 @@ export default function AppLogin() {
         variant: 'destructive',
       });
     } else {
-      navigate('/');
+      navigate('/meus-cursos');
     }
   };
 
@@ -49,17 +49,9 @@ export default function AppLogin() {
       >
         {/* Logo */}
         <motion.img
-          src={logoWhite}
+          src={logoFormak}
           alt="Formak"
-          className="h-16 mb-2 dark:block hidden"
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.1, duration: 0.5 }}
-        />
-        <motion.img
-          src={logoWhite}
-          alt="Formak"
-          className="h-16 mb-2 dark:hidden block brightness-0"
+          className="h-16 mb-2"
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.1, duration: 0.5 }}

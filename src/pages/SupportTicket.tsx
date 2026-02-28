@@ -16,6 +16,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
+import { useIsPwa } from '@/hooks/useIsPwa';
 
 interface Message {
   id: string;
@@ -34,6 +35,7 @@ export default function SupportTicket() {
   const [input, setInput] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
   const { isSupported, isSubscribed, isLoading: notifLoading, requestPermission, unsubscribe } = usePushNotifications();
+  const isPwa = useIsPwa();
 
   useEffect(() => {
     if (!loading && !user) {
@@ -164,7 +166,7 @@ export default function SupportTicket() {
             <Skeleton className="h-[500px] w-full rounded-xl" />
           </div>
         </main>
-        <Footer />
+        {!isPwa && <Footer />}
       </div>
     );
   }
@@ -179,7 +181,7 @@ export default function SupportTicket() {
             <Button onClick={() => navigate('/meus-cursos')}>Voltar</Button>
           </div>
         </main>
-        <Footer />
+        {!isPwa && <Footer />}
       </div>
     );
   }
@@ -322,7 +324,7 @@ export default function SupportTicket() {
           </motion.div>
         </div>
       </main>
-      <Footer />
+      {!isPwa && <Footer />}
     </div>
   );
 }

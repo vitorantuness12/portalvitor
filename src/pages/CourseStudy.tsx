@@ -26,6 +26,7 @@ import { QuestionCard } from '@/components/courses/QuestionCard';
 import { MobileStudyNav } from '@/components/courses/MobileStudyNav';
 import { CourseDownloadActions } from '@/components/courses/CourseDownloadActions';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useIsPwa } from '@/hooks/useIsPwa';
 import { cn } from '@/lib/utils';
 
 const MAX_EXAM_ATTEMPTS = 3;
@@ -51,6 +52,7 @@ export default function CourseStudy() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
+  const isPwa = useIsPwa();
   
   const [activeTab, setActiveTab] = useState('conteudo');
   const [currentModuleIndex, setCurrentModuleIndex] = useState(0);
@@ -374,9 +376,11 @@ export default function CourseStudy() {
     if (index < modules.length - 1) {
       setCurrentModuleIndex(index + 1);
       setExpandedModules([index + 1]);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
       // Last module - go to exercises tab
       setActiveTab('exercicios');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
@@ -384,6 +388,7 @@ export default function CourseStudy() {
     if (currentModuleIndex > 0) {
       setCurrentModuleIndex(currentModuleIndex - 1);
       setExpandedModules([currentModuleIndex - 1]);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }, [currentModuleIndex]);
 
@@ -391,6 +396,7 @@ export default function CourseStudy() {
     if (currentModuleIndex < modules.length - 1) {
       setCurrentModuleIndex(currentModuleIndex + 1);
       setExpandedModules([currentModuleIndex + 1]);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }, [currentModuleIndex, modules.length]);
 
@@ -405,7 +411,7 @@ export default function CourseStudy() {
             <Skeleton className="h-[600px] w-full rounded-xl" />
           </div>
         </main>
-        <Footer />
+        {!isPwa && <Footer />}
       </div>
     );
   }
@@ -909,9 +915,11 @@ export default function CourseStudy() {
       </main>
       
       {/* Desktop footer */}
-      <div className="hidden md:block">
-        <Footer />
-      </div>
+      {!isPwa && (
+        <div className="hidden md:block">
+          <Footer />
+        </div>
+      )}
       
       {/* Mobile bottom navigation */}
       {isMobile && (

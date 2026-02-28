@@ -18,6 +18,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { PaymentCheckout } from '@/components/payment/PaymentCheckout';
+import { useIsPwa } from '@/hooks/useIsPwa';
 
 export default function CourseDetail() {
   const { id } = useParams<{ id: string }>();
@@ -26,6 +27,7 @@ export default function CourseDetail() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const isPwa = useIsPwa();
 
   const { data: course, isLoading } = useQuery({
     queryKey: ['course', id],
@@ -174,7 +176,7 @@ export default function CourseDetail() {
             </div>
           </div>
         </main>
-        <Footer />
+        {!isPwa && <Footer />}
       </div>
     );
   }
@@ -191,7 +193,7 @@ export default function CourseDetail() {
             </Link>
           </div>
         </main>
-        <Footer />
+        {!isPwa && <Footer />}
       </div>
     );
   }
@@ -418,7 +420,7 @@ export default function CourseDetail() {
           </div>
         </div>
       </main>
-      <Footer />
+      {!isPwa && <Footer />}
 
       {/* Payment Dialog */}
       <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>

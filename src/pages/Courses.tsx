@@ -11,8 +11,10 @@ import { Badge } from '@/components/ui/badge';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useIsPwa } from '@/hooks/useIsPwa';
 
 export default function CoursesPage() {
+  const isPwa = useIsPwa();
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -283,7 +285,7 @@ export default function CoursesPage() {
           </div>
         </section>
       </main>
-      <Footer />
+      {!isPwa && <Footer />}
     </div>
   );
 }

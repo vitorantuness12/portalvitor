@@ -9,8 +9,10 @@ import { HowItWorksSection } from '@/components/home/HowItWorksSection';
 import { FAQSection } from '@/components/home/FAQSection';
 import { BadgesSection } from '@/components/home/BadgesSection';
 import { FreeCoursesBanner } from '@/components/home/FreeCoursesBanner';
+import { useIsPwa } from '@/hooks/useIsPwa';
 
 const Index = () => {
+  const isPwa = useIsPwa();
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
@@ -25,7 +27,7 @@ const Index = () => {
         <WhyChooseUs />
         <FAQSection />
       </main>
-      <Footer />
+      {!isPwa && <Footer />}
     </div>
   );
 };

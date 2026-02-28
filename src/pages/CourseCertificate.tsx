@@ -13,6 +13,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useEffect, useState } from 'react';
 import { Document, Page, Text, View, StyleSheet, PDFDownloadLink, Font, Image, Svg, Path, Line, Rect } from '@react-pdf/renderer';
 import QRCode from 'qrcode';
+import { useIsPwa } from '@/hooks/useIsPwa';
 
 // Register fonts
 Font.register({
@@ -598,6 +599,7 @@ function generateCertificateCode(): string {
 
 export default function CourseCertificate() {
   const { id } = useParams<{ id: string }>();
+  const isPwa = useIsPwa();
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -802,7 +804,7 @@ export default function CourseCertificate() {
             <Skeleton className="h-[500px] w-full max-w-4xl mx-auto rounded-xl" />
           </div>
         </main>
-        <Footer />
+        {!isPwa && <Footer />}
       </div>
     );
   }
@@ -998,7 +1000,7 @@ export default function CourseCertificate() {
           </motion.div>
         </div>
       </main>
-      <Footer />
+      {!isPwa && <Footer />}
     </div>
   );
 }

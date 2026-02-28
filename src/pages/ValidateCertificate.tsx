@@ -10,6 +10,7 @@ import { Footer } from '@/components/layout/Footer';
 import { Search, CheckCircle, XCircle, Award, GraduationCap, Calendar, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useIsPwa } from '@/hooks/useIsPwa';
 
 interface CertificateData {
   id: string;
@@ -26,6 +27,7 @@ interface CertificateData {
 
 export default function ValidateCertificate() {
   const [code, setCode] = useState('');
+  const isPwa = useIsPwa();
   const [isValidating, setIsValidating] = useState(false);
   const [result, setResult] = useState<{
     valid: boolean;
@@ -216,7 +218,7 @@ export default function ValidateCertificate() {
         </div>
       </main>
 
-      <Footer />
+      {!isPwa && <Footer />}
     </div>
   );
 }

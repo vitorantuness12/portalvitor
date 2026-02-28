@@ -20,6 +20,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import logo from '@/assets/logo_formak.png';
+import { useIsPwa } from '@/hooks/useIsPwa';
 
 type StudentCardWithProfile = {
   id: string;
@@ -35,6 +36,7 @@ type StudentCardWithProfile = {
 
 export default function ValidateStudentCard() {
   const [searchParams] = useSearchParams();
+  const isPwa = useIsPwa();
   const [code, setCode] = useState(searchParams.get('codigo') || '');
   const [searching, setSearching] = useState(false);
   const [result, setResult] = useState<StudentCardWithProfile | null>(null);
@@ -290,7 +292,7 @@ export default function ValidateStudentCard() {
           )}
         </div>
       </main>
-      <Footer />
+      {!isPwa && <Footer />}
     </div>
   );
 }

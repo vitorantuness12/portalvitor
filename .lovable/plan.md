@@ -1,11 +1,27 @@
 
-# Ajustes na Tela de Login PWA
 
-## Alteracoes
+## Plano de Alteracoes
 
-### 1. Trocar logo para a versao laranja (`src/pages/AppLogin.tsx`)
-- Substituir o import de `logo_formak_white.png` por `logo_formak.png` (versao laranja/colorida)
-- Simplificar para usar uma unica tag `<img>` sem logica dark/light, ja que a logo laranja funciona em ambos os temas
+### 1. Remover rodape em todas as paginas no modo PWA
 
-### 2. Redirecionar para `/meus-cursos` apos login (`src/pages/AppLogin.tsx`)
-- Alterar o `navigate('/')` no sucesso do login para `navigate('/meus-cursos')`
+Atualmente, algumas paginas ja ocultam o rodape no PWA (MyCourses, MyCertificates, Profile, StudentDashboard, StudentCard), mas outras ainda mostram. Vou adicionar a verificacao `useIsPwa` e condicionar `{!isPwa && <Footer />}` nas seguintes paginas:
+
+- **CourseStudy.tsx** - tem Footer em 2 locais (loading state e desktop footer)
+- **Courses.tsx** - sempre mostra Footer
+- **CourseDetail.tsx** - tem Footer em 3 locais (loading, error, main)
+- **CourseCertificate.tsx** - tem Footer em 2 locais
+- **SupportTicket.tsx** - tem Footer em 3 locais
+- **ValidateCertificate.tsx** - sempre mostra Footer
+- **ValidateStudentCard.tsx** - sempre mostra Footer
+- **Index.tsx** - sempre mostra Footer
+
+### 2. Scroll para o topo ao mudar de modulo
+
+Nas funcoes `handleModuleComplete`, `handlePrevModule` e `handleNextModule` em **CourseStudy.tsx**, adicionar `window.scrollTo({ top: 0, behavior: 'smooth' })` para que ao navegar entre modulos o usuario veja o inicio do conteudo.
+
+### Detalhes Tecnicos
+
+- Importar `useIsPwa` em cada pagina que ainda nao o utiliza
+- Envolver cada `<Footer />` com `{!isPwa && <Footer />}`
+- Adicionar `window.scrollTo({ top: 0, behavior: 'smooth' })` em `handleModuleComplete`, `handlePrevModule` e `handleNextModule`
+

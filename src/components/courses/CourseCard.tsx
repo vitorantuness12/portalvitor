@@ -14,6 +14,7 @@ interface CourseCardProps {
   level: string;
   thumbnailUrl?: string;
   isEnrolled?: boolean;
+  compact?: boolean;
 }
 
 export function CourseCard({
@@ -26,6 +27,7 @@ export function CourseCard({
   level,
   thumbnailUrl,
   isEnrolled,
+  compact = false,
 }: CourseCardProps) {
   const levelColors: Record<string, string> = {
     iniciante: 'bg-success/10 text-success border-success/20',
@@ -40,6 +42,48 @@ export function CourseCard({
       currency: 'BRL',
     }).format(price);
   };
+
+  if (compact) {
+    return (
+      <Link to={`/curso/${id}`} className="block">
+        <div className="group bg-card rounded-lg border border-border overflow-hidden">
+          <div className="relative aspect-[4/3] overflow-hidden">
+            <img
+              src={thumbnailUrl || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&h=450&fit=crop'}
+              alt={title}
+              className="w-full h-full object-cover"
+            />
+            {price === 0 && (
+              <Badge className="absolute top-2 right-2 bg-success text-success-foreground border-0 text-[10px] px-1.5 py-0.5">
+                Grátis
+              </Badge>
+            )}
+            {isEnrolled && (
+              <Badge className="absolute top-2 left-2 bg-primary text-primary-foreground border-0 text-[10px] px-1.5 py-0.5">
+                Matriculado
+              </Badge>
+            )}
+          </div>
+          <div className="p-2.5 space-y-1.5">
+            <h3 className="font-display font-semibold text-xs leading-tight line-clamp-2">
+              {title}
+            </h3>
+            <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+              <Clock className="h-3 w-3" />
+              <span>{durationHours}h</span>
+              <span className="text-border">•</span>
+              <span className={levelColors[level] ? 'font-medium' : ''}>
+                {level.charAt(0).toUpperCase() + level.slice(1)}
+              </span>
+            </div>
+            <div className="font-display text-sm font-bold text-primary">
+              {formatPrice(price)}
+            </div>
+          </div>
+        </div>
+      </Link>
+    );
+  }
 
   return (
     <motion.div

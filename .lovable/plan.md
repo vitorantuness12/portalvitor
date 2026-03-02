@@ -1,27 +1,53 @@
 
+# Redesign da pagina Cursos para modo PWA
 
-## Plano de Alteracoes
+A pagina de cursos no PWA atualmente tem um visual de site tradicional com hero banner grande, filtros espalhados e muito espaco desperdicado. Vou transformar em um layout compacto com cara de aplicativo nativo.
 
-### 1. Remover rodape em todas as paginas no modo PWA
+## Mudancas planejadas
 
-Atualmente, algumas paginas ja ocultam o rodape no PWA (MyCourses, MyCertificates, Profile, StudentDashboard, StudentCard), mas outras ainda mostram. Vou adicionar a verificacao `useIsPwa` e condicionar `{!isPwa && <Footer />}` nas seguintes paginas:
+### 1. Layout condicional para PWA no Courses.tsx
 
-- **CourseStudy.tsx** - tem Footer em 2 locais (loading state e desktop footer)
-- **Courses.tsx** - sempre mostra Footer
-- **CourseDetail.tsx** - tem Footer em 3 locais (loading, error, main)
-- **CourseCertificate.tsx** - tem Footer em 2 locais
-- **SupportTicket.tsx** - tem Footer em 3 locais
-- **ValidateCertificate.tsx** - sempre mostra Footer
-- **ValidateStudentCard.tsx** - sempre mostra Footer
-- **Index.tsx** - sempre mostra Footer
+Quando `isPwa` for true, a pagina tera um layout diferente:
 
-### 2. Scroll para o topo ao mudar de modulo
+- **Sem hero banner grande** - remover a secao hero-gradient com titulo e subtitulo grandes
+- **Barra de busca compacta** no topo, diretamente abaixo do header, com estilo mais limpo
+- **Filtros em chips horizontais com scroll** - categorias, nivel e preco como chips em uma unica linha horizontal com scroll (ao inves de linhas separadas com labels)
+- **Grid 2 colunas** para os cards de cursos no mobile (ao inves de 1 coluna)
+- **Cards mais compactos** no PWA - imagem menor, menos padding, texto mais condensado
 
-Nas funcoes `handleModuleComplete`, `handlePrevModule` e `handleNextModule` em **CourseStudy.tsx**, adicionar `window.scrollTo({ top: 0, behavior: 'smooth' })` para que ao navegar entre modulos o usuario veja o inicio do conteudo.
+### 2. Estrutura do layout PWA
 
-### Detalhes Tecnicos
+```text
++---------------------------+
+|        Header             |
++---------------------------+
+| [🔍 Buscar cursos...    ] |
++---------------------------+
+| Categorias >  scroll h.   |
+| [Todas][Cat1][Cat2][...]  |
++---------------------------+
+| [Todos][Iniciante][...]   |
+| [Todos][Gratis][Pagos]    |
++---------------------------+
+| [Card1]  [Card2]          |
+| [Card3]  [Card4]          |
+| [Card5]  [Card6]          |
++---------------------------+
+```
 
-- Importar `useIsPwa` em cada pagina que ainda nao o utiliza
-- Envolver cada `<Footer />` com `{!isPwa && <Footer />}`
-- Adicionar `window.scrollTo({ top: 0, behavior: 'smooth' })` em `handleModuleComplete`, `handlePrevModule` e `handleNextModule`
+### Detalhes tecnicos
 
+**Arquivo: `src/pages/Courses.tsx`**
+- Envolver o hero em `{!isPwa && (...)}` para ocultar no PWA
+- No PWA, renderizar uma barra de busca compacta com padding reduzido e fundo do background (sem gradiente)
+- Filtros no PWA: usar `overflow-x-auto` com `flex-nowrap` e `scrollbar-hide` para scroll horizontal nos chips, agrupando categorias, nivel e preco em blocos mais compactos sem os labels "Categorias:", "Nivel:", "Preco:"
+- Grid de cursos no PWA: `grid-cols-2` com `gap-3` ao inves de `grid-cols-1 gap-4`
+- Reduzir padding geral da secao de `py-8` para `py-4` no PWA
+
+**Arquivo: `src/components/courses/CourseCard.tsx`**
+- Aceitar uma prop opcional `compact?: boolean`
+- Quando compact: imagem com aspect ratio menor, padding `p-3`, titulo com `text-sm`, ocultar descricao, badge de preco menor, botao menor
+- Remover animacao `whileHover` no modo compact (nao faz sentido em touch)
+
+**Arquivo: `src/pages/Courses.tsx` (chamada do CourseCard)**
+- Passar `compact={isPwa}` para o CourseCard quando no modo PWA

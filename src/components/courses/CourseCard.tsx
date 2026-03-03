@@ -49,8 +49,12 @@ export function CourseCard({
         <div className="group bg-card rounded-lg border border-border overflow-hidden">
           <div className="relative aspect-[4/3] overflow-hidden">
             <img
-              src={thumbnailUrl || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&h=450&fit=crop'}
+              src={thumbnailUrl || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=300&fit=crop'}
               alt={title}
+              loading="lazy"
+              decoding="async"
+              width={400}
+              height={300}
               className="w-full h-full object-cover"
             />
             {price === 0 && (
@@ -94,6 +98,10 @@ export function CourseCard({
         <img
           src={thumbnailUrl || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&h=450&fit=crop'}
           alt={title}
+          loading="lazy"
+          decoding="async"
+          width={800}
+          height={450}
           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
         />
         {categoryName && (

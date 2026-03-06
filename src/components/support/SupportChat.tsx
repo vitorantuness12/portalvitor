@@ -54,11 +54,45 @@ export function SupportChat() {
     setIsLoading(true);
 
     try {
+      if (!user) {
+        const botMsg: Message = {
+          id: (Date.now() + 1).toString(),
+          content: 'Você precisa estar logado para usar o chat de suporte. Faça login ou crie uma conta para continuar.',
+          isBot: true,
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, botMsg]);
+        return;
+      }
+
       const { data, error } = await supabase.functions.invoke('support-chat', {
         body: { message: userMessage.content },
       });
 
-      if (error) throw error;
+      if (error) {
+        if (error.message?.includes('401')) {
+          const botMsg: Message = {
+            id: (Date.now() + 1).toString(),
+            content: 'Sua sessão expirou. Por favor, faça login novamente.',
+            isBot: true,
+            timestamp: new Date(),
+          };
+          setMessages((prev) => [...prev, botMsg]);
+          return;
+        }
+        throw error;
+      }
+
+      if (data?.error) {
+        const botMsg: Message = {
+          id: (Date.now() + 1).toString(),
+          content: data.error,
+          isBot: true,
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, botMsg]);
+        return;
+      }
 
       const botMessage: Message = {
         id: (Date.now() + 1).toString(),

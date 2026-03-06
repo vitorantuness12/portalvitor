@@ -186,6 +186,10 @@ ${coursesContext}
         model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
+          ...(history || []).map((msg: { content: string; isBot: boolean }) => ({
+            role: msg.isBot ? "assistant" : "user",
+            content: msg.content,
+          })),
           { role: "user", content: message },
         ],
       }),

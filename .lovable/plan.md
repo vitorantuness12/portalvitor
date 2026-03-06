@@ -1,48 +1,53 @@
 
+# Redesign da pagina Cursos para modo PWA
 
-# Corrigir o Assistente Virtual com IA
-
-## Problemas identificados
-
-1. **Erro de autenticacao**: A edge function `support-chat` usa `authSupabase.auth.getClaims(token)` que nao existe no SDK do Supabase. Isso causa erro 401 para todos os usuarios, impedindo o funcionamento do chat.
-
-2. **Conhecimento limitado**: O prompt do sistema tem informacoes basicas. Precisa ser expandido com detalhes completos sobre todas as funcionalidades da plataforma.
+A pagina de cursos no PWA atualmente tem um visual de site tradicional com hero banner grande, filtros espalhados e muito espaco desperdicado. Vou transformar em um layout compacto com cara de aplicativo nativo.
 
 ## Mudancas planejadas
 
-### 1. Corrigir autenticacao na edge function (`supabase/functions/support-chat/index.ts`)
+### 1. Layout condicional para PWA no Courses.tsx
 
-- Substituir `getClaims(token)` por `authSupabase.auth.getUser()` que e o metodo correto do SDK
-- Simplificar a validacao: se `getUser()` retornar um usuario valido, prosseguir
+Quando `isPwa` for true, a pagina tera um layout diferente:
 
-### 2. Expandir o prompt do sistema com conhecimento completo
+- **Sem hero banner grande** - remover a secao hero-gradient com titulo e subtitulo grandes
+- **Barra de busca compacta** no topo, diretamente abaixo do header, com estilo mais limpo
+- **Filtros em chips horizontais com scroll** - categorias, nivel e preco como chips em uma unica linha horizontal com scroll (ao inves de linhas separadas com labels)
+- **Grid 2 colunas** para os cards de cursos no mobile (ao inves de 1 coluna)
+- **Cards mais compactos** no PWA - imagem menor, menos padding, texto mais condensado
 
-O system prompt sera atualizado para incluir:
+### 2. Estrutura do layout PWA
 
-- **Paginas do sistema**: Cursos, Meus Cursos, Meu Progresso, Perfil, Meus Certificados, Carteirinha de Estudante, Suporte
-- **Fluxo de matricula**: como se matricular (gratis e pago via Pix/cartao)
-- **Fluxo de estudo**: modulos sequenciais, exercicios por modulo, prova final (nota minima 7.0, maximo 3 tentativas, 1h de duracao)
-- **Certificados**: gerados apos aprovacao na prova, validaveis via QR code/codigo
-- **Carteirinha de estudante**: digital e fisica, com validacao online
-- **Perfil**: edicao de nome, WhatsApp, foto de avatar
-- **Notas pessoais**: criacao de anotacoes durante o estudo
-- **Download de PDF**: conteudo do curso pode ser baixado em PDF
-- **PWA**: app instalavel no celular
-- **Onboarding**: selecao de interesses ao criar conta
-- **Pagamentos**: via Pix ou cartao de credito pelo Mercado Pago
-
-### 3. Permitir chat sem autenticacao com limitacao
-
-Manter a autenticacao para proteger creditos, mas melhorar a mensagem de erro para usuarios nao logados no frontend.
+```text
++---------------------------+
+|        Header             |
++---------------------------+
+| [🔍 Buscar cursos...    ] |
++---------------------------+
+| Categorias >  scroll h.   |
+| [Todas][Cat1][Cat2][...]  |
++---------------------------+
+| [Todos][Iniciante][...]   |
+| [Todos][Gratis][Pagos]    |
++---------------------------+
+| [Card1]  [Card2]          |
+| [Card3]  [Card4]          |
+| [Card5]  [Card6]          |
++---------------------------+
+```
 
 ### Detalhes tecnicos
 
-**Arquivo: `supabase/functions/support-chat/index.ts`**
-- Remover bloco `getClaims` e substituir por `getUser()`
-- Expandir `systemPrompt` com todas as informacoes da plataforma
-- Manter tratamento de erros 429/402
+**Arquivo: `src/pages/Courses.tsx`**
+- Envolver o hero em `{!isPwa && (...)}` para ocultar no PWA
+- No PWA, renderizar uma barra de busca compacta com padding reduzido e fundo do background (sem gradiente)
+- Filtros no PWA: usar `overflow-x-auto` com `flex-nowrap` e `scrollbar-hide` para scroll horizontal nos chips, agrupando categorias, nivel e preco em blocos mais compactos sem os labels "Categorias:", "Nivel:", "Preco:"
+- Grid de cursos no PWA: `grid-cols-2` com `gap-3` ao inves de `grid-cols-1 gap-4`
+- Reduzir padding geral da secao de `py-8` para `py-4` no PWA
 
-**Arquivo: `src/components/support/SupportChat.tsx`**
-- Adicionar tratamento quando o erro retornado e de autenticacao (401), sugerindo login
-- Mostrar mensagem amigavel se o usuario nao estiver logado
+**Arquivo: `src/components/courses/CourseCard.tsx`**
+- Aceitar uma prop opcional `compact?: boolean`
+- Quando compact: imagem com aspect ratio menor, padding `p-3`, titulo com `text-sm`, ocultar descricao, badge de preco menor, botao menor
+- Remover animacao `whileHover` no modo compact (nao faz sentido em touch)
 
+**Arquivo: `src/pages/Courses.tsx` (chamada do CourseCard)**
+- Passar `compact={isPwa}` para o CourseCard quando no modo PWA

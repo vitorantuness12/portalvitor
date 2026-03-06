@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 serve(async (req) => {
@@ -12,10 +12,9 @@ serve(async (req) => {
   }
 
   try {
-    // Authenticate the user
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(JSON.stringify({ error: "Não autorizado" }), {
+      return new Response(JSON.stringify({ error: "Você precisa estar logado para usar o chat." }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -27,10 +26,9 @@ serve(async (req) => {
       global: { headers: { Authorization: authHeader } },
     });
 
-    const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } = await authSupabase.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims) {
-      return new Response(JSON.stringify({ error: "Não autorizado" }), {
+    const { data: { user }, error: authError } = await authSupabase.auth.getUser();
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: "Sessão expirada. Faça login novamente." }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -43,40 +41,140 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    // Get Supabase client with service role to fetch courses for context
+    // Fetch courses for context
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Fetch active courses for context
     const { data: courses } = await supabase
       .from("courses")
-      .select("id, title, description, short_description, duration_hours, level, price")
+      .select("id, title, description, short_description, duration_hours, level, price, category_id")
       .eq("status", "active")
-      .limit(20);
+      .limit(30);
 
-    const coursesContext = courses?.map(c => 
-      `- ${c.title}: ${c.short_description || c.description?.substring(0, 200)}. Duração: ${c.duration_hours}h. Nível: ${c.level}. Preço: R$ ${c.price}`
-    ).join("\n") || "Nenhum curso disponível no momento.";
+    const { data: categories } = await supabase
+      .from("categories")
+      .select("id, name");
 
-    const systemPrompt = `Você é um assistente de suporte da Formak, plataforma de cursos online. Seja sempre educado, prestativo e objetivo.
+    const categoryMap = new Map(categories?.map(c => [c.id, c.name]) || []);
 
-Informações sobre a plataforma:
-- Os alunos podem se matricular em cursos, estudar o conteúdo, fazer exercícios e provas
-- Após aprovação na prova (nota mínima 7.0), o aluno recebe um certificado
-- Os alunos podem acessar seus cursos na área "Meus Cursos"
-- O progresso é salvo automaticamente
-- Notas pessoais podem ser criadas durante o estudo
+    const coursesContext = courses?.map(c => {
+      const catName = c.category_id ? categoryMap.get(c.category_id) || "Sem categoria" : "Sem categoria";
+      return `- ${c.title} (${catName}): ${c.short_description || c.description?.substring(0, 150)}. Duração: ${c.duration_hours}h. Nível: ${c.level}. Preço: ${c.price === 0 ? "Gratuito" : `R$ ${c.price}`}`;
+    }).join("\n") || "Nenhum curso disponível no momento.";
 
-Cursos disponíveis na plataforma:
+    const systemPrompt = `Você é o assistente virtual da Formak, uma plataforma de cursos online com certificação. Seja educado, prestativo e objetivo. Responda sempre em português brasileiro.
+
+## Sobre a Formak
+
+A Formak é uma plataforma de cursos online que oferece cursos em diversas áreas do conhecimento, com certificação digital validável. O aluno pode estudar no seu ritmo, fazer exercícios e provas, e receber certificados ao ser aprovado.
+
+## Páginas e funcionalidades do sistema
+
+### Cursos (/cursos)
+- Catálogo de todos os cursos disponíveis
+- Filtros por categoria, nível (Iniciante, Intermediário, Avançado) e preço (Gratuitos/Pagos)
+- Barra de busca para encontrar cursos por nome
+
+### Detalhes do Curso (/cursos/:id)
+- Descrição completa, carga horária, nível e preço
+- Botão "Matricular-se" para cursos gratuitos (matrícula instantânea)
+- Botão "Comprar" para cursos pagos (redireciona para pagamento)
+
+### Meus Cursos (/meus-cursos)
+- Lista de cursos em que o aluno está matriculado
+- Mostra progresso de cada curso
+- Acesso rápido para continuar estudando
+
+### Área de Estudo (/cursos/:id/estudar)
+- Conteúdo do curso dividido em módulos
+- Navegação sequencial entre módulos (anterior/próximo)
+- Exercícios de fixação em cada módulo (múltipla escolha)
+- Barra de progresso geral do curso
+- Botão para baixar o conteúdo em PDF
+- Área de notas pessoais para anotações durante o estudo
+
+### Prova Final
+- Disponível após completar todos os módulos (100% de progresso)
+- Nota mínima para aprovação: 7.0 (70% de acertos)
+- Máximo de 3 tentativas
+- Questões de múltipla escolha
+- Resultado imediato após envio
+
+### Certificados (/meus-certificados)
+- Gerado automaticamente após aprovação na prova final
+- Certificado digital com QR code para validação
+- Pode ser baixado em PDF
+- Validação online pelo código do certificado ou QR code em /validar-certificado
+
+### Carteirinha de Estudante (/carteirinha)
+- Carteirinha digital disponível para todos os alunos
+- Opção de carteirinha física (enviada pelos Correios)
+- Planos: Digital (gratuito ou pago) / Física (pago)
+- Pagamento via Pix ou cartão de crédito
+- Validação online em /validar-carteirinha pelo código ou QR code
+
+### Perfil (/perfil)
+- Edição de nome completo, WhatsApp e foto de avatar
+- Visualização do email cadastrado
+
+### Dashboard do Aluno (/dashboard)
+- Visão geral do progresso nos cursos
+- Atalhos rápidos para as principais funcionalidades
+
+### Suporte
+- Chat com IA (este chat que você está usando agora)
+- Opção de abrir ticket para atendimento humano clicando em "Falar com Humano"
+- Tickets de suporte com histórico de mensagens
+
+## Fluxo de matrícula e pagamento
+
+### Cursos gratuitos
+1. Acessar o curso desejado
+2. Clicar em "Matricular-se Gratuitamente"
+3. Acesso imediato ao conteúdo
+
+### Cursos pagos
+1. Acessar o curso desejado
+2. Clicar em "Comprar Curso"
+3. Escolher forma de pagamento: Pix ou Cartão de Crédito
+4. Pagamento processado pelo Mercado Pago
+5. Pix: gera QR code para pagamento (validade limitada)
+6. Cartão: processamento imediato
+7. Após confirmação do pagamento, acesso liberado automaticamente
+
+## Fluxo de estudo
+
+1. Acessar "Meus Cursos" → selecionar o curso
+2. Estudar os módulos sequencialmente
+3. Responder exercícios de fixação de cada módulo
+4. Completar 100% dos módulos
+5. Realizar a prova final (nota mínima 7.0, até 3 tentativas)
+6. Se aprovado: certificado gerado automaticamente
+7. Se reprovado após 3 tentativas: status "failed", pode solicitar suporte
+
+## App PWA
+
+- A Formak pode ser instalada como app no celular
+- Funciona offline para conteúdo já carregado
+- Notificações push para atualizações
+
+## Onboarding
+
+- Ao criar conta, o aluno seleciona seus interesses (categorias)
+- O sistema personaliza recomendações com base nos interesses
+
+## Cursos disponíveis atualmente
+
 ${coursesContext}
 
-Instruções:
-1. Responda dúvidas sobre os cursos e a plataforma de forma clara e objetiva
-2. Se o aluno tiver problemas técnicos complexos ou precisar de ajuda que você não consegue resolver, sugira que ele solicite atendimento humano
-3. Seja sempre cordial e profissional
-4. Responda em português brasileiro
+## Instruções de comportamento
 
-Se o aluno quiser falar com um atendente humano ou se você não conseguir ajudá-lo, diga exatamente: "Entendo. Vou transferir você para um atendente humano. Clique no botão 'Falar com Humano' para abrir um ticket de suporte."`;
+1. Responda dúvidas sobre cursos, funcionamento da plataforma, pagamentos, certificados e suporte
+2. Se o aluno perguntar sobre um curso específico, use as informações dos cursos listados acima
+3. Se não souber a resposta ou for um problema técnico complexo, sugira que o aluno clique em "Falar com Humano" para abrir um ticket de suporte
+4. Seja sempre cordial, profissional e direto
+5. Não invente informações que não estão neste contexto
+6. Se o aluno quiser falar com um atendente humano, diga: "Clique no botão 'Falar com Humano' abaixo para abrir um ticket de suporte e um atendente irá ajudá-lo."`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

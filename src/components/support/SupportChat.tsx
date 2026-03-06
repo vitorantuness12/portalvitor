@@ -66,7 +66,10 @@ export function SupportChat() {
       }
 
       const { data, error } = await supabase.functions.invoke('support-chat', {
-        body: { message: userMessage.content },
+        body: {
+          message: userMessage.content,
+          history: messages.filter(m => m.id !== '1').map(m => ({ content: m.content, isBot: m.isBot })),
+        },
       });
 
       if (error) {

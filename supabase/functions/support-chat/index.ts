@@ -34,7 +34,7 @@ serve(async (req) => {
       });
     }
 
-    const { message } = await req.json();
+    const { message, history } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
     if (!LOVABLE_API_KEY) {
@@ -186,6 +186,10 @@ ${coursesContext}
         model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
+          ...(history || []).map((msg: { content: string; isBot: boolean }) => ({
+            role: msg.isBot ? "assistant" : "user",
+            content: msg.content,
+          })),
           { role: "user", content: message },
         ],
       }),

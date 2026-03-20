@@ -8,7 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
-
+import { useIsPwa } from '@/hooks/useIsPwa';
 interface Message {
   id: string;
   content: string;
@@ -20,6 +20,7 @@ export function SupportChat() {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const isPwa = useIsPwa();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -169,7 +170,7 @@ export function SupportChat() {
     <>
       {/* Chat Button */}
       <motion.button
-        className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:scale-105 transition-transform"
+        className={`fixed right-6 z-50 h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:scale-105 transition-transform ${isPwa ? 'bottom-20' : 'bottom-6'}`}
         onClick={() => setIsOpen(!isOpen)}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.95 }}
@@ -184,7 +185,7 @@ export function SupportChat() {
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="fixed bottom-24 right-6 z-50 w-[360px] max-w-[calc(100vw-3rem)] bg-card border border-border rounded-xl shadow-2xl overflow-hidden"
+            className={`fixed right-6 z-50 w-[360px] max-w-[calc(100vw-3rem)] bg-card border border-border rounded-xl shadow-2xl overflow-hidden ${isPwa ? 'bottom-36' : 'bottom-24'}`}
           >
             {/* Header */}
             <div className="bg-primary text-primary-foreground p-4">

@@ -8,7 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
-
+import { useIsPwa } from '@/hooks/useIsPwa';
 interface Message {
   id: string;
   content: string;

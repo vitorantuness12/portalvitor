@@ -20,6 +20,7 @@ export function SupportChat() {
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const isPwa = useIsPwa();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {

@@ -28,20 +28,33 @@ export function FeaturedCourses() {
   });
 
   return (
-    <section className="py-12 sm:py-16 lg:py-20 bg-secondary/30">
-      <div className="container mx-auto px-4">
+    <section className="relative py-16 sm:py-20 lg:py-28">
+      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-secondary/20 via-background to-background pointer-events-none" />
+      <div className="container mx-auto px-4 sm:px-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-8 sm:mb-12"
+          className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10 sm:mb-14"
         >
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold mb-4">
-            Cursos em Destaque
-          </h2>
-          <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
-            Explore nossos cursos mais populares e comece sua jornada de aprendizado hoje mesmo.
-          </p>
+          <div className="space-y-2 max-w-xl">
+            <span className="inline-block text-xs font-bold uppercase tracking-widest text-primary">
+              Catálogo
+            </span>
+            <h2 className="font-display font-bold tracking-tight text-3xl sm:text-4xl lg:text-5xl">
+              Cursos em destaque
+            </h2>
+            <p className="text-sm sm:text-base text-muted-foreground">
+              Explore as formações mais procuradas e comece sua jornada hoje mesmo.
+            </p>
+          </div>
+          <Link
+            to="/cursos"
+            className="hidden sm:inline-flex items-center gap-1.5 text-sm font-bold text-primary hover:underline underline-offset-4"
+          >
+            Ver catálogo completo
+            <ArrowRight className="h-4 w-4" />
+          </Link>
         </motion.div>
 
         {isLoading ? (
@@ -99,7 +112,7 @@ export function FeaturedCourses() {
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
-          className="text-center mt-12"
+          className="text-center mt-12 sm:hidden"
         >
           <Link to="/cursos">
             <Button variant="outline" size="lg" className="gap-2">

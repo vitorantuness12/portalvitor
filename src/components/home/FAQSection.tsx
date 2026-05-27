@@ -44,19 +44,18 @@ const faqs = [
 
 export function FAQSection() {
   return (
-    <section className="py-12 sm:py-16 lg:py-20">
-      <div className="container mx-auto px-4">
+    <section className="relative py-20 lg:py-28">
+      <div className="container mx-auto px-4 sm:px-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-10 sm:mb-14"
+          className="text-center mb-14"
         >
-          <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-4">
-            <HelpCircle className="h-4 w-4" />
-            Tire suas dúvidas
-          </div>
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold mb-4">
+          <span className="inline-block text-xs font-bold uppercase tracking-widest text-primary mb-4">
+            FAQ
+          </span>
+          <h2 className="font-display font-extrabold tracking-tight text-4xl sm:text-5xl lg:text-6xl mb-4">
             Perguntas{' '}
             <span className="hero-gradient-text">Frequentes</span>
           </h2>
@@ -77,12 +76,12 @@ export function FAQSection() {
               <AccordionItem
                 key={index}
                 value={`item-${index}`}
-                className="bg-card border border-border rounded-xl px-4 sm:px-6 data-[state=open]:border-primary/30 data-[state=open]:shadow-md transition-all"
+                className="bg-card/40 backdrop-blur border border-border/60 rounded-2xl px-5 sm:px-6 data-[state=open]:border-primary/50 data-[state=open]:shadow-[0_10px_30px_-10px_hsl(var(--primary)/0.3)] transition-all"
               >
-                <AccordionTrigger className="text-left text-sm sm:text-base font-medium py-4 hover:no-underline [&[data-state=open]>svg]:rotate-180">
+                <AccordionTrigger className="text-left text-sm sm:text-base font-bold py-5 hover:no-underline [&[data-state=open]>svg]:rotate-180">
                   {faq.question}
                 </AccordionTrigger>
-                <AccordionContent className="text-sm sm:text-base text-muted-foreground pb-4 leading-relaxed">
+                <AccordionContent className="text-sm sm:text-base text-muted-foreground pb-5 leading-relaxed">
                   {faq.answer}
                 </AccordionContent>
               </AccordionItem>
@@ -96,15 +95,16 @@ export function FAQSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.4 }}
-          className="text-center mt-10 sm:mt-14 p-6 sm:p-8 bg-card rounded-2xl border border-border max-w-2xl mx-auto"
+          className="text-center mt-12 p-8 bg-card/40 backdrop-blur rounded-2xl border border-primary/30 max-w-2xl mx-auto shadow-[0_20px_60px_-20px_hsl(var(--primary)/0.4)]"
         >
-          <h3 className="font-semibold text-lg mb-2">Ainda tem dúvidas?</h3>
+          <HelpCircle className="h-8 w-8 text-primary mx-auto mb-3" />
+          <h3 className="font-display font-bold text-xl mb-2">Ainda tem dúvidas?</h3>
           <p className="text-muted-foreground mb-4 text-sm sm:text-base">
             Nossa equipe está pronta para ajudar você.
           </p>
           <a
             href="/suporte"
-            className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-5 py-2.5 rounded-lg font-medium hover:opacity-90 transition-opacity text-sm"
+            className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-xl font-bold hover:opacity-90 transition-opacity text-sm shadow-[0_0_24px_hsl(var(--primary)/0.4)]"
           >
             Falar com Suporte
           </a>

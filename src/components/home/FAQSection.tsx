@@ -44,7 +44,7 @@ const faqs = [
 
 export function FAQSection() {
   return (
-    <section className="relative py-20 lg:py-28">
+    <section className="relative py-14 sm:py-20 lg:py-28">
       <div className="container mx-auto px-4 sm:px-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -55,7 +55,7 @@ export function FAQSection() {
           <span className="inline-block text-xs font-bold uppercase tracking-widest text-primary mb-4">
             FAQ
           </span>
-          <h2 className="font-display font-extrabold tracking-tight text-4xl sm:text-5xl lg:text-6xl mb-4">
+          <h2 className="font-display font-extrabold tracking-tight text-3xl sm:text-4xl lg:text-6xl mb-4">
             Perguntas{' '}
             <span className="hero-gradient-text">Frequentes</span>
           </h2>

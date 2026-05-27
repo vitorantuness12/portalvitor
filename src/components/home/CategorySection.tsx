@@ -30,7 +30,7 @@ export function CategorySection() {
   if (!categories || categories.length === 0) return null;
 
   return (
-    <section className="relative py-20 lg:py-28">
+    <section className="relative py-14 sm:py-20 lg:py-28">
       <div className="container mx-auto px-4 sm:px-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

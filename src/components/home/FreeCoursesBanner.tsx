@@ -11,7 +11,7 @@ export function FreeCoursesBanner() {
   ];
 
   return (
-    <section className="relative py-20 lg:py-28 overflow-hidden">
+    <section className="relative py-14 sm:py-20 lg:py-28 overflow-hidden">
       <div className="container mx-auto px-4 sm:px-6">
         <div className="relative max-w-5xl mx-auto rounded-3xl overflow-hidden border border-primary/30 bg-gradient-to-br from-primary/20 via-primary/5 to-background p-8 sm:p-12 lg:p-16">
           <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-primary/30 rounded-full blur-[120px]" />
@@ -35,7 +35,7 @@ export function FreeCoursesBanner() {
                 <Sparkles className="h-4 w-4" />
               </motion.div>
 
-              <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mb-4">
+              <h2 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mb-4">
                 Comece sua jornada{' '}
                 <span className="hero-gradient-text">sem gastar nada</span>
               </h2>

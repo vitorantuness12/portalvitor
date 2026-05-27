@@ -16,7 +16,7 @@ const badges = [
 
 export const BadgesSection = () => {
   return (
-    <section className="relative py-20 lg:py-28 overflow-hidden">
+    <section className="relative py-14 sm:py-20 lg:py-28 overflow-hidden">
       <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-primary/15 blur-[140px] rounded-full -z-10" />
       <div className="container mx-auto px-4 sm:px-6">
         <motion.div

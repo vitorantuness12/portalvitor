@@ -12,7 +12,7 @@ const features = [
 
 export function WhyChooseUs() {
   return (
-    <section className="relative py-20 lg:py-28 overflow-hidden">
+    <section className="relative py-14 sm:py-20 lg:py-28 overflow-hidden">
       <div className="absolute inset-0 -z-10 bg-gradient-to-b from-background via-secondary/30 to-background" />
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/10 blur-[120px] rounded-full -z-10" />
       <div className="container mx-auto px-4 sm:px-6">

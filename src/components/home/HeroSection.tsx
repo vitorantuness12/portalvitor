@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 
 export function HeroSection() {
   return (
-    <section className="relative overflow-hidden pt-12 pb-24 lg:pt-20 lg:pb-32">
+    <section className="relative overflow-hidden pt-8 pb-16 sm:pt-12 sm:pb-20 lg:pt-20 lg:pb-32">
       {/* Premium ambient glow — bottom orange wash like reference */}
       <div className="absolute inset-0 -z-10 pointer-events-none">
         <div className="absolute top-1/4 right-[-10%] w-[700px] h-[700px] bg-primary/25 rounded-full blur-[140px]" />
@@ -13,31 +13,27 @@ export function HeroSection() {
       </div>
 
       <div className="container mx-auto px-4 sm:px-6">
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+        <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
           {/* Content */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-            className="space-y-8"
+            className="space-y-6 sm:space-y-8"
           >
-            <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-primary">
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 text-[10px] sm:text-xs font-bold uppercase tracking-wider text-primary">
               <span className="relative flex h-2 w-2">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
               </span>
-              Cursos online • Certificado reconhecido
+              <span className="hidden xs:inline">Cursos online • </span>Certificado reconhecido
             </div>
 
-            <h1 className="font-display font-extrabold leading-[1.02] tracking-tight text-5xl sm:text-6xl lg:text-7xl xl:text-[5.5rem]">
-              Transforme seu{' '}
-              <span className="hero-gradient-text">futuro</span>
-              <br className="hidden sm:block" />
-              com cursos{' '}
-              <span className="hero-gradient-text">online</span>
+            <h1 className="font-display font-extrabold leading-[1.05] tracking-tight text-[2.5rem] xs:text-5xl sm:text-6xl lg:text-7xl xl:text-[5.5rem]">
+              Transforme seu <span className="hero-gradient-text">futuro</span> com cursos <span className="hero-gradient-text">online</span>
             </h1>
 
-            <p className="text-base sm:text-lg text-muted-foreground max-w-lg leading-relaxed">
+            <p className="text-sm sm:text-base lg:text-lg text-muted-foreground max-w-lg leading-relaxed">
               Seja iniciante ou profissional: aprenda no seu ritmo com mais de 200 cursos,
               certificado reconhecido e acesso vitalício. Comece hoje mesmo com a Formak.
             </p>
@@ -67,17 +63,17 @@ export function HeroSection() {
             </Link>
 
             {/* Stats — big numbers like reference */}
-            <div className="grid grid-cols-3 gap-4 sm:gap-8 pt-8 border-t border-border/60">
+            <div className="grid grid-cols-3 gap-3 sm:gap-8 pt-6 sm:pt-8 border-t border-border/60">
               {[
                 { value: '10k+', label: 'Alunos ativos' },
                 { value: '200+', label: 'Cursos' },
                 { value: '100%', label: 'Online' },
               ].map(({ value, label }) => (
                 <div key={label} className="min-w-0">
-                  <p className="font-display text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight hero-gradient-text">
+                  <p className="font-display text-2xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight hero-gradient-text">
                     {value}
                   </p>
-                  <p className="mt-1 text-[10px] sm:text-xs font-semibold uppercase tracking-widest text-muted-foreground truncate">
+                  <p className="mt-1 text-[9px] sm:text-xs font-semibold uppercase tracking-widest text-muted-foreground truncate">
                     {label}
                   </p>
                 </div>
@@ -90,9 +86,9 @@ export function HeroSection() {
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-            className="relative hidden lg:block"
+            className="relative hidden md:block"
           >
-            <div className="relative aspect-[4/5] max-w-lg mx-auto" style={{ perspective: '1200px' }}>
+            <div className="relative aspect-[4/5] max-w-md lg:max-w-lg mx-auto" style={{ perspective: '1200px' }}>
               <div className="absolute -inset-10 bg-primary/25 blur-[100px] rounded-full -z-10" />
               <motion.div
                 animate={{ rotateY: [-8, -6, -8], rotateX: [6, 8, 6] }}

@@ -31,13 +31,13 @@ const Index = () => {
       <Header />
       <main className="flex-1">
         <HeroSection />
-        <FreeCoursesBanner />
-        <HowItWorksSection />
         <CategorySection />
+        <WhyChooseUs />
+        <HowItWorksSection />
         <FeaturedCourses />
+        <FreeCoursesBanner />
         <TestimonialsSection />
         <BadgesSection />
-        <WhyChooseUs />
         <FAQSection />
       </main>
       {!isPwa && <Footer />}

@@ -1,15 +1,15 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Play, Award, Users, BookOpen, Download, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, Play, Users, BookOpen, Download, GraduationCap, TrendingUp, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export function HeroSection() {
   return (
-    <section className="relative overflow-hidden pt-16 pb-20 lg:pt-24 lg:pb-28">
-      {/* Premium ambient glow */}
+    <section className="relative overflow-hidden pt-12 pb-24 lg:pt-20 lg:pb-32">
+      {/* Premium ambient glow — bottom orange wash like reference */}
       <div className="absolute inset-0 -z-10 pointer-events-none">
-        <div className="absolute -top-32 right-0 w-[600px] h-[600px] bg-primary/20 rounded-full blur-[120px]" />
-        <div className="absolute top-1/2 -left-32 w-[500px] h-[500px] bg-accent/10 rounded-full blur-[120px]" />
+        <div className="absolute top-1/4 right-[-10%] w-[700px] h-[700px] bg-primary/25 rounded-full blur-[140px]" />
+        <div className="absolute -bottom-40 left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-primary/15 rounded-full blur-[140px]" />
       </div>
 
       <div className="container mx-auto px-4 sm:px-6">
@@ -26,32 +26,33 @@ export function HeroSection() {
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
               </span>
-              Certificado reconhecido
+              Cursos online • Certificado reconhecido
             </div>
 
-            <h1 className="font-display font-extrabold leading-[1.05] tracking-tight text-4xl sm:text-5xl lg:text-7xl">
-              Aprenda algo{' '}
-              <span className="hero-gradient-text">novo</span>
+            <h1 className="font-display font-extrabold leading-[1.02] tracking-tight text-5xl sm:text-6xl lg:text-7xl xl:text-[5.5rem]">
+              Transforme seu{' '}
+              <span className="hero-gradient-text">futuro</span>
               <br className="hidden sm:block" />
-              {' '}com cursos online
+              com cursos{' '}
+              <span className="hero-gradient-text">online</span>
             </h1>
 
             <p className="text-base sm:text-lg text-muted-foreground max-w-lg leading-relaxed">
-              Estude no seu ritmo com cursos de diversas áreas do conhecimento.
-              Obtenha certificados e amplie suas habilidades com a Formak.
+              Seja iniciante ou profissional: aprenda no seu ritmo com mais de 200 cursos,
+              certificado reconhecido e acesso vitalício. Comece hoje mesmo com a Formak.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-              <Link to="/cursos" className="w-full sm:w-auto">
+              <Link to="/auth?mode=signup" className="w-full sm:w-auto">
                 <Button variant="hero" size="xl" className="gap-2 w-full sm:w-auto">
-                  Explorar Cursos
+                  Começar Grátis
                   <ArrowRight className="h-5 w-5" />
                 </Button>
               </Link>
-              <Link to="/auth?mode=signup" className="w-full sm:w-auto">
+              <Link to="/cursos" className="w-full sm:w-auto">
                 <Button variant="outline" size="xl" className="gap-2 w-full sm:w-auto">
                   <Play className="h-5 w-5" />
-                  Começar Grátis
+                  Ver Catálogo
                 </Button>
               </Link>
             </div>
@@ -65,77 +66,91 @@ export function HeroSection() {
               <ArrowRight className="h-3.5 w-3.5 opacity-0 -translate-x-1 transition-all group-hover:opacity-100 group-hover:translate-x-0" />
             </Link>
 
-            {/* Stats */}
+            {/* Stats — big numbers like reference */}
             <div className="grid grid-cols-3 gap-4 sm:gap-8 pt-8 border-t border-border/60">
               {[
-                { icon: Users, value: '10k+', label: 'Alunos ativos' },
-                { icon: BookOpen, value: '200+', label: 'Cursos disponíveis' },
-                { icon: Award, value: '5k+', label: 'Certificados emitidos' },
-              ].map(({ icon: Icon, value, label }) => (
-                <div key={label} className="flex items-center gap-3">
-                  <div className="hidden sm:flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                    <Icon className="h-5 w-5" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="font-display text-xl sm:text-2xl font-bold tracking-tight">{value}</p>
-                    <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-widest text-muted-foreground truncate">
-                      {label}
-                    </p>
-                  </div>
+                { value: '10k+', label: 'Alunos ativos' },
+                { value: '200+', label: 'Cursos' },
+                { value: '100%', label: 'Online' },
+              ].map(({ value, label }) => (
+                <div key={label} className="min-w-0">
+                  <p className="font-display text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight hero-gradient-text">
+                    {value}
+                  </p>
+                  <p className="mt-1 text-[10px] sm:text-xs font-semibold uppercase tracking-widest text-muted-foreground truncate">
+                    {label}
+                  </p>
                 </div>
               ))}
             </div>
           </motion.div>
 
-          {/* Hero Image */}
+          {/* Hero Image — tilted phone-style mockup */}
           <motion.div
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-            className="relative"
+            className="relative hidden lg:block"
           >
-            <div className="relative aspect-[4/5] max-w-lg mx-auto">
-              <div className="absolute -inset-6 bg-primary/15 blur-[80px] rounded-full -z-10" />
-              <div className="relative w-full h-full rounded-[2rem] overflow-hidden border border-border/60 shadow-2xl">
+            <div className="relative aspect-[4/5] max-w-lg mx-auto" style={{ perspective: '1200px' }}>
+              <div className="absolute -inset-10 bg-primary/25 blur-[100px] rounded-full -z-10" />
+              <motion.div
+                animate={{ rotateY: [-8, -6, -8], rotateX: [6, 8, 6] }}
+                transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+                className="relative w-full h-full rounded-[2.5rem] overflow-hidden border border-border/60 shadow-[0_30px_80px_-20px_hsl(var(--primary)/0.5)]"
+                style={{ transformStyle: 'preserve-3d' }}
+              >
                 <img
                   src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&h=1000&fit=crop"
                   alt="Estudantes aprendendo online com a Formak"
                   className="w-full h-full object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/10 to-transparent" />
-              </div>
-              
-              {/* Floating cards */}
+                <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent" />
+              </motion.div>
+
+              {/* Floating notification-style cards */}
               <motion.div
-                animate={{ y: [0, -8, 0] }}
-                transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-                className="absolute -left-4 sm:-left-6 top-10 sm:top-12 glass p-3 sm:p-4 rounded-2xl shadow-2xl"
+                initial={{ opacity: 0, x: -30 }}
+                animate={{ opacity: 1, x: 0, y: [0, -8, 0] }}
+                transition={{ y: { duration: 4, repeat: Infinity, ease: 'easeInOut' }, opacity: { duration: 0.6, delay: 0.6 }, x: { duration: 0.6, delay: 0.6 } }}
+                className="absolute -left-6 sm:-left-10 top-12 glass p-4 rounded-2xl shadow-2xl border border-primary/20"
               >
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <div className="h-10 w-10 sm:h-11 sm:w-11 rounded-xl bg-primary/15 flex items-center justify-center">
-                    <CheckCircle2 className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+                <div className="flex items-center gap-3">
+                  <div className="h-11 w-11 rounded-xl bg-primary flex items-center justify-center shadow-[0_0_20px_hsl(var(--primary)/0.6)]">
+                    <Zap className="h-5 w-5 text-primary-foreground" />
                   </div>
                   <div>
-                    <p className="font-display font-bold text-sm sm:text-base leading-tight">Certificado</p>
-                    <p className="text-[10px] sm:text-xs text-muted-foreground">Gerado na hora</p>
+                    <p className="font-display font-bold text-sm leading-tight">Novo Certificado</p>
+                    <p className="text-xs text-primary font-semibold">Liberado agora</p>
                   </div>
                 </div>
               </motion.div>
 
               <motion.div
-                animate={{ y: [0, 8, 0] }}
-                transition={{ duration: 4, repeat: Infinity, delay: 1.5, ease: 'easeInOut' }}
-                className="absolute -right-4 sm:-right-6 bottom-10 sm:bottom-14 glass p-3 sm:p-4 rounded-2xl shadow-2xl"
+                initial={{ opacity: 0, x: 30 }}
+                animate={{ opacity: 1, x: 0, y: [0, 8, 0] }}
+                transition={{ y: { duration: 4, repeat: Infinity, delay: 1.5, ease: 'easeInOut' }, opacity: { duration: 0.6, delay: 0.9 }, x: { duration: 0.6, delay: 0.9 } }}
+                className="absolute -right-6 sm:-right-10 bottom-16 glass p-4 rounded-2xl shadow-2xl border border-primary/20"
               >
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <div className="h-10 w-10 sm:h-11 sm:w-11 rounded-xl bg-primary/15 flex items-center justify-center">
-                    <BookOpen className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+                <div className="flex items-center gap-3">
+                  <div className="h-11 w-11 rounded-xl bg-primary/15 flex items-center justify-center">
+                    <TrendingUp className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <p className="font-display font-bold text-sm sm:text-base leading-tight">100% Online</p>
-                    <p className="text-[10px] sm:text-xs text-muted-foreground">Estude onde quiser</p>
+                    <p className="font-display font-bold text-sm leading-tight">Progresso +32%</p>
+                    <p className="text-xs text-muted-foreground">Este mês</p>
                   </div>
                 </div>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 1.1 }}
+                className="absolute left-1/2 -translate-x-1/2 -bottom-6 glass px-5 py-3 rounded-2xl shadow-2xl border border-primary/20 flex items-center gap-3 whitespace-nowrap"
+              >
+                <GraduationCap className="h-5 w-5 text-primary" />
+                <p className="text-sm font-semibold">+10.000 alunos aprendendo</p>
               </motion.div>
             </div>
           </motion.div>

@@ -24,7 +24,7 @@ export function HowItWorksSection() {
           <span className="inline-block text-xs font-bold uppercase tracking-widest text-primary mb-4">
             Como funciona
           </span>
-          <h2 className="font-display font-extrabold tracking-tight text-4xl sm:text-5xl lg:text-6xl mb-4">
+          <h2 className="font-display font-extrabold tracking-tight text-3xl sm:text-4xl lg:text-6xl mb-4">
             Do zero ao{' '}
             <span className="hero-gradient-text">certificado</span>
           </h2>

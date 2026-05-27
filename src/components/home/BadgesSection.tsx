@@ -28,7 +28,7 @@ export const BadgesSection = () => {
           <span className="inline-block text-xs font-bold uppercase tracking-widest text-primary mb-4">
             Gamificação
           </span>
-          <h2 className="font-display font-extrabold tracking-tight text-4xl sm:text-5xl lg:text-6xl mb-4">
+          <h2 className="font-display font-extrabold tracking-tight text-3xl sm:text-4xl lg:text-6xl mb-4">
             Estude e{' '}
             <span className="hero-gradient-text">conquiste</span> badges
           </h2>

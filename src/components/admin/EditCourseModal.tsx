@@ -245,18 +245,35 @@ export function EditCourseModal({ open, onOpenChange, course }: EditCourseModalP
                 onChange={handleFileChange}
                 className="hidden"
               />
-              {thumbnailPreview && (
+              <div className="flex flex-wrap gap-2">
+                {thumbnailPreview && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-fit"
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    Trocar imagem
+                  </Button>
+                )}
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="secondary"
                   size="sm"
-                  onClick={() => fileInputRef.current?.click()}
+                  onClick={handleGenerateCover}
+                  disabled={isGenerating}
                   className="w-fit"
                 >
-                  <Upload className="h-4 w-4 mr-2" />
-                  Trocar imagem
+                  {isGenerating ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Sparkles className="h-4 w-4 mr-2" />
+                  )}
+                  {isGenerating ? 'Gerando capa...' : 'Gerar capa'}
                 </Button>
-              )}
+              </div>
             </div>
           </div>
 

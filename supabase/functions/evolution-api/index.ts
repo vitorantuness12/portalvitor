@@ -18,44 +18,36 @@ function getEvolutionConfig() {
 }
 
 /**
- * Traduz erros de rede/TLS (comuns quando o host da Evolution API tem
- * certificado inválido ou está fora do ar) em mensagens acionáveis.
+ * Traduz erros de rede/TLS em mensagens acionáveis.
  */
 function describeNetworkError(error: unknown, baseUrl: string): string {
-  const msg = error instanceof Error ? error.message : String(error);
+  const msg = String(error);
 
-  if (msg.includes("NotValidForName") || msg.includes("invalid peer certificate")) {
-    return `O certificado SSL do servidor da Evolution API (${baseUrl}) não é válido para esse domínio. Atualize o secret EVOLUTION_API_URL para o domínio oficial do servidor (com HTTPS válido) ou corrija o certificado no servidor.`;
+  if (msg.includes("NotValidForName") || msg.includes("peer certificate") || msg.includes("TLS")) {
+    return `Erro de TLS/SSL na Evolution API (${baseUrl}). Verifique se o certificado HTTPS é válido ou se a URL está correta.`;
   }
   if (msg.includes("dns error") || msg.includes("failed to lookup")) {
-    return `Não foi possível resolver o endereço da Evolution API (${baseUrl}). Verifique o secret EVOLUTION_API_URL.`;
+    return `Endereço da Evolution API (${baseUrl}) não encontrado. Verifique o host informado.`;
   }
-  if (msg.includes("error sending request") || msg.includes("ConnectionRefused")) {
-    return `Não foi possível conectar ao servidor da Evolution API (${baseUrl}). Verifique se ele está online.`;
+  if (msg.includes("ConnectionRefused") || msg.includes("error sending request")) {
+    return `Servidor da Evolution API (${baseUrl}) recusou a conexão ou está offline.`;
   }
-  return msg;
+  return `Erro de rede ao conectar na Evolution API: ${msg}`;
 }
 
-/** fetch com tradução de erros de conexão/TLS */
 async function safeFetch(url: string, init: RequestInit): Promise<Response> {
   try {
     return await fetch(url, init);
   } catch (error) {
     let origin = url;
-    try {
-      origin = new URL(url).origin;
-    } catch {
-      // mantém a url original se não for parseável
-    }
+    try { origin = new URL(url).origin; } catch { /* ignore */ }
     throw new Error(describeNetworkError(error, origin));
   }
 }
 
 async function verifyAdmin(req: Request) {
   const authHeader = req.headers.get("Authorization");
-  if (!authHeader?.startsWith("Bearer ")) {
-    throw new Error("Não autorizado");
-  }
+  if (!authHeader?.startsWith("Bearer ")) throw new Error("Não autorizado");
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
@@ -64,147 +56,73 @@ async function verifyAdmin(req: Request) {
   });
 
   const token = authHeader.replace("Bearer ", "");
-  const { data: claims, error } = await supabase.auth.getClaims(token);
-  if (error || !claims?.claims) throw new Error("Token inválido");
+  // Usando getUser para validar token de forma padrão e segura
+  const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+  if (authError || !user) throw new Error("Token inválido ou expirado");
 
-  const userId = claims.claims.sub as string;
   const { data: isAdmin } = await supabase.rpc("has_role", {
-    _user_id: userId,
+    _user_id: user.id,
     _role: "admin",
   });
   if (!isAdmin) throw new Error("Acesso restrito a administradores");
 
-  return { supabase, userId };
+  return { supabase, userId: user.id };
 }
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
     await verifyAdmin(req);
-
     const { action, ...params } = await req.json();
     const { baseUrl, apiKey, instance } = getEvolutionConfig();
 
-    const headers = {
-      apikey: apiKey,
-      "Content-Type": "application/json",
-    };
-
-    let result: unknown;
+    const headers = { apikey: apiKey, "Content-Type": "application/json" };
+    let result: any;
 
     switch (action) {
-      case "status": {
-        // Get connection status
-        const res = await safeFetch(
-          `${baseUrl}/instance/connectionState/${instance}`,
-          { headers }
-        );
-        if (!res.ok) {
-          const text = await res.text();
-          throw new Error(`Erro ao verificar status: ${res.status} - ${text}`);
-        }
-        result = await res.json();
+      case "status":
+        const statusRes = await safeFetch(`${baseUrl}/instance/connectionState/${instance}`, { headers });
+        result = statusRes.ok ? await statusRes.json() : { error: await statusRes.text() };
         break;
-      }
-
-      case "qrcode": {
-        // Get QR code for connection
-        const res = await safeFetch(
-          `${baseUrl}/instance/connect/${instance}`,
-          { headers }
-        );
-        if (!res.ok) {
-          const text = await res.text();
-          throw new Error(`Erro ao gerar QR code: ${res.status} - ${text}`);
-        }
-        result = await res.json();
+      case "qrcode":
+        const qrRes = await safeFetch(`${baseUrl}/instance/connect/${instance}`, { headers });
+        result = qrRes.ok ? await qrRes.json() : { error: await qrRes.text() };
         break;
-      }
-
-      case "restart": {
-        // Restart instance - try DELETE+reconnect approach
-        const logoutRes = await safeFetch(
-          `${baseUrl}/instance/logout/${instance}`,
-          { method: "DELETE", headers }
-        );
-        // Ignore logout errors, then reconnect
-        if (logoutRes.ok) await logoutRes.json(); else await logoutRes.text();
-        
-        // Small delay before reconnecting
+      case "restart":
+        await safeFetch(`${baseUrl}/instance/logout/${instance}`, { method: "DELETE", headers }).catch(() => {});
         await new Promise(r => setTimeout(r, 1000));
-        
-        const res = await safeFetch(
-          `${baseUrl}/instance/connect/${instance}`,
-          { headers }
-        );
-        if (!res.ok) {
-          const text = await res.text();
-          throw new Error(`Erro ao reiniciar: ${res.status} - ${text}`);
-        }
-        result = await res.json();
+        const connectRes = await safeFetch(`${baseUrl}/instance/connect/${instance}`, { headers });
+        result = connectRes.ok ? await connectRes.json() : { error: await connectRes.text() };
         break;
-      }
-
-      case "logout": {
-        // Disconnect / logout
-        const res = await safeFetch(
-          `${baseUrl}/instance/logout/${instance}`,
-          { method: "DELETE", headers }
-        );
-        if (!res.ok) {
-          const text = await res.text();
-          throw new Error(`Erro ao desconectar: ${res.status} - ${text}`);
-        }
-        result = await res.json();
+      case "logout":
+        const logoutRes = await safeFetch(`${baseUrl}/instance/logout/${instance}`, { method: "DELETE", headers });
+        result = logoutRes.ok ? await logoutRes.json() : { error: await logoutRes.text() };
         break;
-      }
-
-      case "send-text": {
+      case "send-text":
         const { number, message } = params;
-        if (!number || !message) throw new Error("Número e mensagem obrigatórios");
-
+        if (!number || !message) throw new Error("Parâmetros ausentes");
         let cleanNumber = number.replace(/\D/g, "");
-        // Auto-prefix Brazil country code if missing
-        if (!cleanNumber.startsWith("55")) {
-          cleanNumber = "55" + cleanNumber;
-        }
-        const res = await safeFetch(
-          `${baseUrl}/message/sendText/${instance}`,
-          {
-            method: "POST",
-            headers,
-            body: JSON.stringify({ number: cleanNumber, text: message }),
-          }
-        );
-        if (!res.ok) {
-          const text = await res.text();
-          throw new Error(`Erro ao enviar: ${res.status} - ${text}`);
-        }
-        result = await res.json();
+        if (!cleanNumber.startsWith("55")) cleanNumber = "55" + cleanNumber;
+        const sendRes = await safeFetch(`${baseUrl}/message/sendText/${instance}`, {
+          method: "POST",
+          headers,
+          body: JSON.stringify({ number: cleanNumber, text: message }),
+        });
+        result = sendRes.ok ? await sendRes.json() : { error: await sendRes.text() };
         break;
-      }
-
       default:
-        throw new Error(`Ação desconhecida: ${action}`);
+        throw new Error(`Ação '${action}' não reconhecida`);
     }
 
-    return new Response(JSON.stringify({ success: true, data: result }), {
+    return new Response(JSON.stringify({ success: !result.error, data: result.error ? null : result, error: result.error }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (error) {
-    console.error("Evolution API error:", error);
-    return new Response(
-      JSON.stringify({
-        success: false,
-        error: error instanceof Error ? error.message : "Erro desconhecido",
-      }),
-      {
-        status: error instanceof Error && error.message.includes("autorizado") ? 401 : 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+  } catch (error: any) {
+    console.error("Evolution API Error:", error.message);
+    return new Response(JSON.stringify({ success: false, error: error.message }), {
+      status: error.message.includes("autorizado") ? 401 : 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });

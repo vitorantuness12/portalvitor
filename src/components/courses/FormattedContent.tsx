@@ -65,7 +65,7 @@ function CodeBlock({ code, language }: CodeBlockProps) {
       <pre className="!m-0 !rounded-t-none overflow-x-auto">
         <code
           ref={codeRef}
-          className={`hljs ${language ? `language-${language}` : ''} !bg-[#0d1117] !p-4 block text-sm`}
+          className={`hljs ${language ? `language-${language}` : ''} !bg-[#0d1117] !p-4 block text-[13px] sm:text-sm leading-relaxed`}
         >
           {code}
         </code>
@@ -189,10 +189,10 @@ export function FormattedContent({ content, className = '' }: FormattedContentPr
         elements.push(
           <blockquote
             key={`quote-${elements.length}`}
-            className="border-l-4 border-primary/50 bg-primary/5 pl-4 py-3 pr-3 my-4 rounded-r-lg"
+            className="border-l-4 border-primary/50 bg-primary/5 pl-4 py-3.5 pr-4 my-5 rounded-r-xl"
           >
             {blockquoteLines.map((line, i) => (
-              <p key={i} className="text-muted-foreground italic">
+              <p key={i} className="text-muted-foreground italic leading-relaxed">
                 {processInlineFormatting(line)}
               </p>
             ))}
@@ -206,24 +206,24 @@ export function FormattedContent({ content, className = '' }: FormattedContentPr
       if (listItems.length > 0) {
         if (listType === 'ordered') {
           elements.push(
-            <ol key={`list-${elements.length}`} className="space-y-2 mb-4">
+            <ol key={`list-${elements.length}`} className="space-y-2.5 mb-5">
               {listItems.map((item, i) => (
                 <li key={i} className="flex gap-3">
                   <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary text-sm font-medium flex items-center justify-center">
                     {i + 1}
                   </span>
-                  <span className="flex-1 pt-0.5">{processInlineFormatting(item)}</span>
+                  <span className="flex-1 pt-0.5 leading-relaxed text-foreground/90">{processInlineFormatting(item)}</span>
                 </li>
               ))}
             </ol>
           );
         } else {
           elements.push(
-            <ul key={`list-${elements.length}`} className="space-y-2 mb-4">
+            <ul key={`list-${elements.length}`} className="space-y-2.5 mb-5">
               {listItems.map((item, i) => (
                 <li key={i} className="flex gap-3">
                   <span className="flex-shrink-0 w-2 h-2 rounded-full bg-primary mt-2" />
-                  <span className="flex-1">{processInlineFormatting(item)}</span>
+                  <span className="flex-1 leading-relaxed text-foreground/90">{processInlineFormatting(item)}</span>
                 </li>
               ))}
             </ul>
@@ -275,7 +275,7 @@ export function FormattedContent({ content, className = '' }: FormattedContentPr
         flushList();
         const headerText = trimmedLine.replace(/^###\s*/, '');
         elements.push(
-          <h4 key={index} className="text-base sm:text-lg font-semibold text-foreground mt-6 mb-3">
+          <h4 key={index} className="font-display text-base sm:text-lg font-semibold text-foreground mt-7 mb-3">
             {processInlineFormatting(headerText)}
           </h4>
         );
@@ -286,7 +286,7 @@ export function FormattedContent({ content, className = '' }: FormattedContentPr
         flushList();
         const headerText = trimmedLine.replace(/^##\s*/, '');
         elements.push(
-          <h3 key={index} className="text-lg sm:text-xl font-bold text-foreground mt-6 mb-3">
+          <h3 key={index} className="font-display text-lg sm:text-xl font-bold text-foreground mt-8 mb-3">
             {processInlineFormatting(headerText)}
           </h3>
         );
@@ -297,7 +297,7 @@ export function FormattedContent({ content, className = '' }: FormattedContentPr
         flushList();
         const headerText = trimmedLine.replace(/^#\s*/, '');
         elements.push(
-          <h2 key={index} className="text-xl sm:text-2xl font-bold text-foreground mt-6 mb-4">
+          <h2 key={index} className="font-display text-xl sm:text-2xl font-bold text-foreground mt-8 mb-4">
             {processInlineFormatting(headerText)}
           </h2>
         );
@@ -344,7 +344,7 @@ export function FormattedContent({ content, className = '' }: FormattedContentPr
       // Regular paragraph
       flushList();
       elements.push(
-        <p key={index} className="text-muted-foreground mb-3 leading-relaxed">
+        <p key={index} className="text-muted-foreground mb-4 leading-relaxed sm:text-base">
           {processInlineFormatting(trimmedLine)}
         </p>
       );

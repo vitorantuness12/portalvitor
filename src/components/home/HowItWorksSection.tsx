@@ -1,14 +1,14 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { UserPlus, BookOpen, FileText, Trophy, Award, ArrowRight, Check } from 'lucide-react';
+import { UserPlus, BookOpen, FileText, CheckCircle, Award, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const steps = [
-  { icon: UserPlus, title: 'Cadastre-se', description: 'Crie sua conta gratuitamente em segundos.' },
-  { icon: BookOpen, title: 'Escolha', description: 'Selecione o curso ideal para seus objetivos.' },
-  { icon: FileText, title: 'Estude', description: 'Aprenda no seu ritmo, a qualquer hora.' },
-  { icon: Trophy, title: 'Provo', description: 'Faça a prova final e alcance 7,0.' },
-  { icon: Award, title: 'Certifique', description: 'Receba seu certificado automaticamente!' },
+  { icon: UserPlus, title: 'Crie sua conta', description: 'Cadastre-se gratuitamente de forma rápida e segura.' },
+  { icon: BookOpen, title: 'Escolha seu curso', description: 'Encontre uma formação alinhada ao seu objetivo.' },
+  { icon: FileText, title: 'Estude online', description: 'Avance no seu ritmo, de onde estiver.' },
+  { icon: CheckCircle, title: 'Faça a avaliação', description: 'Complete a prova ou atividade final conforme as regras do curso.' },
+  { icon: Award, title: 'Receba seu certificado', description: 'Após cumprir os requisitos, acesse seu certificado de conclusão.' },
 ];
 
 export function HowItWorksSection() {
@@ -25,11 +25,12 @@ export function HowItWorksSection() {
           className="text-center mb-16"
         >
           <h2 className="font-display font-extrabold tracking-tight text-4xl sm:text-5xl lg:text-6xl mb-4">
-            Como{' '}
-            <span className="hero-gradient-text">funciona</span>
+            Comece sua jornada
+            <br className="hidden sm:block" />{' '}
+            <span className="hero-gradient-text">em poucos passos</span>
           </h2>
           <p className="text-base sm:text-lg text-muted-foreground max-w-xl mx-auto">
-            Cinco passos simples para você conquistar seu certificado e transformar sua carreira.
+            Escolha seu objetivo, encontre uma formação e estude com a flexibilidade que a sua rotina precisa.
           </p>
         </motion.div>
 
@@ -57,7 +58,7 @@ export function HowItWorksSection() {
                     </div>
                     
                     {/* Icon container */}
-                    <div className="h-20 w-20 rounded-3xl bg-card border border-border/70 shadow-elevated flex items-center justify-center mx-auto group-hover:border-primary/40 group-hover:shadow-glow transition-all">
+                    <div className="h-20 w-20 rounded-3xl bg-card border border-border/70 shadow-elevated flex items-center justify-center mx-auto">
                       <Icon className="h-8 w-8 text-primary" />
                     </div>
                   </div>
@@ -79,7 +80,7 @@ export function HowItWorksSection() {
         >
           <Link to="/cursos">
             <Button variant="hero" size="xl" className="gap-2 text-base px-10 shadow-glow group">
-              Começar Agora
+              Encontrar meu curso
               <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
             </Button>
           </Link>

@@ -12,36 +12,36 @@ import { Badge } from '@/components/ui/badge';
 
 const faqs = [
   {
-    question: 'O certificado é reconhecido?',
-    answer: 'Sim! Nossos certificados são válidos em todo o território nacional como curso livre, conforme a Lei nº 9.394/96. Cada certificado possui um código único que pode ser validado em nossa página de verificação.',
+    question: 'O que é o certificado da Formak?',
+    answer: 'O certificado da Formak é um documento de conclusão de curso livre, emitido conforme a Lei nº 9.394/96 (Diretrizes e Bases da Educação Nacional). Cursos livres não são equivalentes a graduação, curso técnico ou formação regulamentada, mas são amplamente aceitos para comprovação de qualificação profissional e participação em processos seletivos que aceitem cursos livres.',
   },
   {
-    question: 'Qual a nota mínima para aprovação?',
-    answer: 'A nota mínima para aprovação na prova final é 7,0 (sete). Ao atingir essa nota, seu certificado é gerado automaticamente e fica disponível para download imediato.',
+    question: 'Para que serve o certificado?',
+    answer: 'O certificado pode ser usado para comprovação de qualificação profissional, apresentação em entrevistas de emprego, inclusão no currículo, participação em concursos públicos que aceitem cursos livres, e complementação de horas em atividades acadêmicas. A aceitação depende da política de cada instituição ou empregador.',
   },
   {
-    question: 'Posso estudar pelo celular?',
-    answer: 'Sim! Nossa plataforma é 100% responsiva e funciona perfeitamente em smartphones, tablets e computadores. Estude onde e quando quiser.',
+    question: 'Como funciona a avaliação para obter o certificado?',
+    answer: 'Cada curso possui uma prova ou atividade final, aplicada após a conclusão do conteúdo. A nota mínima para aprovação é 7,0 (sete). Ao atingir essa nota, o certificado é gerado automaticamente e fica disponível para download imediato na área do aluno.',
+  },
+  {
+    question: 'Posso refazer a avaliação se não atingir 7,0?',
+    answer: 'A quantidade de tentativas permitidas pode variar conforme o curso. Recomendamos estudar todo o conteúdo e fazer os exercícios práticos antes de realizar a avaliação. Caso o curso permita refazer, a informação estará disponível na página de detalhes da formação.',
   },
   {
     question: 'Por quanto tempo tenho acesso ao curso?',
-    answer: 'Você tem acesso vitalício! Uma vez matriculado, o curso é seu para sempre. Pode revisitar o conteúdo quantas vezes quiser, sem prazo de expiração.',
+    answer: 'Após a confirmação do pagamento, o acesso ao curso é vitalício — ou seja, uma vez adquirido, o curso fica disponível para você acessar e revisitar quantas vezes quiser, sem prazo de expiração.',
   },
   {
-    question: 'Posso refazer a prova se não passar?',
-    answer: 'Atualmente, cada aluno tem uma tentativa na prova final. Por isso, recomendamos estudar todo o conteúdo e fazer os exercícios práticos antes de realizar a prova.',
+    question: 'Posso estudar pelo celular?',
+    answer: 'Sim. A plataforma é totalmente responsiva e funciona em smartphones, tablets e computadores. Você pode estudar de onde quiser, no horário que preferir.',
+  },
+  {
+    question: 'Como funcionam os cursos gratuitos?',
+    answer: 'Algumas formações podem ser oferecidas gratuitamente como forma de você conhecer a plataforma. Nesses casos, o cadastro para acessar é gratuito. A disponibilidade e as condições de cada curso gratuito são definidas individualmente. O certificado dos cursos gratuitos segue as mesmas regras dos cursos pagos, conforme descrito na página de cada formação.',
   },
   {
     question: 'Como funciona o suporte?',
-    answer: 'Oferecemos suporte via chat com inteligência artificial para dúvidas rápidas e um sistema de tickets para questões mais complexas. Nossa equipe responde em até 24 horas úteis.',
-  },
-  {
-    question: 'Os cursos gratuitos também dão certificado?',
-    answer: 'Sim! Todos os cursos da plataforma, incluindo os gratuitos, oferecem certificado de conclusão após aprovação na prova final.',
-  },
-  {
-    question: 'Como faço para validar um certificado?',
-    answer: 'Basta acessar a página de validação de certificados e inserir o código único presente no documento. O sistema confirmará a autenticidade automaticamente.',
+    answer: 'Oferecemos suporte via chat com inteligência artificial para dúvidas rápidas e um sistema de tickets para questões mais complexas. Nossa equipe responde em até 24 horas úteis nos dias úteis.',
   },
 ];
 
@@ -64,7 +64,7 @@ export function FAQSection() {
             <span className="hero-gradient-text">Frequentes</span>
           </h2>
           <p className="text-base sm:text-lg text-muted-foreground max-w-xl mx-auto">
-            Encontre respostas rápidas para as dúvidas mais comuns.
+            Encontre respostas rápidas e transparentes para as dúvidas mais comuns.
           </p>
         </motion.div>
 

@@ -26,7 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Search, Eye, BookOpen, GraduationCap, Plus, X } from 'lucide-react';
+import { Search, Eye, BookOpen, GraduationCap, Plus, X, Award } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
@@ -55,6 +55,14 @@ interface UserWithEnrollments {
 interface Course {
   id: string;
   title: string;
+}
+
+interface CertificateRecord {
+  id: string;
+  certificate_code: string;
+  issued_at: string;
+  course_id: string;
+  course: { title: string } | null;
 }
 
 export default function AdminUsers() {
@@ -95,6 +103,22 @@ export default function AdminUsers() {
 
       if (error) throw error;
       return data as Course[];
+    },
+  });
+
+  // Histórico de certificados emitidos do aluno selecionado
+  const { data: certificates, isLoading: loadingCertificates } = useQuery({
+    queryKey: ['admin-user-certificates', selectedUser?.user_id],
+    enabled: !!selectedUser?.user_id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('certificates')
+        .select('id, certificate_code, issued_at, course_id, course:courses(title)')
+        .eq('user_id', selectedUser!.user_id)
+        .order('issued_at', { ascending: false });
+
+      if (error) throw error;
+      return (data || []) as unknown as CertificateRecord[];
     },
   });
 
@@ -279,7 +303,6 @@ export default function AdminUsers() {
                       variant="ghost"
                       size="icon"
                       onClick={() => setSelectedUser(user)}
-                      disabled={user.enrollments.length === 0}
                       title="Ver detalhes"
                     >
                       <Eye className="h-4 w-4" />
@@ -390,7 +413,6 @@ export default function AdminUsers() {
                           variant="ghost"
                           size="icon"
                           onClick={() => setSelectedUser(user)}
-                          disabled={user.enrollments.length === 0}
                           title="Ver detalhes"
                         >
                           <Eye className="h-4 w-4" />
@@ -495,7 +517,67 @@ export default function AdminUsers() {
                       )}
                     </div>
                   ))}
+                  {selectedUser.enrollments.length === 0 && (
+                    <p className="text-sm text-muted-foreground">
+                      Nenhuma matrícula registrada.
+                    </p>
+                  )}
                 </div>
+              </div>
+
+              {/* Histórico de certificados emitidos */}
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <Award className="h-4 w-4 text-primary" />
+                  <h4 className="font-medium">Certificados Emitidos</h4>
+                  <Badge variant="secondary">{certificates?.length || 0}</Badge>
+                </div>
+
+                {loadingCertificates ? (
+                  <div className="flex items-center justify-center py-6">
+                    <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-primary" />
+                  </div>
+                ) : !certificates || certificates.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    Este aluno ainda não possui certificados emitidos.
+                  </p>
+                ) : (
+                  <div className="space-y-3">
+                    {certificates.map((certificate) => (
+                      <div
+                        key={certificate.id}
+                        className="border rounded-lg p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
+                      >
+                        <div className="min-w-0">
+                          <p className="font-medium truncate">
+                            {certificate.course?.title || 'Curso removido'}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Emitido em{' '}
+                            {certificate.issued_at
+                              ? format(new Date(certificate.issued_at), "dd 'de' MMM, yyyy 'às' HH:mm", {
+                                  locale: ptBR,
+                                })
+                              : '-'}
+                          </p>
+                          <p className="text-xs text-muted-foreground font-mono mt-1">
+                            Código: {certificate.certificate_code}
+                          </p>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            navigator.clipboard.writeText(certificate.certificate_code);
+                            toast.success('Código copiado!');
+                          }}
+                        >
+                          Copiar código
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           )}

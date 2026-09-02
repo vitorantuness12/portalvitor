@@ -165,9 +165,8 @@ export default function StudentCard() {
     }
   };
 
-  const siteBaseUrl = 'https://formak.com.br';
   const validationUrl = studentCard
-    ? `${siteBaseUrl}/validar-carteirinha?codigo=${studentCard.card_code}`
+    ? publicUrl(`/validar-carteirinha?codigo=${studentCard.card_code}`)
     : '';
 
   if (authLoading) {
@@ -463,7 +462,7 @@ export default function StudentCard() {
                           studentName={profile?.full_name || ''}
                           photoUrl={photoUrl}
                           cardCode="CARD-XXXXXX"
-                          validationUrl={`${window.location.origin}/validar-carteirinha`}
+                          validationUrl={publicUrl('/validar-carteirinha')}
                           side="front"
                         />
                       </TabsContent>
@@ -472,7 +471,7 @@ export default function StudentCard() {
                           studentName={profile?.full_name || ''}
                           photoUrl={photoUrl}
                           cardCode="CARD-XXXXXX"
-                          validationUrl={`${window.location.origin}/validar-carteirinha`}
+                          validationUrl={publicUrl('/validar-carteirinha')}
                           side="back"
                         />
                       </TabsContent>

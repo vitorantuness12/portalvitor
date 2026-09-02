@@ -4,14 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 
 const badges = [
-  { emoji: '🎯', name: 'Primeiro Passo', description: 'Inicie seu primeiro curso', icon: Target },
-  { emoji: '✅', name: '1º Concluído', description: 'Complete um curso', icon: BookOpen },
-  { emoji: '🏆', name: '1º Certificado', description: 'Conquiste seu certificado', icon: Trophy },
-  { emoji: '⭐', name: 'Nota Perfeita', description: 'Tire 10 em uma prova', icon: Star },
-  { emoji: '🔥', name: 'Streak 7 Dias', description: 'Estude 7 dias seguidos', icon: Flame },
-  { emoji: '⏰', name: '50h de Estudo', description: 'Acumule 50 horas', icon: Clock },
-  { emoji: '👑', name: '10 Cursos', description: 'Complete 10 cursos', icon: Award },
-  { emoji: '⚡', name: 'Velocista', description: 'Conclua em 24h', icon: Zap },
+  { name: 'Primeiro Passo', description: 'Inicie seu primeiro curso', icon: Target },
+  { name: '1º Concluído', description: 'Complete um curso', icon: BookOpen },
+  { name: '1º Certificado', description: 'Conquiste seu certificado', icon: Trophy },
+  { name: 'Nota Perfeita', description: 'Tire 10 em uma prova', icon: Star },
+  { name: 'Streak 7 Dias', description: 'Estude 7 dias seguidos', icon: Flame },
+  { name: '50h de Estudo', description: 'Acumule 50 horas', icon: Clock },
+  { name: '10 Cursos', description: 'Complete 10 cursos', icon: Award },
+  { name: 'Velocista', description: 'Conclua em 24h', icon: Zap },
 ];
 
 export const BadgesSection = () => {
@@ -38,28 +38,31 @@ export const BadgesSection = () => {
         </motion.div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 sm:gap-4 mb-12">
-          {badges.map((badge, index) => (
-            <motion.div
-              key={badge.name}
-              initial={{ opacity: 0, scale: 0.8 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.05 }}
-              className="group"
-            >
-              <div className="bg-card/40 backdrop-blur rounded-2xl p-4 text-center border border-border/60 hover:border-primary/50 hover:-translate-y-1 hover:shadow-[0_20px_40px_-20px_hsl(var(--primary)/0.5)] transition-all duration-300 h-full">
-                <div className="text-3xl sm:text-4xl mb-2 group-hover:scale-110 transition-transform">
-                  {badge.emoji}
+          {badges.map((badge, index) => {
+            const Icon = badge.icon;
+            return (
+              <motion.div
+                key={badge.name}
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.05 }}
+                className="group h-full"
+              >
+                <div className="pressable bg-card rounded-2xl p-4 text-center border border-border/70 shadow-soft hover:border-primary/40 hover:-translate-y-1 hover:shadow-elevated transition-all duration-300 h-full">
+                  <div className="mx-auto mb-3 h-11 w-11 sm:h-12 sm:w-12 rounded-xl bg-primary-soft flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-primary-foreground group-hover:shadow-glow group-hover:scale-105 transition-all">
+                    <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
+                  </div>
+                  <h3 className="font-display font-bold text-xs sm:text-sm line-clamp-1 mb-1 tracking-tight">
+                    {badge.name}
+                  </h3>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground line-clamp-2">
+                    {badge.description}
+                  </p>
                 </div>
-                <h3 className="font-display font-bold text-xs sm:text-sm line-clamp-1 mb-1 tracking-tight">
-                  {badge.name}
-                </h3>
-                <p className="text-[10px] sm:text-xs text-muted-foreground line-clamp-2">
-                  {badge.description}
-                </p>
-              </div>
-            </motion.div>
-          ))}
+              </motion.div>
+            );
+          })}
         </div>
 
         <motion.div

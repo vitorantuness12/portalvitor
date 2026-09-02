@@ -109,7 +109,7 @@ export function HeroSection() {
                 initial={{ opacity: 0, x: -30 }}
                 animate={{ opacity: 1, x: 0, y: [0, -8, 0] }}
                 transition={{ y: { duration: 4, repeat: Infinity, ease: 'easeInOut' }, opacity: { duration: 0.6, delay: 0.6 }, x: { duration: 0.6, delay: 0.6 } }}
-                className="absolute -left-2 sm:-left-6 md:-left-10 top-8 sm:top-12 glass p-2.5 sm:p-4 rounded-xl sm:rounded-2xl shadow-2xl border border-primary/20"
+                className="absolute -left-2 sm:-left-6 md:-left-10 top-8 sm:top-12 bg-card/90 backdrop-blur-md p-2.5 sm:p-4 rounded-xl sm:rounded-2xl shadow-floating border border-border/70"
               >
                 <div className="flex items-center gap-2 sm:gap-3">
                   <div className="h-8 w-8 sm:h-11 sm:w-11 rounded-lg sm:rounded-xl bg-primary flex items-center justify-center shadow-[0_0_20px_hsl(var(--primary)/0.6)]">
@@ -126,7 +126,7 @@ export function HeroSection() {
                 initial={{ opacity: 0, x: 30 }}
                 animate={{ opacity: 1, x: 0, y: [0, 8, 0] }}
                 transition={{ y: { duration: 4, repeat: Infinity, delay: 1.5, ease: 'easeInOut' }, opacity: { duration: 0.6, delay: 0.9 }, x: { duration: 0.6, delay: 0.9 } }}
-                className="absolute -right-2 sm:-right-6 md:-right-10 bottom-10 sm:bottom-16 glass p-2.5 sm:p-4 rounded-xl sm:rounded-2xl shadow-2xl border border-primary/20"
+                className="absolute -right-2 sm:-right-6 md:-right-10 bottom-10 sm:bottom-16 bg-card/90 backdrop-blur-md p-2.5 sm:p-4 rounded-xl sm:rounded-2xl shadow-floating border border-border/70"
               >
                 <div className="flex items-center gap-2 sm:gap-3">
                   <div className="h-8 w-8 sm:h-11 sm:w-11 rounded-lg sm:rounded-xl bg-primary/15 flex items-center justify-center">
@@ -143,7 +143,7 @@ export function HeroSection() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 1.1 }}
-                className="absolute left-1/2 -translate-x-1/2 -bottom-4 sm:-bottom-6 glass px-3 sm:px-5 py-2 sm:py-3 rounded-xl sm:rounded-2xl shadow-2xl border border-primary/20 flex items-center gap-2 sm:gap-3 whitespace-nowrap"
+                className="absolute left-1/2 -translate-x-1/2 -bottom-4 sm:-bottom-6 bg-card/90 backdrop-blur-md px-3 sm:px-5 py-2 sm:py-3 rounded-xl sm:rounded-2xl shadow-floating border border-border/70 flex items-center gap-2 sm:gap-3 whitespace-nowrap"
               >
                 <GraduationCap className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                 <p className="text-xs sm:text-sm font-semibold">+10.000 alunos aprendendo</p>

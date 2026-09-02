@@ -42,9 +42,9 @@ export function WhyChooseUs() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.08 }}
-              className="group relative p-6 rounded-2xl border border-border/60 bg-card/40 backdrop-blur hover:border-primary/50 hover:-translate-y-1 hover:shadow-[0_20px_40px_-20px_hsl(var(--primary)/0.4)] transition-all duration-300"
+              className="pressable group relative p-6 rounded-2xl border border-border/70 bg-card shadow-soft hover:border-primary/40 hover:-translate-y-1 hover:shadow-elevated transition-all duration-300"
             >
-              <div className="h-12 w-12 rounded-xl bg-primary flex items-center justify-center text-primary-foreground shadow-[0_0_24px_hsl(var(--primary)/0.4)] mb-5">
+              <div className="h-12 w-12 rounded-xl bg-primary flex items-center justify-center text-primary-foreground shadow-glow mb-5">
                 {feature.icon}
               </div>
               <h3 className="font-display font-bold text-lg leading-tight tracking-tight mb-2">{feature.title}</h3>

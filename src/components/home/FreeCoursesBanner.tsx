@@ -64,7 +64,7 @@ export function FreeCoursesBanner() {
               </div>
 
               <Link to="/cursos?price=free">
-                <Button variant="hero" size="xl" className="text-lg px-8 shadow-[0_0_32px_hsl(var(--primary)/0.5)]">
+                <Button variant="hero" size="xl" className="text-lg px-8 shadow-glow-lg">
                   <Gift className="mr-2 h-5 w-5" />
                   Ver Cursos Gratuitos
                 </Button>

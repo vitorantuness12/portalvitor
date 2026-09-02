@@ -63,9 +63,9 @@ export function CategorySection() {
             >
               <Link
                 to={`/cursos?categoria=${category.name.toLowerCase().replace(' ', '-')}`}
-                className="group relative flex flex-col items-start gap-4 p-5 sm:p-6 bg-card/40 backdrop-blur rounded-2xl border border-border/60 hover:border-primary/50 hover:-translate-y-1 hover:shadow-[0_20px_40px_-20px_hsl(var(--primary)/0.5)] transition-all duration-300 h-full"
+                className="pressable group relative flex flex-col items-start gap-4 p-5 sm:p-6 bg-card rounded-2xl border border-border/70 shadow-soft hover:border-primary/40 hover:-translate-y-1 hover:shadow-elevated transition-all duration-300 h-full"
               >
-                <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-primary-foreground group-hover:shadow-[0_0_24px_hsl(var(--primary)/0.5)] transition-all">
+                <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-xl bg-primary-soft flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-primary-foreground group-hover:shadow-glow transition-all">
                   {iconMap[category.icon || 'laptop'] || <Laptop className="h-7 w-7" />}
                 </div>
                 <h3 className="font-display font-bold text-sm sm:text-base tracking-tight">{category.name}</h3>

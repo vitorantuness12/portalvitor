@@ -47,6 +47,44 @@ export function EditCourseModal({ open, onOpenChange, course }: EditCourseModalP
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(course.thumbnail_url);
   const [isUploading, setIsUploading] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const handleGenerateCover = async () => {
+    const title = formData.title.trim();
+    if (!title) {
+      toast.error('Informe o título do curso antes de gerar a capa');
+      return;
+    }
+
+    setIsGenerating(true);
+    try {
+      const theme =
+        categories?.find((c) => c.id === formData.category_id)?.name || title;
+
+      const { data, error } = await supabase.functions.invoke('generate-course-cover', {
+        body: { title, theme },
+      });
+
+      if (error) throw error;
+      if (!data?.success || !data?.image) {
+        throw new Error(data?.error || 'Não foi possível gerar a capa');
+      }
+
+      const binary = atob(data.image as string);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      const file = new File([bytes], `capa-ia-${Date.now()}.png`, { type: 'image/png' });
+
+      setThumbnailFile(file);
+      setThumbnailPreview(URL.createObjectURL(file));
+      toast.success('Capa gerada! Salve as alterações para aplicar.');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Erro desconhecido';
+      toast.error(`Erro ao gerar capa: ${message}`);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   const { data: categories } = useQuery({
     queryKey: ['categories'],

@@ -13,6 +13,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useEffect, useState } from 'react';
 import { Document, Page, Text, View, StyleSheet, PDFDownloadLink, Font, Image, Svg, Path, Line, Rect } from '@react-pdf/renderer';
 import QRCode from 'qrcode';
+import { publicUrl } from '@/lib/site';
+
 import { useIsPwa } from '@/hooks/useIsPwa';
 
 // Register fonts

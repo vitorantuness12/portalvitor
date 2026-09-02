@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Eye, Award, Star, Download, Loader2 } from 'lucide-react';
+import { Eye, Star, Download, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PDFDownloadLink } from '@react-pdf/renderer';
@@ -288,33 +288,6 @@ export function CertificatePreview({ config }: CertificatePreviewProps) {
             
             {/* Decorative wave at bottom */}
             {showFrontWaves && renderWave(frontWaveStyle, 'bottom')}
-
-            {/* Left Badge */}
-            <div className="absolute top-4 left-4 z-20">
-              {config.left_badge_url ? (
-                <img 
-                  src={config.left_badge_url} 
-                  alt="Badge" 
-                  className="w-8 h-8 object-contain"
-                />
-              ) : (
-                <div 
-                  className="w-8 h-8 rounded-full flex items-center justify-center border-2"
-                  style={{ 
-                    borderColor: secondaryColor,
-                    background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}dd)`,
-                  }}
-                >
-                  <Award className="w-4 h-4" style={{ color: secondaryColor }} />
-                </div>
-              )}
-              <p 
-                className="text-[4px] text-center mt-0.5 font-bold uppercase"
-                style={{ color: primaryColor }}
-              >
-                {config.left_badge_text || 'PREMIUM'}
-              </p>
-            </div>
 
             {/* Right Badge */}
             <div className="absolute top-4 right-4 z-20">

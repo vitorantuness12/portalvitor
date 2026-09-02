@@ -378,68 +378,13 @@ export default function CertificateConfig() {
               <div className="border-t pt-6 mt-6">
                 <h3 className="font-medium mb-4 flex items-center gap-2">
                   <Award className="h-4 w-4" />
-                  Selos de Qualidade
+                  Selo de Qualidade
                 </h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Adicione selos ou badges que aparecerão nos cantos superiores do certificado
+                  Adicione um selo ou badge que aparecerá no canto superior direito do certificado
                 </p>
                 
                 <div className="grid gap-6 sm:grid-cols-2">
-                  {/* Left Badge */}
-                  <div className="space-y-3">
-                    <Label>Selo Esquerdo</Label>
-                    <div className="flex items-start gap-3">
-                      <div className="w-16 h-16 border-2 border-dashed rounded-lg flex items-center justify-center bg-muted/50 overflow-hidden">
-                        {config.left_badge_url ? (
-                          <img 
-                            src={config.left_badge_url} 
-                            alt="Badge" 
-                            className="w-full h-full object-contain p-1"
-                          />
-                        ) : (
-                          <Award className="h-6 w-6 text-muted-foreground" />
-                        )}
-                      </div>
-                      <div className="flex-1 space-y-2">
-                        <Input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) {
-                              // Handle badge upload
-                              const handleBadgeUpload = async () => {
-                                const fileExt = file.name.split('.').pop();
-                                const fileName = `badge-left-${Date.now()}.${fileExt}`;
-                                const filePath = `certificates/${fileName}`;
-                                const { error } = await supabase.storage.from('course-thumbnails').upload(filePath, file);
-                                if (!error) {
-                                  const { data: { publicUrl } } = supabase.storage.from('course-thumbnails').getPublicUrl(filePath);
-                                  updateConfig('left_badge_url', publicUrl);
-                                }
-                              };
-                              handleBadgeUpload();
-                            }
-                          }}
-                        />
-                        <Input
-                          placeholder="Texto do selo (ex: PREMIUM)"
-                          value={config.left_badge_text || ''}
-                          onChange={(e) => updateConfig('left_badge_text', e.target.value)}
-                        />
-                        {config.left_badge_url && (
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => updateConfig('left_badge_url', null)}
-                          >
-                            Remover
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
                   {/* Right Badge */}
                   <div className="space-y-3">
                     <Label>Selo Direito</Label>

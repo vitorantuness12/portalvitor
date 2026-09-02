@@ -204,15 +204,6 @@ export function CertificateTemplates({ selectedTemplate, onSelectTemplate }: Cer
                     />
                   </svg>
                   
-                  {/* Left badge placeholder */}
-                  <div 
-                    className="absolute top-2 left-2 w-4 h-4 rounded-full flex items-center justify-center"
-                    style={{ 
-                      border: `1px solid ${preview.secondary_color}`,
-                      backgroundColor: preview.primary_color,
-                    }}
-                  />
-                  
                   {/* Right badge placeholder */}
                   <div 
                     className="absolute top-2 right-2 w-4 h-4 rounded-full"

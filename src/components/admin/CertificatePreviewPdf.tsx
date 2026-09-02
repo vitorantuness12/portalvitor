@@ -419,18 +419,6 @@ export const CertificatePreviewPdf = ({ config }: PreviewPdfProps) => {
         {/* Border frame */}
         <View style={styles.borderFrame} />
 
-        {/* Left Badge */}
-        <View style={[styles.badge, { left: 35 }]}>
-          {config.left_badge_url ? (
-            <Image src={config.left_badge_url} style={{ width: 48, height: 48, objectFit: 'contain' }} />
-          ) : (
-            <View style={[styles.badgeCircle, { borderWidth: 2, borderColor: secondaryColor, backgroundColor: primaryColor }]}>
-              <Text style={{ fontSize: 22, color: secondaryColor }}>★</Text>
-            </View>
-          )}
-          <Text style={styles.badgeText}>{config.left_badge_text || 'PREMIUM'}</Text>
-        </View>
-
         {/* Right Badge */}
         <View style={[styles.badge, { right: 35 }]}>
           {config.right_badge_url ? (

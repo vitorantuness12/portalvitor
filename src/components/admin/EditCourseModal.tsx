@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Upload, X, Loader2 } from 'lucide-react';
+import { Upload, X, Loader2, Sparkles } from 'lucide-react';
 import type { Tables } from '@/integrations/supabase/types';
 
 type Course = Tables<'courses'>;
@@ -47,6 +47,44 @@ export function EditCourseModal({ open, onOpenChange, course }: EditCourseModalP
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(course.thumbnail_url);
   const [isUploading, setIsUploading] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const handleGenerateCover = async () => {
+    const title = formData.title.trim();
+    if (!title) {
+      toast.error('Informe o título do curso antes de gerar a capa');
+      return;
+    }
+
+    setIsGenerating(true);
+    try {
+      const theme =
+        categories?.find((c) => c.id === formData.category_id)?.name || title;
+
+      const { data, error } = await supabase.functions.invoke('generate-course-cover', {
+        body: { title, theme },
+      });
+
+      if (error) throw error;
+      if (!data?.success || !data?.image) {
+        throw new Error(data?.error || 'Não foi possível gerar a capa');
+      }
+
+      const binary = atob(data.image as string);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      const file = new File([bytes], `capa-ia-${Date.now()}.png`, { type: 'image/png' });
+
+      setThumbnailFile(file);
+      setThumbnailPreview(URL.createObjectURL(file));
+      toast.success('Capa gerada! Salve as alterações para aplicar.');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Erro desconhecido';
+      toast.error(`Erro ao gerar capa: ${message}`);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   const { data: categories } = useQuery({
     queryKey: ['categories'],
@@ -152,7 +190,7 @@ export function EditCourseModal({ open, onOpenChange, course }: EditCourseModalP
     updateMutation.mutate({ ...formData, thumbnail_url });
   };
 
-  const isLoading = updateMutation.isPending || isUploading;
+  const isLoading = updateMutation.isPending || isUploading || isGenerating;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -207,18 +245,35 @@ export function EditCourseModal({ open, onOpenChange, course }: EditCourseModalP
                 onChange={handleFileChange}
                 className="hidden"
               />
-              {thumbnailPreview && (
+              <div className="flex flex-wrap gap-2">
+                {thumbnailPreview && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-fit"
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    Trocar imagem
+                  </Button>
+                )}
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="secondary"
                   size="sm"
-                  onClick={() => fileInputRef.current?.click()}
+                  onClick={handleGenerateCover}
+                  disabled={isGenerating}
                   className="w-fit"
                 >
-                  <Upload className="h-4 w-4 mr-2" />
-                  Trocar imagem
+                  {isGenerating ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Sparkles className="h-4 w-4 mr-2" />
+                  )}
+                  {isGenerating ? 'Gerando capa...' : 'Gerar capa'}
                 </Button>
-              )}
+              </div>
             </div>
           </div>
 

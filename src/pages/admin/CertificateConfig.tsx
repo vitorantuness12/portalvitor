@@ -152,42 +152,66 @@ export default function CertificateConfig() {
     },
   });
 
-  const handleUpload = async (file: File, type: 'logo' | 'signature') => {
-    if (!file || !user) return;
+  /**
+   * Converte um arquivo de imagem em Data URL (base64).
+   * Optamos por base64 porque o bucket público de Storage não está disponível
+   * neste projeto — assim a imagem fica embutida na configuração e sempre carrega
+   * (preview web, PDF de preview e certificado final).
+   */
+  const fileToDataUrl = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.onerror = () => reject(new Error('Não foi possível ler o arquivo.'));
+      reader.readAsDataURL(file);
+    });
 
-    setUploading(type);
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${type}-${Date.now()}.${fileExt}`;
-      const filePath = `certificates/${fileName}`;
+  const MAX_IMAGE_BYTES = 1024 * 1024; // 1MB
 
-      const { error: uploadError } = await supabase.storage
-        .from('course-thumbnails')
-        .upload(filePath, file);
+  const handleImageSelect = async (
+    file: File,
+    field: 'institution_logo_url' | 'signature_image_url' | 'right_badge_url',
+    uploadKey: 'logo' | 'signature' | null = null,
+  ) => {
+    if (!file) return;
 
-      if (uploadError) throw uploadError;
+    if (!file.type.startsWith('image/')) {
+      toast({ title: 'Arquivo inválido', description: 'Selecione uma imagem.', variant: 'destructive' });
+      return;
+    }
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('course-thumbnails')
-        .getPublicUrl(filePath);
-
-      const field = type === 'logo' ? 'institution_logo_url' : 'signature_image_url';
-      updateConfig(field, publicUrl);
-
+    if (file.size > MAX_IMAGE_BYTES) {
       toast({
-        title: 'Upload concluído!',
-        description: `${type === 'logo' ? 'Logo' : 'Assinatura'} carregada com sucesso.`,
+        title: 'Imagem muito grande',
+        description: 'Use uma imagem de até 1MB (PNG ou JPG).',
+        variant: 'destructive',
       });
+      return;
+    }
+
+    if (uploadKey) setUploading(uploadKey);
+    try {
+      const dataUrl = await fileToDataUrl(file);
+      updateConfig(field, dataUrl);
+      toast({ title: 'Imagem carregada!', description: 'Não esqueça de salvar as alterações.' });
     } catch (error: any) {
       toast({
-        title: 'Erro no upload',
-        description: error.message,
+        title: 'Erro ao carregar imagem',
+        description: error?.message ?? 'Tente novamente.',
         variant: 'destructive',
       });
     } finally {
-      setUploading(null);
+      if (uploadKey) setUploading(null);
     }
   };
+
+  const handleUpload = async (file: File, type: 'logo' | 'signature') =>
+    handleImageSelect(
+      file,
+      type === 'logo' ? 'institution_logo_url' : 'signature_image_url',
+      type,
+    );
+
 
   const resetToDefaults = () => {
     setConfig({

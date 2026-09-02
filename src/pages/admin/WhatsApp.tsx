@@ -40,6 +40,31 @@ import { useToast } from '@/hooks/use-toast';
 
 type ConnectionState = 'open' | 'close' | 'connecting' | 'unknown';
 
+interface FunctionErrorWithContext extends Error {
+  context?: Response;
+}
+
+async function getFunctionErrorMessage(error: unknown): Promise<string> {
+  if (!(error instanceof Error)) return 'Não foi possível comunicar com a Evolution API.';
+
+  const functionError = error as FunctionErrorWithContext;
+  if (functionError.context) {
+    try {
+      const payload: unknown = await functionError.context.clone().json();
+      if (
+        typeof payload === 'object' &&
+        payload !== null &&
+        'error' in payload &&
+        typeof payload.error === 'string'
+      ) return payload.error;
+    } catch {
+      // Respostas não JSON usam a mensagem original do cliente Supabase.
+    }
+  }
+
+  return error.message;
+}
+
 export default function WhatsAppAdmin() {
   const { toast } = useToast();
   const [connectionState, setConnectionState] = useState<ConnectionState>('unknown');
@@ -53,20 +78,22 @@ export default function WhatsAppAdmin() {
   const [studentSearch, setStudentSearch] = useState('');
 
   // Fetch connection status
-  const { data: statusData, refetch: refetchStatus, isLoading: statusLoading } = useQuery({
+  const {
+    data: statusData,
+    error: statusError,
+    refetch: refetchStatus,
+    isLoading: statusLoading,
+  } = useQuery({
     queryKey: ['evolution-status'],
     queryFn: async () => {
       const { data, error } = await supabase.functions.invoke('evolution-api', {
         body: { action: 'status' },
       });
-      if (error) {
-        console.error("Evolution API Function Error:", error);
-        toast({ title: "Erro na conexão", description: error.message || "Falha ao se comunicar com o serviço", variant: "destructive" });
-        return;
-      }
+      if (error) throw new Error(await getFunctionErrorMessage(error));
       return data;
     },
     refetchInterval: 15000,
+    retry: false,
   });
 
   useEffect(() => {
@@ -87,11 +114,7 @@ export default function WhatsAppAdmin() {
         .from('profiles')
         .select('user_id, full_name, email, whatsapp')
         .order('full_name');
-      if (error) {
-        console.error("Evolution API Function Error:", error);
-        toast({ title: "Erro na conexão", description: error.message || "Falha ao se comunicar com o serviço", variant: "destructive" });
-        return;
-      }
+      if (error) throw new Error(await getFunctionErrorMessage(error));
       return data;
     },
   });
@@ -134,8 +157,8 @@ export default function WhatsAppAdmin() {
           refetchStatus();
         }
       }
-    } catch (err: any) {
-      toast({ title: 'Erro ao gerar QR Code', description: err.message, variant: 'destructive' });
+    } catch (error: unknown) {
+      toast({ title: 'Erro ao gerar QR Code', description: await getFunctionErrorMessage(error), variant: 'destructive' });
     } finally {
       setQrLoading(false);
     }
@@ -147,19 +170,15 @@ export default function WhatsAppAdmin() {
       const { data, error } = await supabase.functions.invoke('evolution-api', {
         body: { action: 'restart' },
       });
-      if (error) {
-        console.error("Evolution API Function Error:", error);
-        toast({ title: "Erro na conexão", description: error.message || "Falha ao se comunicar com o serviço", variant: "destructive" });
-        return;
-      }
+      if (error) throw new Error(await getFunctionErrorMessage(error));
       return data;
     },
     onSuccess: () => {
       toast({ title: 'Instância reiniciada' });
       setTimeout(() => refetchStatus(), 3000);
     },
-    onError: (err: any) => {
-      toast({ title: 'Erro ao reiniciar', description: err.message, variant: 'destructive' });
+    onError: async (error: unknown) => {
+      toast({ title: 'Erro ao reiniciar', description: await getFunctionErrorMessage(error), variant: 'destructive' });
     },
   });
 
@@ -169,11 +188,7 @@ export default function WhatsAppAdmin() {
       const { data, error } = await supabase.functions.invoke('evolution-api', {
         body: { action: 'logout' },
       });
-      if (error) {
-        console.error("Evolution API Function Error:", error);
-        toast({ title: "Erro na conexão", description: error.message || "Falha ao se comunicar com o serviço", variant: "destructive" });
-        return;
-      }
+      if (error) throw new Error(await getFunctionErrorMessage(error));
       return data;
     },
     onSuccess: () => {
@@ -182,8 +197,8 @@ export default function WhatsAppAdmin() {
       toast({ title: 'Dispositivo desconectado' });
       refetchStatus();
     },
-    onError: (err: any) => {
-      toast({ title: 'Erro ao desconectar', description: err.message, variant: 'destructive' });
+    onError: async (error: unknown) => {
+      toast({ title: 'Erro ao desconectar', description: await getFunctionErrorMessage(error), variant: 'destructive' });
     },
   });
 
@@ -193,11 +208,7 @@ export default function WhatsAppAdmin() {
       const { data, error } = await supabase.functions.invoke('evolution-api', {
         body: { action: 'send-text', number, message },
       });
-      if (error) {
-        console.error("Evolution API Function Error:", error);
-        toast({ title: "Erro na conexão", description: error.message || "Falha ao se comunicar com o serviço", variant: "destructive" });
-        return;
-      }
+      if (error) throw new Error(await getFunctionErrorMessage(error));
       if (!data?.success) throw new Error(data?.error || 'Erro ao enviar');
       return data;
     },
@@ -205,8 +216,8 @@ export default function WhatsAppAdmin() {
       toast({ title: 'Mensagem enviada com sucesso!' });
       setSendMessage('');
     },
-    onError: (err: any) => {
-      toast({ title: 'Erro ao enviar mensagem', description: err.message, variant: 'destructive' });
+    onError: async (error: unknown) => {
+      toast({ title: 'Erro ao enviar mensagem', description: await getFunctionErrorMessage(error), variant: 'destructive' });
     },
   });
 
@@ -308,6 +319,13 @@ export default function WhatsAppAdmin() {
               </div>
             </div>
           </CardHeader>
+          {statusError && (
+            <CardContent>
+              <div role="alert" className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+                {statusError.message}
+              </div>
+            </CardContent>
+          )}
         </Card>
       </motion.div>
 

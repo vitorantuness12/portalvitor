@@ -36,6 +36,18 @@ function describeNetworkError(error: unknown, baseUrl: string): string {
   return msg;
 }
 
+function getErrorStatus(error: unknown): number {
+  if (!(error instanceof Error)) return 500;
+  if (error.message.includes("Não autorizado") || error.message.includes("Token inválido")) return 401;
+  if (error.message.includes("Acesso restrito")) return 403;
+  if (
+    error.message.includes("certificado SSL") ||
+    error.message.includes("Não foi possível resolver") ||
+    error.message.includes("Não foi possível conectar")
+  ) return 502;
+  return 500;
+}
+
 /** fetch com tradução de erros de conexão/TLS */
 async function safeFetch(url: string, init: RequestInit): Promise<Response> {
   try {
@@ -202,7 +214,7 @@ serve(async (req) => {
         error: error instanceof Error ? error.message : "Erro desconhecido",
       }),
       {
-        status: error instanceof Error && error.message.includes("autorizado") ? 401 : 500,
+        status: getErrorStatus(error),
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
     );

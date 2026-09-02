@@ -171,9 +171,7 @@ interface CertificateConfigType {
   back_wave_style?: string | null;
   show_front_waves?: boolean | null;
   show_back_waves?: boolean | null;
-  left_badge_url?: string | null;
   right_badge_url?: string | null;
-  left_badge_text?: string | null;
   right_badge_text?: string | null;
 }
 
@@ -411,13 +409,6 @@ const CertificateDoc = ({ studentName, courseName, completionDate, duration, sco
       marginBottom: 15,
     },
     // Badge/Seal styles
-    badgeLeft: {
-      position: 'absolute',
-      top: 35,
-      left: 35,
-      alignItems: 'center',
-      zIndex: 30,
-    },
     badgeRight: {
       position: 'absolute',
       top: 35,
@@ -449,7 +440,6 @@ const CertificateDoc = ({ studentName, courseName, completionDate, duration, sco
   });
 
   // Badge configuration
-  const leftBadgeText = config?.left_badge_text || 'PREMIUM';
   const rightBadgeText = config?.right_badge_text || 'QUALIDADE';
 
   return (

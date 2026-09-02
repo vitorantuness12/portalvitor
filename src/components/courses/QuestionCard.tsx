@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 interface QuestionCardProps {
   index: number;
   question: string;
-  options: string[];
+  options: unknown;
   selectedAnswer?: number;
   correctAnswer?: number;
   showResult?: boolean;
@@ -27,6 +27,23 @@ export function QuestionCard({
   onAnswerChange,
   variant = 'exercise',
 }: QuestionCardProps) {
+  // Normaliza options: pode vir como array, string JSON ou objeto {a,b,c}
+  const normalizedOptions: string[] = (() => {
+    let raw: unknown = options;
+    if (typeof raw === 'string') {
+      try {
+        raw = JSON.parse(raw);
+      } catch {
+        return [raw as string];
+      }
+    }
+    if (Array.isArray(raw)) return raw.map((o) => String(o ?? ''));
+    if (raw && typeof raw === 'object') {
+      return Object.values(raw as Record<string, unknown>).map((o) => String(o ?? ''));
+    }
+    return [];
+  })();
+
   const isCorrect = showResult && selectedAnswer === correctAnswer;
   const isWrong = showResult && selectedAnswer !== undefined && selectedAnswer !== correctAnswer;
 
@@ -121,7 +138,7 @@ export function QuestionCard({
           disabled={disabled}
           className="grid gap-2 sm:gap-3"
         >
-          {options.map((option, optIndex) => {
+          {normalizedOptions.map((option, optIndex) => {
             const state = getOptionState(optIndex);
             const optionLetter = String.fromCharCode(65 + optIndex); // A, B, C, D...
             

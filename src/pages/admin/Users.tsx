@@ -67,22 +67,45 @@ export default function AdminUsers() {
   const { data: users, isLoading } = useQuery({
     queryKey: ['admin-users'],
     queryFn: async () => {
-      const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (profilesError) throw profilesError;
-
-      const { data: enrollments, error: enrollmentsError } = await supabase
+      // Busca todos os user_ids únicos dos enrollments primeiro
+      const { data: allEnrollments, error: enrollmentsError } = await supabase
         .from('enrollments')
         .select('*, courses(title)');
 
       if (enrollmentsError) throw enrollmentsError;
 
-      const usersWithEnrollments: UserWithEnrollments[] = profiles.map((profile) => ({
+      // Extrai todos os user_ids únicos dos enrollments
+      const uniqueUserIds = [...new Set(allEnrollments.map(e => e.user_id).filter(Boolean))];
+
+      // Busca profiles existentes
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('*');
+
+      if (profilesError) throw profilesError;
+
+      // Busca emails dos usuários autenticados que têm enrollment mas não têm profile
+      const profileUserIds = new Set(profiles.map(p => p.user_id));
+      const missingProfileUserIds = uniqueUserIds.filter(uid => !profileUserIds.has(uid));
+
+      let missingProfiles: any[] = [];
+      if (missingProfileUserIds.length > 0) {
+        const { data: authUsers, error: authError } = await supabase
+          .from('profiles')
+          .select('*')
+          .in('user_id', missingProfileUserIds);
+
+        if (!authError && authUsers) {
+          missingProfiles = authUsers;
+        }
+      }
+
+      // Combina profiles existentes com profiles buscados por user_id
+      const allProfiles = [...profiles, ...missingProfiles.filter(p => !profileUserIds.has(p.user_id))];
+
+      const usersWithEnrollments: UserWithEnrollments[] = allProfiles.map((profile) => ({
         ...profile,
-        enrollments: enrollments
+        enrollments: allEnrollments
           .filter((e) => e.user_id === profile.user_id)
           .map((e) => ({
             id: e.id,
@@ -95,7 +118,9 @@ export default function AdminUsers() {
               title: (e.courses as any)?.title || 'Curso não encontrado',
             },
           })),
-      }));
+      }))
+      .filter(u => u.enrollments.length > 0)
+      .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
 
       return usersWithEnrollments;
     },

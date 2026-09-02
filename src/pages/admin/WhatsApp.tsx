@@ -59,7 +59,11 @@ export default function WhatsAppAdmin() {
       const { data, error } = await supabase.functions.invoke('evolution-api', {
         body: { action: 'status' },
       });
-      if (error) throw error;
+      if (error) {
+        console.error("Evolution API Function Error:", error);
+        toast({ title: "Erro na conexão", description: error.message || "Falha ao se comunicar com o serviço", variant: "destructive" });
+        return;
+      }
       return data;
     },
     refetchInterval: 15000,
@@ -83,7 +87,11 @@ export default function WhatsAppAdmin() {
         .from('profiles')
         .select('user_id, full_name, email, whatsapp')
         .order('full_name');
-      if (error) throw error;
+      if (error) {
+        console.error("Evolution API Function Error:", error);
+        toast({ title: "Erro na conexão", description: error.message || "Falha ao se comunicar com o serviço", variant: "destructive" });
+        return;
+      }
       return data;
     },
   });
@@ -105,7 +113,11 @@ export default function WhatsAppAdmin() {
       const { data, error } = await supabase.functions.invoke('evolution-api', {
         body: { action: 'qrcode' },
       });
-      if (error) throw error;
+      if (error) {
+        console.error("Evolution API Function Error:", error);
+        toast({ title: "Erro na conexão", description: error.message || "Falha ao se comunicar com o serviço", variant: "destructive" });
+        return;
+      }
 
       if (data?.success && data?.data) {
         const base64 = data.data.base64 || data.data.qrcode?.base64 || null;
@@ -135,7 +147,11 @@ export default function WhatsAppAdmin() {
       const { data, error } = await supabase.functions.invoke('evolution-api', {
         body: { action: 'restart' },
       });
-      if (error) throw error;
+      if (error) {
+        console.error("Evolution API Function Error:", error);
+        toast({ title: "Erro na conexão", description: error.message || "Falha ao se comunicar com o serviço", variant: "destructive" });
+        return;
+      }
       return data;
     },
     onSuccess: () => {
@@ -153,7 +169,11 @@ export default function WhatsAppAdmin() {
       const { data, error } = await supabase.functions.invoke('evolution-api', {
         body: { action: 'logout' },
       });
-      if (error) throw error;
+      if (error) {
+        console.error("Evolution API Function Error:", error);
+        toast({ title: "Erro na conexão", description: error.message || "Falha ao se comunicar com o serviço", variant: "destructive" });
+        return;
+      }
       return data;
     },
     onSuccess: () => {
@@ -173,7 +193,11 @@ export default function WhatsAppAdmin() {
       const { data, error } = await supabase.functions.invoke('evolution-api', {
         body: { action: 'send-text', number, message },
       });
-      if (error) throw error;
+      if (error) {
+        console.error("Evolution API Function Error:", error);
+        toast({ title: "Erro na conexão", description: error.message || "Falha ao se comunicar com o serviço", variant: "destructive" });
+        return;
+      }
       if (!data?.success) throw new Error(data?.error || 'Erro ao enviar');
       return data;
     },

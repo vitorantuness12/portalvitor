@@ -27,6 +27,23 @@ export function QuestionCard({
   onAnswerChange,
   variant = 'exercise',
 }: QuestionCardProps) {
+  // Normaliza options: pode vir como array, string JSON ou objeto {a,b,c}
+  const normalizedOptions: string[] = (() => {
+    let raw: unknown = options;
+    if (typeof raw === 'string') {
+      try {
+        raw = JSON.parse(raw);
+      } catch {
+        return [raw as string];
+      }
+    }
+    if (Array.isArray(raw)) return raw.map((o) => String(o ?? ''));
+    if (raw && typeof raw === 'object') {
+      return Object.values(raw as Record<string, unknown>).map((o) => String(o ?? ''));
+    }
+    return [];
+  })();
+
   const isCorrect = showResult && selectedAnswer === correctAnswer;
   const isWrong = showResult && selectedAnswer !== undefined && selectedAnswer !== correctAnswer;
 

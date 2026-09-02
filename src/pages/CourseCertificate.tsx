@@ -13,6 +13,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useEffect, useState } from 'react';
 import { Document, Page, Text, View, StyleSheet, PDFDownloadLink, Font, Image, Svg, Path, Line, Rect } from '@react-pdf/renderer';
 import QRCode from 'qrcode';
+import { publicUrl } from '@/lib/site';
+
 import { useIsPwa } from '@/hooks/useIsPwa';
 
 // Register fonts
@@ -725,9 +727,9 @@ export default function CourseCertificate() {
       if (course && enrollment && profile && (existingCertificate || createCertificateMutation.data)) {
         const cert = existingCertificate || createCertificateMutation.data;
         
-        // Generate QR code for validation URL
-        const baseUrl = window.location.origin;
-        const validationUrl = `${baseUrl}/validar-certificado?codigo=${cert.certificate_code}`;
+        // Generate QR code for validation URL (sempre no domínio público)
+        const validationUrl = publicUrl(`/validar-certificado?codigo=${cert.certificate_code}`);
+
         
         let qrCodeDataUrl: string | undefined;
         try {

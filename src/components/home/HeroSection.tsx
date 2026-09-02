@@ -97,7 +97,7 @@ export function HeroSection() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="space-y-1"
+              className="flex flex-col gap-2"
             >
               <h1 className="font-display font-extrabold leading-none tracking-tight text-foreground">
                 <span className="block text-5xl sm:text-6xl lg:text-7xl text-[#1F2A44] dark:text-white leading-none">Transforme</span>

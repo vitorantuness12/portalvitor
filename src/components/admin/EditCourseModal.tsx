@@ -190,7 +190,7 @@ export function EditCourseModal({ open, onOpenChange, course }: EditCourseModalP
     updateMutation.mutate({ ...formData, thumbnail_url });
   };
 
-  const isLoading = updateMutation.isPending || isUploading;
+  const isLoading = updateMutation.isPending || isUploading || isGenerating;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

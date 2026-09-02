@@ -35,6 +35,7 @@ import { ptBR } from 'date-fns/locale';
 import { Skeleton } from '@/components/ui/skeleton';
 import html2canvas from 'html2canvas';
 import { useIsPwa } from '@/hooks/useIsPwa';
+import { publicUrl } from '@/lib/site';
 import logoWhite from '@/assets/logo_formak_white.png';
 
 type StudentCardType = {

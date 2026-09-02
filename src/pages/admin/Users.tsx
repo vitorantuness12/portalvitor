@@ -67,44 +67,54 @@ export default function AdminUsers() {
   const { data: users, isLoading } = useQuery({
     queryKey: ['admin-users'],
     queryFn: async () => {
-      // Busca todos os user_ids únicos dos enrollments primeiro
-      const { data: allEnrollments, error: enrollmentsError } = await supabase
-        .from('enrollments')
-        .select('*, courses(title)');
+      // Busca profiles e enrollments em paralelo
+      const [profilesRes, enrollmentsRes] = await Promise.all([
+        supabase.from('profiles').select('*'),
+        supabase.from('enrollments').select('*, courses(title)'),
+      ]);
 
-      if (enrollmentsError) throw enrollmentsError;
+      if (profilesRes.error) throw profilesRes.error;
+      if (enrollmentsRes.error) throw enrollmentsRes.error;
 
-      // Extrai todos os user_ids únicos dos enrollments
-      const uniqueUserIds = [...new Set(allEnrollments.map(e => e.user_id).filter(Boolean))];
+      // Se não há profiles, busca todos os user_ids dos enrollments
+      // e cria objetos com user_id como fallback para mostrar os dados
+      const allEnrollments = enrollmentsRes.data || [];
 
-      // Busca profiles existentes
-      const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('*');
-
-      if (profilesError) throw profilesError;
-
-      // Busca emails dos usuários autenticados que têm enrollment mas não têm profile
-      const profileUserIds = new Set(profiles.map(p => p.user_id));
-      const missingProfileUserIds = uniqueUserIds.filter(uid => !profileUserIds.has(uid));
-
-      let missingProfiles: any[] = [];
-      if (missingProfileUserIds.length > 0) {
-        const { data: authUsers, error: authError } = await supabase
-          .from('profiles')
-          .select('*')
-          .in('user_id', missingProfileUserIds);
-
-        if (!authError && authUsers) {
-          missingProfiles = authUsers;
-        }
+      if (!profilesRes.data || profilesRes.data.length === 0) {
+        const uniqueUserIds = [...new Set(allEnrollments.map(e => e.user_id).filter(Boolean))];
+        const fallbackUsers: UserWithEnrollments[] = uniqueUserIds.map(uid => {
+          const userEnrollments = allEnrollments.filter(e => e.user_id === uid);
+          return {
+            id: uid,
+            user_id: uid,
+            full_name: 'Usuário ' + uid.slice(0, 8),
+            email: 'sem-email',
+            whatsapp: null,
+            created_at: userEnrollments[0]?.created_at || '',
+            enrollments: userEnrollments.map(e => ({
+              id: e.id,
+              course_id: e.course_id,
+              progress: e.progress,
+              status: e.status,
+              exam_score: e.exam_score,
+              created_at: e.created_at || '',
+              course: { title: (e.courses as any)?.title || 'Curso' },
+            })),
+          };
+        });
+        return fallbackUsers.sort((a, b) =>
+          new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
+        );
       }
 
-      // Combina profiles existentes com profiles buscados por user_id
-      const allProfiles = [...profiles, ...missingProfiles.filter(p => !profileUserIds.has(p.user_id))];
-
-      const usersWithEnrollments: UserWithEnrollments[] = allProfiles.map((profile) => ({
-        ...profile,
+      // Combina profiles com seus enrollments
+      const usersWithEnrollments: UserWithEnrollments[] = profilesRes.data.map((profile) => ({
+        id: profile.id,
+        user_id: profile.user_id,
+        full_name: profile.full_name,
+        email: profile.email,
+        whatsapp: profile.whatsapp,
+        created_at: profile.created_at || '',
         enrollments: allEnrollments
           .filter((e) => e.user_id === profile.user_id)
           .map((e) => ({
@@ -118,11 +128,37 @@ export default function AdminUsers() {
               title: (e.courses as any)?.title || 'Curso não encontrado',
             },
           })),
-      }))
-      .filter(u => u.enrollments.length > 0)
-      .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
+      }));
 
-      return usersWithEnrollments;
+      // Inclui também usuários que têm enrollment mas não têm profile
+      const profileUserIds = new Set(profilesRes.data.map(p => p.user_id));
+      const orphanEnrollments = allEnrollments.filter(e => !profileUserIds.has(e.user_id));
+      const orphanUserIds = [...new Set(orphanEnrollments.map(e => e.user_id).filter(Boolean))];
+
+      orphanUserIds.forEach(uid => {
+        const userEnrollments = orphanEnrollments.filter(e => e.user_id === uid);
+        usersWithEnrollments.push({
+          id: uid,
+          user_id: uid,
+          full_name: 'Usuário ' + uid.slice(0, 8),
+          email: 'sem-email',
+          whatsapp: null,
+          created_at: userEnrollments[0]?.created_at || '',
+          enrollments: userEnrollments.map(e => ({
+            id: e.id,
+            course_id: e.course_id,
+            progress: e.progress,
+            status: e.status,
+            exam_score: e.exam_score,
+            created_at: e.created_at || '',
+            course: { title: (e.courses as any)?.title || 'Curso' },
+          })),
+        });
+      });
+
+      return usersWithEnrollments.sort(
+        (a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
+      );
     },
   });
 

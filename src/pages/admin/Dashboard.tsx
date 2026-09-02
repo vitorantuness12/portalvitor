@@ -53,13 +53,27 @@ export default function AdminDashboard() {
   const { data: recentEnrollments } = useQuery({
     queryKey: ['admin-recent-enrollments'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: enrollments, error } = await supabase
         .from('enrollments')
-        .select('id, status, progress, created_at, courses(title), profiles!enrollments_user_id_fkey(full_name)')
+        .select('id, user_id, status, progress, created_at, courses(title)')
         .order('created_at', { ascending: false })
-        .limit(5);
+        .limit(10);
       if (error) throw error;
-      return data;
+      if (!enrollments) return [];
+
+      // Busca profiles para obter full_name
+      const userIds = [...new Set(enrollments.map(e => e.user_id).filter(Boolean))];
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('user_id, full_name')
+        .in('user_id', userIds);
+
+      const profileMap = new Map((profiles || []).map(p => [p.user_id, p]));
+
+      return enrollments.slice(0, 5).map(e => ({
+        ...e,
+        profiles: profileMap.get(e.user_id) || { full_name: 'Aluno' },
+      }));
     },
   });
 

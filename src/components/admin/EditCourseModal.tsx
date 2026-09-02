@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Upload, X, Loader2 } from 'lucide-react';
+import { Upload, X, Loader2, Sparkles } from 'lucide-react';
 import type { Tables } from '@/integrations/supabase/types';
 
 type Course = Tables<'courses'>;

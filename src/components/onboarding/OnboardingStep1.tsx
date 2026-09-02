@@ -79,19 +79,21 @@ export function OnboardingStep1({
         </div>
       )}
 
-      <div className="mt-6 sm:mt-8 space-y-2 w-full max-w-sm px-2">
-        <Button
-          variant="hero"
-          size="lg"
-          className="w-full"
-          onClick={onNext}
-          disabled={!canProceed}
-        >
-          Continuar
-        </Button>
-        <p className="text-xs text-muted-foreground">
-          {selectedCategories.length}/3 categorias selecionadas
-        </p>
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 p-4 backdrop-blur sm:static sm:z-auto sm:mt-8 sm:w-full sm:max-w-sm sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
+        <div className="mx-auto w-full max-w-sm space-y-2">
+          <Button
+            variant="hero"
+            size="lg"
+            block
+            onClick={onNext}
+            disabled={!canProceed}
+          >
+            Continuar
+          </Button>
+          <p className="text-xs text-muted-foreground">
+            {selectedCategories.length}/3 categorias selecionadas
+          </p>
+        </div>
       </div>
     </motion.div>
   );

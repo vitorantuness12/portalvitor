@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Gift, Sparkles, GraduationCap, Clock, Award, ArrowRight } from 'lucide-react';
+import { Star, Sparkles, GraduationCap, Clock, Award, ArrowRight } from 'lucide-react';
 
 export function FreeCoursesBanner() {
   const benefits = [
@@ -43,7 +43,7 @@ export function FreeCoursesBanner() {
               viewport={{ once: true }}
             >
               <div className="inline-flex items-center gap-2 bg-gradient-to-r from-primary/20 to-primary/10 border border-primary/30 text-primary px-5 py-2 rounded-full">
-                <Gift className="h-5 w-5" />
+                <Star className="h-5 w-5" />
                 <span className="font-bold text-sm uppercase tracking-wider">100% Gratuito</span>
                 <Sparkles className="h-4 w-4" />
               </div>
@@ -99,7 +99,7 @@ export function FreeCoursesBanner() {
             >
               <Link to="/cursos?price=free">
                 <Button variant="hero" size="xl" className="text-lg px-10 shadow-glow-lg gap-2 group">
-                  <Gift className="h-5 w-5" />
+                  <Star className="h-5 w-5" />
                   Ver Cursos Gratuitos
                   <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
                 </Button>

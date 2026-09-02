@@ -5,7 +5,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/hooks/useAuth';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { ThemeToggle } from '@/components/ThemeToggle';
 import logo from '@/assets/icone_formak.png';
 
 // Pages where a back button should show instead of logo
@@ -50,40 +49,39 @@ export function PwaHeader() {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border/30 pt-[env(safe-area-inset-top,0px)]">
-      <div className="flex h-12 items-center justify-between px-4">
+    <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border/60 pt-[env(safe-area-inset-top,0px)]">
+      <div className="flex h-14 items-center justify-between px-4">
         {/* Left side */}
         {isDetailPage ? (
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 -ml-1"
+            className="h-9 w-9 -ml-1"
             onClick={() => navigate(-1)}
           >
             <ChevronLeft className="h-5 w-5" />
           </Button>
         ) : (
           <Link to="/meu-progresso" className="flex items-center gap-2">
-            <img src={logo} alt="Formak" className="h-7 w-7 rounded-lg" />
+            <img src={logo} alt="Formak" className="h-8 w-8 rounded-xl" />
             {pageTitle && (
-              <span className="text-base font-semibold">{pageTitle}</span>
+              <span className="font-display text-base font-semibold tracking-tight">{pageTitle}</span>
             )}
           </Link>
         )}
 
         {/* Center - detail page title */}
         {isDetailPage && (
-          <span className="text-sm font-medium text-muted-foreground absolute left-1/2 -translate-x-1/2 max-w-[60%] truncate">
+          <span className="font-display text-sm font-semibold text-foreground absolute left-1/2 -translate-x-1/2 max-w-[60%] truncate">
             {pageTitle}
           </span>
         )}
 
         {/* Right side */}
         <div className="flex items-center gap-1">
-          <ThemeToggle />
           {user && (
             <Link to="/perfil">
-              <Avatar className="h-7 w-7">
+              <Avatar className="h-8 w-8 border border-border/70">
                 <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.full_name || 'Avatar'} />
                 <AvatarFallback className="bg-primary text-primary-foreground text-[10px]">
                   {getInitials(profile?.full_name)}

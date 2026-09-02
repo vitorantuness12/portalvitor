@@ -1,10 +1,12 @@
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { Award, Download, ExternalLink, Calendar, Clock, ArrowLeft } from 'lucide-react';
+import { Award, Download, Calendar, Clock, ArrowLeft, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { EmptyState } from '@/components/common/EmptyState';
+import { PageHeader } from '@/components/common/PageHeader';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useIsPwa } from '@/hooks/useIsPwa';
@@ -65,16 +67,15 @@ export default function MyCertificates() {
       <div className={isPwa ? 'px-4 py-4' : 'container mx-auto px-4 py-6 sm:py-8'}>
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
           {!isPwa && (
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div>
-                <Link to="/meu-progresso" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-2">
-                  <ArrowLeft className="h-4 w-4" />Voltar ao progresso
-                </Link>
-                <h1 className="text-2xl sm:text-3xl font-display font-bold">Meus Certificados</h1>
-                <p className="text-muted-foreground mt-1">
-                  {certificates?.length || 0} certificado{certificates?.length !== 1 ? 's' : ''} conquistado{certificates?.length !== 1 ? 's' : ''}
-                </p>
-              </div>
+            <div>
+              <Link to="/meu-progresso" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-3">
+                <ArrowLeft className="h-4 w-4" />Voltar ao progresso
+              </Link>
+              <PageHeader
+                eyebrow="Conquistas"
+                title="Meus Certificados"
+                description={`${certificates?.length || 0} certificado${certificates?.length !== 1 ? 's' : ''} conquistado${certificates?.length !== 1 ? 's' : ''}`}
+              />
             </div>
           )}
 
@@ -87,18 +88,20 @@ export default function MyCertificates() {
           {isLoading ? (
             <div className={isPwa ? 'space-y-3' : 'grid gap-4 sm:grid-cols-2 lg:grid-cols-3'}>
               {[1, 2, 3].map((i) => (
-                <Card key={i}><CardContent className="p-4"><Skeleton className="h-32 w-full mb-4" /><Skeleton className="h-5 w-3/4 mb-2" /><Skeleton className="h-4 w-1/2" /></CardContent></Card>
+                <Card key={i}><CardContent className="p-4"><Skeleton className="h-32 w-full mb-4 rounded-xl" /><Skeleton className="h-5 w-3/4 mb-2" /><Skeleton className="h-4 w-1/2" /></CardContent></Card>
               ))}
             </div>
           ) : certificates && certificates.length > 0 ? (
             <div className={isPwa ? 'space-y-3' : 'grid gap-4 sm:grid-cols-2 lg:grid-cols-3'}>
               {certificates.map((cert, index) => (
                 <motion.div key={cert.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.06 }}>
-                  <Card className={`overflow-hidden hover:shadow-lg transition-shadow group ${isPwa ? 'border-border/50' : ''}`}>
+                  <Card className={`overflow-hidden shadow-soft hover:shadow-elevated transition-shadow group ${isPwa ? 'border-border/50' : ''}`}>
                     {!isPwa && (
                       <div className="relative h-32 bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
                         {cert.courses.thumbnail_url && <img src={cert.courses.thumbnail_url} alt={cert.courses.title} className="absolute inset-0 w-full h-full object-cover opacity-30" />}
-                        <Award className="h-16 w-16 text-primary relative z-10" />
+                        <span className="relative z-10 flex h-16 w-16 items-center justify-center rounded-2xl bg-card/80 shadow-soft">
+                          <Award className="h-8 w-8 text-primary" />
+                        </span>
                       </div>
                     )}
                     <CardContent className={isPwa ? 'p-3' : 'p-4'}>
@@ -107,18 +110,18 @@ export default function MyCertificates() {
                           <div className="p-2 bg-primary/10 rounded-lg shrink-0">
                             <Award className="h-5 w-5 text-primary" />
                           </div>
-                          <h3 className="font-semibold text-sm line-clamp-2">{cert.courses.title}</h3>
+                          <h3 className="font-semibold text-sm line-clamp-2 text-foreground">{cert.courses.title}</h3>
                         </div>
                       )}
-                      {!isPwa && <h3 className="font-display font-semibold text-lg line-clamp-2 mb-3">{cert.courses.title}</h3>}
+                      {!isPwa && <h3 className="font-display font-semibold text-lg line-clamp-2 mb-3 text-foreground">{cert.courses.title}</h3>}
                       <div className={`space-y-1 text-muted-foreground mb-3 ${isPwa ? 'text-xs' : 'text-sm'}`}>
                         <div className="flex items-center gap-2">
                           <Calendar className="h-3 w-3" />
-                          <span>{format(new Date(cert.issued_at), "dd/MM/yyyy", { locale: ptBR })}</span>
+                          <span>Emitido em {format(new Date(cert.issued_at), "dd/MM/yyyy", { locale: ptBR })}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <Clock className="h-3 w-3" />
-                          <span>{cert.courses.duration_hours}h</span>
+                          <span>{cert.courses.duration_hours}h de carga horária</span>
                         </div>
                       </div>
                       <div className="flex gap-2">
@@ -128,7 +131,9 @@ export default function MyCertificates() {
                           </Button>
                         </Link>
                         <Link to={`/validar-certificado?codigo=${cert.certificate_code}`}>
-                          <Button variant="outline" size="sm"><ExternalLink className="h-3 w-3" /></Button>
+                          <Button variant="outline" size="sm" aria-label="Validar certificado">
+                            <ShieldCheck className="h-3 w-3" />
+                          </Button>
                         </Link>
                       </div>
                     </CardContent>
@@ -137,14 +142,12 @@ export default function MyCertificates() {
               ))}
             </div>
           ) : (
-            <Card>
-              <CardContent className="py-12 text-center">
-                <Award className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                <h2 className="text-xl font-display font-bold mb-2">Nenhum certificado ainda</h2>
-                <p className="text-muted-foreground mb-6 max-w-md mx-auto text-sm">Complete cursos com nota mínima de 7.0 para conquistar seus certificados.</p>
-                <Link to="/cursos"><Button variant="hero">Explorar Cursos</Button></Link>
-              </CardContent>
-            </Card>
+            <EmptyState
+              icon={Award}
+              title="Nenhum certificado ainda"
+              description="Complete cursos com nota mínima de 7.0 para conquistar seus certificados."
+              action={<Link to="/cursos"><Button variant="hero">Explorar Cursos</Button></Link>}
+            />
           )}
         </motion.div>
       </div>

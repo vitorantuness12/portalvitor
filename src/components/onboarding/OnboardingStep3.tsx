@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { BookOpen, BarChart3, Award, MessageCircle, ChevronLeft, ChevronRight, Rocket } from 'lucide-react';
+import { BookOpen, BarChart3, Award, MessageCircle, ChevronLeft, ChevronRight, Rocket, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const tourSlides = [
@@ -121,16 +121,19 @@ export function OnboardingStep3({ onComplete, isCompleting }: OnboardingStep3Pro
           ))}
         </div>
 
-        {/* Navigation buttons */}
-        <div className="flex flex-col sm:flex-row items-center justify-between mt-6 sm:mt-8 gap-3 sm:gap-4">
+      </div>
+
+      {/* Navigation buttons */}
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 p-4 backdrop-blur sm:static sm:z-auto sm:mt-8 sm:w-full sm:max-w-md sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
+        <div className="flex items-center justify-between gap-3 sm:gap-4">
           <Button
             variant="outline"
             size="lg"
             onClick={prevSlide}
             disabled={currentSlide === 0}
-            className="w-full sm:flex-1 order-2 sm:order-1"
+            className="flex-1"
           >
-            <ChevronLeft className="h-4 w-4 mr-1" />
+            <ChevronLeft className="h-4 w-4" />
             Anterior
           </Button>
 
@@ -139,19 +142,22 @@ export function OnboardingStep3({ onComplete, isCompleting }: OnboardingStep3Pro
             size="lg"
             onClick={nextSlide}
             disabled={isCompleting}
-            className="w-full sm:flex-1 order-1 sm:order-2"
+            className="flex-1"
           >
             {isCompleting ? (
-              "Finalizando..."
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Finalizando...
+              </>
             ) : isLastSlide ? (
               <>
-                Começar a Estudar
-                <Rocket className="h-4 w-4 ml-1" />
+                Começar a estudar
+                <Rocket className="h-4 w-4" />
               </>
             ) : (
               <>
                 Próximo
-                <ChevronRight className="h-4 w-4 ml-1" />
+                <ChevronRight className="h-4 w-4" />
               </>
             )}
           </Button>

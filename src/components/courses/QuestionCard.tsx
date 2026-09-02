@@ -42,8 +42,8 @@ export function QuestionCard({
   const optionStyles = {
     default: 'border-border/60 bg-card hover:border-primary/40 hover:bg-primary/5',
     selected: 'border-primary bg-primary/10 ring-2 ring-primary/20',
-    correct: 'border-emerald-500 bg-emerald-500/10',
-    wrong: 'border-rose-500 bg-rose-500/10',
+    correct: 'border-success bg-success/10',
+    wrong: 'border-destructive bg-destructive/10',
   };
 
   return (
@@ -55,9 +55,9 @@ export function QuestionCard({
         'relative overflow-hidden rounded-2xl border-2 transition-all duration-300',
         showResult
           ? isCorrect
-            ? 'border-emerald-500/50 bg-gradient-to-br from-emerald-500/5 to-transparent shadow-lg shadow-emerald-500/10'
+            ? 'border-success/50 bg-gradient-to-br from-success/5 to-transparent shadow-lg shadow-success/10'
             : isWrong
-              ? 'border-rose-500/50 bg-gradient-to-br from-rose-500/5 to-transparent shadow-lg shadow-rose-500/10'
+              ? 'border-destructive/50 bg-gradient-to-br from-destructive/5 to-transparent shadow-lg shadow-destructive/10'
               : 'border-border bg-card'
           : 'border-border/50 bg-card hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5'
       )}
@@ -73,9 +73,9 @@ export function QuestionCard({
             'flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center font-bold text-lg sm:text-xl transition-colors',
             showResult
               ? isCorrect
-                ? 'bg-emerald-500 text-white'
+                ? 'bg-success text-success-foreground'
                 : isWrong
-                  ? 'bg-rose-500 text-white'
+                  ? 'bg-destructive text-destructive-foreground'
                   : 'bg-primary/10 text-primary'
               : variant === 'exam'
                 ? 'bg-gradient-to-br from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/25'
@@ -100,12 +100,12 @@ export function QuestionCard({
               className="flex-shrink-0"
             >
               {isCorrect ? (
-                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-emerald-500 flex items-center justify-center">
-                  <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-success flex items-center justify-center">
+                  <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-success-foreground" />
                 </div>
               ) : isWrong ? (
-                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-rose-500 flex items-center justify-center">
-                  <XCircle className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-destructive flex items-center justify-center">
+                  <XCircle className="w-5 h-5 sm:w-6 sm:h-6 text-destructive-foreground" />
                 </div>
               ) : null}
             </motion.div>
@@ -143,8 +143,8 @@ export function QuestionCard({
                   <div className={cn(
                     'flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center font-semibold text-sm transition-colors',
                     state === 'selected' && 'bg-primary text-primary-foreground',
-                    state === 'correct' && 'bg-emerald-500 text-white',
-                    state === 'wrong' && 'bg-rose-500 text-white',
+                    state === 'correct' && 'bg-success text-success-foreground',
+                    state === 'wrong' && 'bg-destructive text-destructive-foreground',
                     state === 'default' && 'bg-muted text-muted-foreground'
                   )}>
                     {optionLetter}
@@ -158,9 +158,9 @@ export function QuestionCard({
                   {/* Radio indicator */}
                   <div className="flex-shrink-0">
                     {state === 'correct' ? (
-                      <CheckCircle className="w-5 h-5 text-emerald-500" />
+                      <CheckCircle className="w-5 h-5 text-success" />
                     ) : state === 'wrong' ? (
-                      <XCircle className="w-5 h-5 text-rose-500" />
+                      <XCircle className="w-5 h-5 text-destructive" />
                     ) : (
                       <RadioGroupItem
                         value={optIndex.toString()}

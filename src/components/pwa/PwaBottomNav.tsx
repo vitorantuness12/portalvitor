@@ -30,7 +30,7 @@ export function PwaBottomNav() {
               key={tab.path}
               onClick={() => navigate(tab.path)}
               className={cn(
-                "flex-1 flex flex-col items-center justify-center gap-0.5 py-2 relative transition-colors duration-200",
+                "flex-1 flex flex-col items-center justify-center gap-1 py-2.5 relative min-h-[56px] transition-colors duration-200",
                 isActive
                   ? "text-primary"
                   : "text-muted-foreground active:text-foreground"

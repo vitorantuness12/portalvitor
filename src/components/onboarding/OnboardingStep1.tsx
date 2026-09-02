@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { CategoryCard } from './CategoryCard';
-import { Sparkles } from 'lucide-react';
+import { Zap } from 'lucide-react';
 
 interface Category {
   id: string;
@@ -42,7 +42,7 @@ export function OnboardingStep1({
         transition={{ delay: 0.2, type: "spring" }}
         className="h-14 w-14 sm:h-16 sm:w-16 rounded-full bg-primary/10 flex items-center justify-center mb-4 sm:mb-6"
       >
-        <Sparkles className="h-7 w-7 sm:h-8 sm:w-8 text-primary" />
+        <Zap className="h-7 w-7 sm:h-8 sm:w-8 text-primary" />
       </motion.div>
 
       <h1 className="text-xl sm:text-2xl md:text-3xl font-display font-bold mb-2">

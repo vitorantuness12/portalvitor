@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight, Flame } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CourseCard } from '@/components/courses/CourseCard';
 import { useQuery } from '@tanstack/react-query';
@@ -45,7 +45,7 @@ export function FeaturedCourses() {
         >
           <div className="space-y-4 max-w-xl">
             <Badge variant="secondary" className="w-fit gap-1.5 px-3 py-1 text-xs font-semibold">
-              <Sparkles className="h-3.5 w-3.5 text-primary" />
+              <Flame className="h-3.5 w-3.5 text-primary" />
               Mais procurados
             </Badge>
             <h2 className="font-display font-bold tracking-tight text-4xl sm:text-5xl lg:text-6xl">

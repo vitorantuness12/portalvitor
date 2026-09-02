@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Star, Award, Sparkles, Quote } from 'lucide-react';
+import { Star, Award, Quote } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 
@@ -50,7 +50,7 @@ export function TestimonialsSection() {
           className="text-center mb-16"
         >
           <Badge variant="secondary" className="mb-4 gap-1.5 px-4 py-1 text-xs font-semibold">
-            <Sparkles className="h-3.5 w-3.5 text-primary" />
+            <Award className="h-3.5 w-3.5 text-primary" />
             Histórias de Sucesso
           </Badge>
           <h2 className="font-display font-bold text-4xl sm:text-5xl lg:text-6xl mb-4">
@@ -135,7 +135,7 @@ export function TestimonialsSection() {
             { value: '4.9', label: 'Nota média', icon: Star },
             { value: '97%', label: 'Taxa de aprovação', icon: Award },
             { value: '5k+', label: 'Certificados', icon: Award },
-            { value: '98%', label: 'Recomendam', icon: Sparkles },
+            { value: '98%', label: 'Recomendam', icon: Star },
           ].map((stat, index) => (
             <div
               key={stat.label}

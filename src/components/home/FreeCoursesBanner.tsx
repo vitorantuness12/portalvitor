@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Star, Sparkles, GraduationCap, Clock, Award, ArrowRight } from 'lucide-react';
+import { Star, Heart, GraduationCap, Clock, Award, ArrowRight } from 'lucide-react';
 
 export function FreeCoursesBanner() {
   const benefits = [
@@ -43,9 +43,9 @@ export function FreeCoursesBanner() {
               viewport={{ once: true }}
             >
               <div className="inline-flex items-center gap-2 bg-gradient-to-r from-primary/20 to-primary/10 border border-primary/30 text-primary px-5 py-2 rounded-full">
-                <Sparkles className="h-5 w-5" />
+                <Heart className="h-5 w-5" />
                 <span className="font-bold text-sm uppercase tracking-wider">100% Gratuito</span>
-                <Sparkles className="h-4 w-4" />
+                <Heart className="h-4 w-4" />
               </div>
             </motion.div>
 

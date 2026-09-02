@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { UserPlus, BookOpen, FileText, Trophy, Award, ArrowRight } from 'lucide-react';
 
 const steps = [
@@ -43,13 +44,13 @@ export function HowItWorksSection() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.08 }}
-                className="group relative p-6 rounded-2xl border border-border/60 bg-card/40 backdrop-blur hover:border-primary/50 hover:-translate-y-1 transition-all duration-300"
+                className="pressable group relative p-6 rounded-2xl border border-border/70 bg-card shadow-soft hover:border-primary/40 hover:-translate-y-1 hover:shadow-elevated transition-all duration-300"
               >
-                <div className="absolute -top-3 left-6 font-display text-5xl font-extrabold text-primary/20 group-hover:text-primary/40 transition-colors">
+                <div className="absolute -top-3 left-6 font-display text-5xl font-extrabold text-primary/25 group-hover:text-primary/50 transition-colors">
                   0{index + 1}
                 </div>
                 <div className="relative pt-6">
-                  <div className="h-12 w-12 rounded-xl bg-primary flex items-center justify-center shadow-[0_0_24px_hsl(var(--primary)/0.4)] mb-4">
+                  <div className="h-12 w-12 rounded-xl bg-primary flex items-center justify-center shadow-glow mb-4">
                     <Icon className="h-6 w-6 text-primary-foreground" />
                   </div>
                   <h3 className="font-display font-bold text-lg tracking-tight mb-2">{step.title}</h3>
@@ -66,13 +67,13 @@ export function HowItWorksSection() {
           viewport={{ once: true }}
           className="text-center mt-12"
         >
-          <a
-            href="/cursos"
-            className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-xl font-bold hover:opacity-90 transition-opacity shadow-[0_0_24px_hsl(var(--primary)/0.4)]"
+          <Link
+            to="/cursos"
+            className="pressable inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-xl font-bold hover:opacity-90 transition-opacity shadow-glow focus-ring"
           >
             Ver Cursos Disponíveis
             <ArrowRight className="h-4 w-4" />
-          </a>
+          </Link>
         </motion.div>
       </div>
     </section>

@@ -92,7 +92,7 @@ serve(async (req) => {
     switch (action) {
       case "status": {
         // Get connection status
-        const res = await fetch(
+        const res = await safeFetch(
           `${baseUrl}/instance/connectionState/${instance}`,
           { headers }
         );
@@ -106,7 +106,7 @@ serve(async (req) => {
 
       case "qrcode": {
         // Get QR code for connection
-        const res = await fetch(
+        const res = await safeFetch(
           `${baseUrl}/instance/connect/${instance}`,
           { headers }
         );
@@ -120,7 +120,7 @@ serve(async (req) => {
 
       case "restart": {
         // Restart instance - try DELETE+reconnect approach
-        const logoutRes = await fetch(
+        const logoutRes = await safeFetch(
           `${baseUrl}/instance/logout/${instance}`,
           { method: "DELETE", headers }
         );
@@ -130,7 +130,7 @@ serve(async (req) => {
         // Small delay before reconnecting
         await new Promise(r => setTimeout(r, 1000));
         
-        const res = await fetch(
+        const res = await safeFetch(
           `${baseUrl}/instance/connect/${instance}`,
           { headers }
         );
@@ -144,7 +144,7 @@ serve(async (req) => {
 
       case "logout": {
         // Disconnect / logout
-        const res = await fetch(
+        const res = await safeFetch(
           `${baseUrl}/instance/logout/${instance}`,
           { method: "DELETE", headers }
         );
@@ -165,7 +165,7 @@ serve(async (req) => {
         if (!cleanNumber.startsWith("55")) {
           cleanNumber = "55" + cleanNumber;
         }
-        const res = await fetch(
+        const res = await safeFetch(
           `${baseUrl}/message/sendText/${instance}`,
           {
             method: "POST",

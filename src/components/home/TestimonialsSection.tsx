@@ -82,7 +82,7 @@ export function TestimonialsSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
-              className="group relative bg-card rounded-2xl border border-border p-4 sm:p-6 hover:shadow-lg hover:border-primary/30 transition-all duration-300"
+              className="group relative bg-card rounded-2xl border border-border p-4 sm:p-6 shadow-soft hover:shadow-elevated hover:border-primary/40 transition-all duration-300"
             >
               {/* Quote icon */}
               <div className="absolute top-3 right-3 sm:top-4 sm:right-4 opacity-10 group-hover:opacity-20 transition-opacity">
@@ -165,7 +165,7 @@ export function TestimonialsSection() {
           ].map((stat, index) => (
             <div
               key={stat.label}
-              className="flex flex-col items-center p-2 sm:p-4 rounded-lg sm:rounded-xl bg-card border border-border"
+              className="flex flex-col items-center p-2 sm:p-4 rounded-xl bg-card border border-border/70 shadow-soft"
             >
               <stat.icon className="h-4 w-4 sm:h-5 sm:w-5 text-primary mb-1 sm:mb-2" />
               <span className="font-display text-lg sm:text-2xl md:text-3xl font-bold tracking-tight">{stat.value}</span>

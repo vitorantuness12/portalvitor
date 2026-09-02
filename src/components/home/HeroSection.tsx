@@ -100,12 +100,12 @@ export function HeroSection() {
               className="flex flex-col gap-2"
             >
               <h1 className="font-display font-extrabold tracking-tight text-foreground">
-                <span className="block text-5xl sm:text-6xl lg:text-7xl text-[#1F2A44] dark:text-white leading-[1.15]">Transforme</span>
+                <span className="block text-5xl sm:text-6xl lg:text-7xl text-[#1F2A44] dark:text-white leading-[1.15]">Invista</span>
                 <span className="block text-5xl sm:text-6xl lg:text-7xl text-[#1F2A44] dark:text-white leading-[1.15]">
-                  seu <span className="text-[#FF7A1A]">futuro</span>
+                  em <span className="text-[#FF7A1A]">você</span>
                 </span>
-                <span className="block text-5xl sm:text-6xl lg:text-7xl text-[#1F2A44] dark:text-white leading-[1.15]">com cursos</span>
-                <span className="block text-5xl sm:text-6xl lg:text-7xl text-[#FF7A1A] leading-[1.15]">online</span>
+                <span className="block text-5xl sm:text-6xl lg:text-7xl text-[#1F2A44] dark:text-white leading-[1.15]">Cresça</span>
+                <span className="block text-5xl sm:text-6xl lg:text-7xl text-[#FF7A1A] leading-[1.15]">sem limites</span>
               </h1>
               <p className="text-lg sm:text-xl text-muted-foreground max-w-lg leading-relaxed">
                 Seja iniciante ou profissional: aprenda no seu ritmo com mais de 200 cursos,

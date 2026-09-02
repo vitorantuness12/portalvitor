@@ -106,6 +106,22 @@ export default function AdminUsers() {
     },
   });
 
+  // Histórico de certificados emitidos do aluno selecionado
+  const { data: certificates, isLoading: loadingCertificates } = useQuery({
+    queryKey: ['admin-user-certificates', selectedUser?.user_id],
+    enabled: !!selectedUser?.user_id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('certificates')
+        .select('id, certificate_code, issued_at, course_id, course:courses(title)')
+        .eq('user_id', selectedUser!.user_id)
+        .order('issued_at', { ascending: false });
+
+      if (error) throw error;
+      return (data || []) as unknown as CertificateRecord[];
+    },
+  });
+
   const enrollMutation = useMutation({
     mutationFn: async ({ userId, courseId }: { userId: string; courseId: string }) => {
       const { error } = await supabase

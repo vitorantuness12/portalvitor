@@ -4,21 +4,22 @@ import { ArrowRight, Play, Download, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
-// Animated gradient mesh background
-function GradientMesh() {
+// Clean minimal background
+function HeroBackground() {
   return (
     <div className="absolute inset-0 -z-10 overflow-hidden">
-      <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-gradient-to-br from-primary/30 to-transparent blur-[120px] animate-[float_8s_ease-in-out_infinite]" />
-      <div className="absolute top-[30%] right-[-15%] w-[50%] h-[70%] rounded-full bg-gradient-to-bl from-primary/20 to-transparent blur-[140px] animate-[float_10s_ease-in-out_infinite_reverse]" />
-      <div className="absolute bottom-[-10%] left-[20%] w-[70%] h-[50%] rounded-full bg-gradient-to-tr from-primary/25 to-transparent blur-[130px] animate-[float_12s_ease-in-out_infinite]" />
-      {/* Subtle grid pattern */}
+      {/* Subtle gradient top */}
+      <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent" />
+      {/* Dot pattern */}
       <div 
-        className="absolute inset-0 opacity-[0.03]"
+        className="absolute inset-0 opacity-[0.04]"
         style={{
-          backgroundImage: `linear-gradient(#1a1a1a 1px, transparent 1px), linear-gradient(90deg, #1a1a1a 1px, transparent 1px)`,
-          backgroundSize: '60px 60px'
+          backgroundImage: `radial-gradient(circle, currentColor 1px, transparent 1px)`,
+          backgroundSize: '32px 32px'
         }}
       />
+      {/* Bottom fade */}
+      <div className="absolute bottom-0 left-0 right-0 h-64 bg-gradient-to-t from-background to-transparent" />
     </div>
   );
 }
@@ -61,7 +62,7 @@ function CoursePreviewCard({ title, category, progress }: { title: string; categ
 export function HeroSection() {
   return (
     <section className="relative min-h-[90vh] flex flex-col justify-center pt-8 pb-16 overflow-hidden">
-      <GradientMesh />
+      <HeroBackground />
       
       <div className="container mx-auto px-4 sm:px-6">
         <div className="grid lg:grid-cols-[1.2fr_1fr] gap-12 lg:gap-16 items-center">

@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 interface QuestionCardProps {
   index: number;
   question: string;
-  options: string[];
+  options: unknown;
   selectedAnswer?: number;
   correctAnswer?: number;
   showResult?: boolean;

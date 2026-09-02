@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { Award, Download, ExternalLink, Calendar, Clock, ArrowLeft, ShieldCheck } from 'lucide-react';
+import { Award, Download, Calendar, Clock, ArrowLeft, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -133,11 +133,6 @@ export default function MyCertificates() {
                         <Link to={`/validar-certificado?codigo=${cert.certificate_code}`}>
                           <Button variant="outline" size="sm" aria-label="Validar certificado">
                             <ShieldCheck className="h-3 w-3" />
-                          </Button>
-                        </Link>
-                        <Link to={`/certificado/${cert.course_id}`}>
-                          <Button variant="outline" size="sm" aria-label="Visualizar certificado">
-                            <ExternalLink className="h-3 w-3" />
                           </Button>
                         </Link>
                       </div>

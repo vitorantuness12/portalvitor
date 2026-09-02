@@ -42,10 +42,8 @@ export function FreeCoursesBanner() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
             >
-              <div className="inline-flex items-center gap-2 bg-gradient-to-r from-primary/20 to-primary/10 border border-primary/30 text-primary px-5 py-2 rounded-full">
-                <Heart className="h-5 w-5" />
+              <div className="inline-flex items-center bg-gradient-to-r from-primary/20 to-primary/10 border border-primary/30 text-primary px-5 py-2 rounded-full">
                 <span className="font-bold text-sm uppercase tracking-wider">100% Gratuito</span>
-                <Heart className="h-4 w-4" />
               </div>
             </motion.div>
 

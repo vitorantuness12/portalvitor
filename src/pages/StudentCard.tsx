@@ -484,19 +484,19 @@ export default function StudentCard() {
                     <h3 className="font-semibold mb-3">Benefícios da Carteirinha</h3>
                     <ul className="space-y-2 text-sm text-muted-foreground">
                       <li className="flex items-start gap-2">
-                        <CheckCircle className="h-4 w-4 text-emerald-500 mt-0.5 shrink-0" />
+                        <CheckCircle className="h-4 w-4 text-success mt-0.5 shrink-0" />
                         <span>Identificação oficial como estudante</span>
                       </li>
                       <li className="flex items-start gap-2">
-                        <CheckCircle className="h-4 w-4 text-emerald-500 mt-0.5 shrink-0" />
+                        <CheckCircle className="h-4 w-4 text-success mt-0.5 shrink-0" />
                         <span>Validade de 1 ano</span>
                       </li>
                       <li className="flex items-start gap-2">
-                        <CheckCircle className="h-4 w-4 text-emerald-500 mt-0.5 shrink-0" />
+                        <CheckCircle className="h-4 w-4 text-success mt-0.5 shrink-0" />
                         <span>QR Code para validação rápida</span>
                       </li>
                       <li className="flex items-start gap-2">
-                        <CheckCircle className="h-4 w-4 text-emerald-500 mt-0.5 shrink-0" />
+                        <CheckCircle className="h-4 w-4 text-success mt-0.5 shrink-0" />
                         <span>Disponível em formato digital e impresso</span>
                       </li>
                     </ul>

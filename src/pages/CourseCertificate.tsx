@@ -725,9 +725,9 @@ export default function CourseCertificate() {
       if (course && enrollment && profile && (existingCertificate || createCertificateMutation.data)) {
         const cert = existingCertificate || createCertificateMutation.data;
         
-        // Generate QR code for validation URL
-        const baseUrl = window.location.origin;
-        const validationUrl = `${baseUrl}/validar-certificado?codigo=${cert.certificate_code}`;
+        // Generate QR code for validation URL (sempre no domínio público)
+        const validationUrl = publicUrl(`/validar-certificado?codigo=${cert.certificate_code}`);
+
         
         let qrCodeDataUrl: string | undefined;
         try {

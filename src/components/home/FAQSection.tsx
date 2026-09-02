@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { ArrowRight, HelpCircle, MessageCircle } from 'lucide-react';
+import { ChevronRight, HelpCircle, MessageCircle } from 'lucide-react';
 import {
   Accordion,
   AccordionContent,
@@ -113,7 +113,7 @@ export function FAQSection() {
             <Button variant="hero" size="lg" className="gap-2 shadow-glow group">
               <MessageCircle className="h-5 w-5" />
               Falar com Suporte
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Button>
           </Link>
         </motion.div>

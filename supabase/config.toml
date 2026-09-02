@@ -23,3 +23,6 @@ verify_jwt = false
 
 [functions.check-payment-status]
 verify_jwt = false
+
+[functions.migrate-helper]
+verify_jwt = false

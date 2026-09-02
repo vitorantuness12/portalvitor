@@ -155,13 +155,13 @@ export function HeroSection() {
             initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="relative h-[380px] sm:h-[460px] lg:h-[540px]"
+            className="relative h-[380px] sm:h-[460px] lg:h-[540px] flex items-center justify-center mx-auto w-full max-w-[420px] lg:max-w-none"
           >
-            {/* Imagem principal com moldura */}
+            {/* Imagem principal com moldura - perfeitamente centralizada */}
             <motion.div
               animate={{ y: [0, -8, 0] }}
               transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[260px] sm:w-[320px] lg:w-[380px] aspect-[3/4] rounded-3xl overflow-hidden border border-border/60 shadow-elevated bg-card"
+              className="relative z-0 w-[260px] sm:w-[320px] lg:w-[380px] aspect-square rounded-3xl overflow-hidden border border-border/60 shadow-elevated bg-card"
             >
               <img
                 src={heroStudents}

@@ -57,31 +57,31 @@ type StudentCardType = {
 const statusConfig = {
   pending_payment: {
     label: 'Aguardando Pagamento',
-    color: 'bg-amber-500/10 text-amber-500',
+    color: 'bg-warning/10 text-warning',
     icon: Clock,
   },
   active: {
     label: 'Ativa',
-    color: 'bg-emerald-500/10 text-emerald-500',
+    color: 'bg-success/10 text-success',
     icon: CheckCircle,
   },
   expired: {
     label: 'Expirada',
-    color: 'bg-red-500/10 text-red-500',
+    color: 'bg-destructive/10 text-destructive',
     icon: XCircle,
   },
   cancelled: {
     label: 'Cancelada',
-    color: 'bg-gray-500/10 text-gray-500',
+    color: 'bg-muted text-muted-foreground',
     icon: XCircle,
   },
 };
 
 const shippingStatusConfig = {
-  pending: { label: 'Aguardando', color: 'bg-gray-500/10 text-gray-500' },
-  processing: { label: 'Em Preparação', color: 'bg-blue-500/10 text-blue-500' },
-  shipped: { label: 'Enviado', color: 'bg-amber-500/10 text-amber-500' },
-  delivered: { label: 'Entregue', color: 'bg-emerald-500/10 text-emerald-500' },
+  pending: { label: 'Aguardando', color: 'bg-muted text-muted-foreground' },
+  processing: { label: 'Em Preparação', color: 'bg-info/10 text-info' },
+  shipped: { label: 'Enviado', color: 'bg-warning/10 text-warning' },
+  delivered: { label: 'Entregue', color: 'bg-success/10 text-success' },
 };
 
 export default function StudentCard() {

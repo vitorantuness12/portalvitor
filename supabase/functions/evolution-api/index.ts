@@ -208,13 +208,17 @@ serve(async (req) => {
     });
   } catch (error) {
     console.error("Evolution API error:", error);
+    const errorStatus = getErrorStatus(error);
     return new Response(
       JSON.stringify({
         success: false,
         error: error instanceof Error ? error.message : "Erro desconhecido",
+        upstreamStatus: errorStatus === 502 ? errorStatus : undefined,
       }),
       {
-        status: getErrorStatus(error),
+        // Falhas operacionais do provedor são exibidas no painel sem derrubar
+        // a aplicação como uma falha interna da Edge Function.
+        status: errorStatus === 502 ? 200 : errorStatus,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
     );

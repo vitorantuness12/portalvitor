@@ -90,6 +90,7 @@ export default function WhatsAppAdmin() {
         body: { action: 'status' },
       });
       if (error) throw new Error(await getFunctionErrorMessage(error));
+      if (!data?.success) throw new Error(data?.error || 'Falha ao verificar a conexão.');
       return data;
     },
     refetchInterval: 15000,

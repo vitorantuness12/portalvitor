@@ -303,7 +303,6 @@ export default function AdminUsers() {
                       variant="ghost"
                       size="icon"
                       onClick={() => setSelectedUser(user)}
-                      disabled={user.enrollments.length === 0}
                       title="Ver detalhes"
                     >
                       <Eye className="h-4 w-4" />
@@ -414,7 +413,6 @@ export default function AdminUsers() {
                           variant="ghost"
                           size="icon"
                           onClick={() => setSelectedUser(user)}
-                          disabled={user.enrollments.length === 0}
                           title="Ver detalhes"
                         >
                           <Eye className="h-4 w-4" />

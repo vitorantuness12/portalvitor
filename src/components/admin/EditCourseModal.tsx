@@ -116,23 +116,31 @@ export function EditCourseModal({ open, onOpenChange, course }: EditCourseModalP
     if (thumbnailFile) {
       setIsUploading(true);
       try {
-        const fileExt = thumbnailFile.name.split('.').pop();
+        const fileExt = (thumbnailFile.name.split('.').pop() || 'jpg').toLowerCase();
         const fileName = `${course.id}-${Date.now()}.${fileExt}`;
-        const filePath = `course-thumbnails/${fileName}`;
 
         const { error: uploadError } = await supabase.storage
           .from('course-thumbnails')
-          .upload(fileName, thumbnailFile, { upsert: true });
+          .upload(fileName, thumbnailFile, {
+            upsert: true,
+            contentType: thumbnailFile.type,
+          });
 
         if (uploadError) throw uploadError;
 
-        const { data: urlData } = supabase.storage
+        // O bucket é privado (buckets públicos estão bloqueados nesta workspace),
+        // então geramos uma URL assinada de longa duração (10 anos).
+        const { data: signed, error: signError } = await supabase.storage
           .from('course-thumbnails')
-          .getPublicUrl(fileName);
+          .createSignedUrl(fileName, 60 * 60 * 24 * 365 * 10);
 
-        thumbnail_url = urlData.publicUrl;
+        if (signError || !signed?.signedUrl) throw signError ?? new Error('Falha ao gerar URL da imagem');
+
+        thumbnail_url = signed.signedUrl;
       } catch (error) {
-        toast.error('Erro ao fazer upload da imagem');
+        console.error('Erro no upload da capa:', error);
+        const message = error instanceof Error ? error.message : 'Erro desconhecido';
+        toast.error(`Erro ao fazer upload da imagem: ${message}`);
         setIsUploading(false);
         return;
       }

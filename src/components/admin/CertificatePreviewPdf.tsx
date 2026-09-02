@@ -328,14 +328,6 @@ export const CertificatePreviewPdf = ({ config }: PreviewPdfProps) => {
       alignItems: 'center',
       justifyContent: 'center',
     },
-    badgeText: {
-      fontSize: 6,
-      fontFamily: 'Montserrat',
-      fontWeight: 700,
-      color: primaryColor,
-      textTransform: 'uppercase',
-      marginTop: 4,
-    },
     // Back page styles
     backContent: {
       flex: 1,
@@ -428,7 +420,6 @@ export const CertificatePreviewPdf = ({ config }: PreviewPdfProps) => {
               <Text style={{ fontSize: 22, color: 'white' }}>★</Text>
             </View>
           )}
-          <Text style={styles.badgeText}>{config.right_badge_text || 'QUALIDADE'}</Text>
         </View>
 
         {/* Content */}

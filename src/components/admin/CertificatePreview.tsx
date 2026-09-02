@@ -308,12 +308,6 @@ export function CertificatePreview({ config }: CertificatePreviewProps) {
                   <Star className="w-4 h-4 text-white fill-white" />
                 </div>
               )}
-              <p 
-                className="text-[4px] text-center mt-0.5 font-bold uppercase"
-                style={{ color: primaryColor }}
-              >
-                {config.right_badge_text || 'QUALIDADE'}
-              </p>
             </div>
 
             {/* Main Content */}

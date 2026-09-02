@@ -424,23 +424,12 @@ const CertificateDoc = ({ studentName, courseName, completionDate, duration, sco
       justifyContent: 'center',
       borderWidth: 2,
     },
-    badgeText: {
-      fontSize: 6,
-      fontFamily: 'Montserrat',
-      fontWeight: 700,
-      textTransform: 'uppercase',
-      marginTop: 4,
-      letterSpacing: 0.5,
-    },
     badgeImage: {
       width: 48,
       height: 48,
       borderRadius: 24,
     },
   });
-
-  // Badge configuration
-  const rightBadgeText = config?.right_badge_text || 'QUALIDADE';
 
   return (
     <Document>

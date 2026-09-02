@@ -519,7 +519,67 @@ export default function AdminUsers() {
                       )}
                     </div>
                   ))}
+                  {selectedUser.enrollments.length === 0 && (
+                    <p className="text-sm text-muted-foreground">
+                      Nenhuma matrícula registrada.
+                    </p>
+                  )}
                 </div>
+              </div>
+
+              {/* Histórico de certificados emitidos */}
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <Award className="h-4 w-4 text-primary" />
+                  <h4 className="font-medium">Certificados Emitidos</h4>
+                  <Badge variant="secondary">{certificates?.length || 0}</Badge>
+                </div>
+
+                {loadingCertificates ? (
+                  <div className="flex items-center justify-center py-6">
+                    <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-primary" />
+                  </div>
+                ) : !certificates || certificates.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    Este aluno ainda não possui certificados emitidos.
+                  </p>
+                ) : (
+                  <div className="space-y-3">
+                    {certificates.map((certificate) => (
+                      <div
+                        key={certificate.id}
+                        className="border rounded-lg p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
+                      >
+                        <div className="min-w-0">
+                          <p className="font-medium truncate">
+                            {certificate.course?.title || 'Curso removido'}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Emitido em{' '}
+                            {certificate.issued_at
+                              ? format(new Date(certificate.issued_at), "dd 'de' MMM, yyyy 'às' HH:mm", {
+                                  locale: ptBR,
+                                })
+                              : '-'}
+                          </p>
+                          <p className="text-xs text-muted-foreground font-mono mt-1">
+                            Código: {certificate.certificate_code}
+                          </p>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            navigator.clipboard.writeText(certificate.certificate_code);
+                            toast.success('Código copiado!');
+                          }}
+                        >
+                          Copiar código
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           )}

@@ -1,16 +1,27 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Search, Filter, Gift } from 'lucide-react';
+import { Search, SlidersHorizontal, Gift, ArrowDownUp, GraduationCap } from 'lucide-react';
 import { CourseCard } from '@/components/courses/CourseCard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { PageHeader } from '@/components/common/PageHeader';
+import { EmptyState } from '@/components/common/EmptyState';
+import { LoadingGrid } from '@/components/common/LoadingGrid';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Skeleton } from '@/components/ui/skeleton';
 import { useIsPwa } from '@/hooks/useIsPwa';
 import { PwaLayout } from '@/components/pwa/PwaLayout';
+
+type SortOption = 'recent' | 'price_asc' | 'price_desc' | 'title';
 
 export default function CoursesPage() {
   const isPwa = useIsPwa();
@@ -19,6 +30,7 @@ export default function CoursesPage() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedLevel, setSelectedLevel] = useState<string | null>(null);
   const [priceFilter, setPriceFilter] = useState<'all' | 'free' | 'paid'>('all');
+  const [sortBy, setSortBy] = useState<SortOption>('recent');
 
   useEffect(() => {
     const priceParam = searchParams.get('price');
@@ -43,7 +55,7 @@ export default function CoursesPage() {
   });
 
   const { data: courses, isLoading } = useQuery({
-    queryKey: ['courses', selectedCategory, selectedLevel, searchTerm, priceFilter],
+    queryKey: ['courses', selectedCategory, selectedLevel, searchTerm, priceFilter, sortBy],
     queryFn: async () => {
       let query = supabase.from('courses').select(`*, categories (name)`).eq('status', 'active');
       if (selectedCategory) query = query.eq('category_id', selectedCategory);
@@ -51,7 +63,22 @@ export default function CoursesPage() {
       if (searchTerm) query = query.ilike('title', `%${searchTerm}%`);
       if (priceFilter === 'free') query = query.eq('price', 0);
       else if (priceFilter === 'paid') query = query.gt('price', 0);
-      const { data, error } = await query.order('created_at', { ascending: false });
+
+      switch (sortBy) {
+        case 'price_asc':
+          query = query.order('price', { ascending: true });
+          break;
+        case 'price_desc':
+          query = query.order('price', { ascending: false });
+          break;
+        case 'title':
+          query = query.order('title', { ascending: true });
+          break;
+        default:
+          query = query.order('created_at', { ascending: false });
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
       return data;
     },
@@ -62,6 +89,18 @@ export default function CoursesPage() {
     { value: 'intermediario', label: 'Intermediário' },
     { value: 'avancado', label: 'Avançado' },
   ];
+
+  const hasActiveFilters =
+    !!searchTerm || !!selectedCategory || !!selectedLevel || priceFilter !== 'all';
+
+  const clearFilters = () => {
+    setSearchTerm('');
+    setSelectedCategory(null);
+    setSelectedLevel(null);
+    handlePriceFilterChange('all');
+  };
+
+  const resultsCount = courses?.length ?? 0;
 
   return (
     <PwaLayout>
@@ -96,7 +135,8 @@ export default function CoursesPage() {
                 placeholder="Buscar cursos..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 sm:pl-12 h-10 sm:h-12 bg-background/95 border-0 text-sm sm:text-base"
+                className="pl-10 sm:pl-12 h-11 sm:h-12 bg-background/95 border-0 text-sm sm:text-base shadow-elevated"
+                aria-label="Buscar cursos"
               />
             </motion.div>
           </div>
@@ -105,7 +145,12 @@ export default function CoursesPage() {
 
       {/* PWA compact search */}
       {isPwa && (
-        <div className="px-4 pt-3 pb-2">
+        <div className="px-4 pt-4 pb-2">
+          <PageHeader
+            title="Cursos"
+            description="Encontre o curso perfeito para você"
+            className="mb-3"
+          />
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -113,7 +158,8 @@ export default function CoursesPage() {
               placeholder="Buscar cursos..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9 h-9 text-sm rounded-xl bg-muted/50 border-0"
+              className="pl-9 h-11 text-sm rounded-xl bg-muted/50 border-0"
+              aria-label="Buscar cursos"
             />
           </div>
         </div>
@@ -126,72 +172,91 @@ export default function CoursesPage() {
           {isPwa ? (
             <div className="mb-3 space-y-2">
               <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-1 -mx-4 px-4">
-                <Badge variant={selectedCategory === null ? 'default' : 'outline'} className="cursor-pointer text-xs whitespace-nowrap shrink-0 rounded-full" onClick={() => setSelectedCategory(null)}>Todas</Badge>
+                <Badge variant={selectedCategory === null ? 'default' : 'outline'} className="cursor-pointer text-xs whitespace-nowrap shrink-0 rounded-full py-1.5 px-3" onClick={() => setSelectedCategory(null)}>Todas</Badge>
                 {categories?.map((cat) => (
-                  <Badge key={cat.id} variant={selectedCategory === cat.id ? 'default' : 'outline'} className="cursor-pointer text-xs whitespace-nowrap shrink-0 rounded-full" onClick={() => setSelectedCategory(cat.id)}>{cat.name}</Badge>
+                  <Badge key={cat.id} variant={selectedCategory === cat.id ? 'default' : 'outline'} className="cursor-pointer text-xs whitespace-nowrap shrink-0 rounded-full py-1.5 px-3" onClick={() => setSelectedCategory(cat.id)}>{cat.name}</Badge>
                 ))}
               </div>
               <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-1 -mx-4 px-4">
-                <Badge variant={selectedLevel === null ? 'default' : 'outline'} className="cursor-pointer text-xs whitespace-nowrap shrink-0 rounded-full" onClick={() => setSelectedLevel(null)}>Todos</Badge>
+                <Badge variant={selectedLevel === null ? 'default' : 'outline'} className="cursor-pointer text-xs whitespace-nowrap shrink-0 rounded-full py-1.5 px-3" onClick={() => setSelectedLevel(null)}>Todos</Badge>
                 {levels.map((level) => (
-                  <Badge key={level.value} variant={selectedLevel === level.value ? 'default' : 'outline'} className="cursor-pointer text-xs whitespace-nowrap shrink-0 rounded-full" onClick={() => setSelectedLevel(level.value)}>{level.label}</Badge>
+                  <Badge key={level.value} variant={selectedLevel === level.value ? 'default' : 'outline'} className="cursor-pointer text-xs whitespace-nowrap shrink-0 rounded-full py-1.5 px-3" onClick={() => setSelectedLevel(level.value)}>{level.label}</Badge>
                 ))}
                 <div className="w-px bg-border shrink-0 self-stretch" />
-                <Badge variant={priceFilter === 'all' ? 'default' : 'outline'} className="cursor-pointer text-xs whitespace-nowrap shrink-0 rounded-full" onClick={() => handlePriceFilterChange('all')}>Todos</Badge>
-                <Badge variant={priceFilter === 'free' ? 'default' : 'outline'} className="cursor-pointer text-xs whitespace-nowrap shrink-0 rounded-full" onClick={() => handlePriceFilterChange('free')}>🎁 Grátis</Badge>
-                <Badge variant={priceFilter === 'paid' ? 'default' : 'outline'} className="cursor-pointer text-xs whitespace-nowrap shrink-0 rounded-full" onClick={() => handlePriceFilterChange('paid')}>💰 Pagos</Badge>
+                <Badge variant={priceFilter === 'all' ? 'default' : 'outline'} className="cursor-pointer text-xs whitespace-nowrap shrink-0 rounded-full py-1.5 px-3" onClick={() => handlePriceFilterChange('all')}>Todos</Badge>
+                <Badge variant={priceFilter === 'free' ? 'default' : 'outline'} className="cursor-pointer text-xs whitespace-nowrap shrink-0 rounded-full py-1.5 px-3" onClick={() => handlePriceFilterChange('free')}>🎁 Grátis</Badge>
+                <Badge variant={priceFilter === 'paid' ? 'default' : 'outline'} className="cursor-pointer text-xs whitespace-nowrap shrink-0 rounded-full py-1.5 px-3" onClick={() => handlePriceFilterChange('paid')}>💰 Pagos</Badge>
               </div>
             </div>
           ) : (
-            <div className="mb-6 md:mb-8 space-y-3 md:space-y-4">
-              <div className="flex items-start gap-2 flex-wrap">
-                <div className="flex items-center gap-2 w-full sm:w-auto mb-1 sm:mb-0">
-                  <Filter className="h-4 w-4 text-muted-foreground shrink-0" />
-                  <span className="text-xs sm:text-sm font-medium">Categorias:</span>
+            <div className="mb-6 md:mb-8 space-y-4">
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <SlidersHorizontal className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <span className="text-xs sm:text-sm font-medium text-foreground">Categoria:</span>
                 </div>
                 <div className="flex flex-wrap gap-1.5 sm:gap-2">
-                  <Badge variant={selectedCategory === null ? 'default' : 'outline'} className="cursor-pointer text-xs" onClick={() => setSelectedCategory(null)}>Todas</Badge>
+                  <Badge variant={selectedCategory === null ? 'default' : 'outline'} className="cursor-pointer text-xs py-1.5 px-3" onClick={() => setSelectedCategory(null)}>Todas</Badge>
                   {categories?.map((cat) => (
-                    <Badge key={cat.id} variant={selectedCategory === cat.id ? 'default' : 'outline'} className="cursor-pointer text-xs" onClick={() => setSelectedCategory(cat.id)}>{cat.name}</Badge>
+                    <Badge key={cat.id} variant={selectedCategory === cat.id ? 'default' : 'outline'} className="cursor-pointer text-xs py-1.5 px-3" onClick={() => setSelectedCategory(cat.id)}>{cat.name}</Badge>
                   ))}
                 </div>
               </div>
-              <div className="flex items-start gap-2 flex-wrap">
-                <div className="flex items-center gap-2 w-full sm:w-auto mb-1 sm:mb-0">
-                  <span className="text-xs sm:text-sm font-medium sm:ml-6">Nível:</span>
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="flex items-center gap-2 w-full sm:w-auto sm:ml-6">
+                  <span className="text-xs sm:text-sm font-medium text-foreground">Nível:</span>
                 </div>
-                <div className="flex flex-wrap gap-1.5 sm:gap-2 sm:ml-0">
-                  <Badge variant={selectedLevel === null ? 'default' : 'outline'} className="cursor-pointer text-xs" onClick={() => setSelectedLevel(null)}>Todos</Badge>
+                <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                  <Badge variant={selectedLevel === null ? 'default' : 'outline'} className="cursor-pointer text-xs py-1.5 px-3" onClick={() => setSelectedLevel(null)}>Todos</Badge>
                   {levels.map((level) => (
-                    <Badge key={level.value} variant={selectedLevel === level.value ? 'default' : 'outline'} className="cursor-pointer text-xs" onClick={() => setSelectedLevel(level.value)}>{level.label}</Badge>
+                    <Badge key={level.value} variant={selectedLevel === level.value ? 'default' : 'outline'} className="cursor-pointer text-xs py-1.5 px-3" onClick={() => setSelectedLevel(level.value)}>{level.label}</Badge>
                   ))}
                 </div>
               </div>
-              <div className="flex items-start gap-2 flex-wrap">
-                <div className="flex items-center gap-2 w-full sm:w-auto mb-1 sm:mb-0">
-                  <Gift className="h-4 w-4 text-muted-foreground shrink-0 sm:ml-6" />
-                  <span className="text-xs sm:text-sm font-medium">Preço:</span>
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="flex items-center gap-2 w-full sm:w-auto sm:ml-6">
+                  <Gift className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <span className="text-xs sm:text-sm font-medium text-foreground">Preço:</span>
                 </div>
-                <div className="flex flex-wrap gap-1.5 sm:gap-2 sm:ml-0">
-                  <Badge variant={priceFilter === 'all' ? 'default' : 'outline'} className="cursor-pointer text-xs" onClick={() => handlePriceFilterChange('all')}>Todos</Badge>
-                  <Badge variant={priceFilter === 'free' ? 'default' : 'outline'} className="cursor-pointer text-xs" onClick={() => handlePriceFilterChange('free')}>🎁 Gratuitos</Badge>
-                  <Badge variant={priceFilter === 'paid' ? 'default' : 'outline'} className="cursor-pointer text-xs" onClick={() => handlePriceFilterChange('paid')}>💰 Pagos</Badge>
+                <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                  <Badge variant={priceFilter === 'all' ? 'default' : 'outline'} className="cursor-pointer text-xs py-1.5 px-3" onClick={() => handlePriceFilterChange('all')}>Todos</Badge>
+                  <Badge variant={priceFilter === 'free' ? 'default' : 'outline'} className="cursor-pointer text-xs py-1.5 px-3" onClick={() => handlePriceFilterChange('free')}>🎁 Gratuitos</Badge>
+                  <Badge variant={priceFilter === 'paid' ? 'default' : 'outline'} className="cursor-pointer text-xs py-1.5 px-3" onClick={() => handlePriceFilterChange('paid')}>💰 Pagos</Badge>
                 </div>
               </div>
             </div>
           )}
 
+          {/* Results bar */}
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
+            <p className="text-sm text-muted-foreground">
+              {isLoading
+                ? 'Buscando cursos...'
+                : `${resultsCount} curso${resultsCount === 1 ? '' : 's'} encontrado${resultsCount === 1 ? '' : 's'}`}
+            </p>
+            <div className="flex items-center gap-2">
+              <ArrowDownUp className="h-4 w-4 text-muted-foreground shrink-0" aria-hidden="true" />
+              <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
+                <SelectTrigger className="h-9 w-[170px] text-xs sm:text-sm" aria-label="Ordenar cursos">
+                  <SelectValue placeholder="Ordenar por" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="recent">Mais recentes</SelectItem>
+                  <SelectItem value="price_asc">Menor preço</SelectItem>
+                  <SelectItem value="price_desc">Maior preço</SelectItem>
+                  <SelectItem value="title">Ordem alfabética</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
           {/* Courses Grid */}
           {isLoading ? (
-            <div className={isPwa ? 'grid grid-cols-2 gap-3' : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6'}>
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className={isPwa ? 'space-y-2' : 'space-y-3 sm:space-y-4'}>
-                  <Skeleton className={isPwa ? 'aspect-[4/3] w-full rounded-xl' : 'aspect-video w-full'} />
-                  <Skeleton className={isPwa ? 'h-4 w-3/4' : 'h-5 sm:h-6 w-3/4'} />
-                  <Skeleton className={isPwa ? 'h-3 w-1/2' : 'h-3 sm:h-4 w-full'} />
-                </div>
-              ))}
-            </div>
+            <LoadingGrid
+              count={isPwa ? 4 : 6}
+              className={isPwa ? 'grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-2' : undefined}
+              mediaClassName={isPwa ? 'aspect-[4/3]' : 'aspect-video'}
+            />
           ) : courses && courses.length > 0 ? (
             <div className={isPwa ? 'grid grid-cols-2 gap-3' : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6'}>
               {courses.map((course, index) => (
@@ -205,11 +270,18 @@ export default function CoursesPage() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-16">
-              <p className="text-lg text-muted-foreground mb-2">Nenhum curso encontrado</p>
-              <p className="text-sm text-muted-foreground">Tente ajustar os filtros ou busque por outros termos</p>
-              <Button variant="outline" className="mt-4" onClick={() => { setSearchTerm(''); setSelectedCategory(null); setSelectedLevel(null); handlePriceFilterChange('all'); }}>Limpar filtros</Button>
-            </div>
+            <EmptyState
+              icon={GraduationCap}
+              title="Nenhum curso encontrado"
+              description="Tente ajustar os filtros ou buscar por outros termos."
+              action={
+                hasActiveFilters ? (
+                  <Button variant="outline" onClick={clearFilters}>
+                    Limpar filtros
+                  </Button>
+                ) : undefined
+              }
+            />
           )}
         </div>
       </section>

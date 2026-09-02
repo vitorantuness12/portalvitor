@@ -57,6 +57,14 @@ interface Course {
   title: string;
 }
 
+interface CertificateRecord {
+  id: string;
+  certificate_code: string;
+  issued_at: string;
+  course_id: string;
+  course: { title: string } | null;
+}
+
 export default function AdminUsers() {
   const [search, setSearch] = useState('');
   const [selectedUser, setSelectedUser] = useState<UserWithEnrollments | null>(null);

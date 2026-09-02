@@ -1,6 +1,7 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Clock, BarChart3, CheckCircle2, ImageOff } from 'lucide-react';
+import { Clock, BarChart3, CheckCircle2, ImageOff, Gift } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
@@ -34,20 +35,27 @@ function Thumbnail({
   title: string;
   aspect?: string;
 }) {
-  if (!thumbnailUrl) {
+  const [failed, setFailed] = useState(false);
+
+  if (!thumbnailUrl || failed) {
     return (
-      <div className={cn('flex items-center justify-center bg-muted', aspect)}>
+      <div className={cn('flex h-full w-full items-center justify-center bg-muted', aspect)}>
         <ImageOff className="h-8 w-8 text-muted-foreground/50" aria-hidden="true" />
       </div>
     );
   }
+
   return (
     <img
       src={thumbnailUrl}
       alt={title}
       loading="lazy"
       decoding="async"
-      className={cn('h-full w-full object-cover transition-transform duration-300 group-hover:scale-105', aspect)}
+      onError={() => setFailed(true)}
+      className={cn(
+        'h-full w-full object-cover text-transparent transition-transform duration-300 group-hover:scale-105',
+        aspect,
+      )}
     />
   );
 }
@@ -107,7 +115,7 @@ export function CourseCard({
   }
 
   return (
-    <motion.div whileHover={{ y: -4 }} transition={{ duration: 0.2 }}>
+    <motion.div whileHover={{ y: -4 }} transition={{ duration: 0.2 }} className="h-full">
       <Card interactive className="group flex h-full flex-col overflow-hidden">
         <div className="relative aspect-video overflow-hidden">
           <Thumbnail thumbnailUrl={thumbnailUrl} title={title} />
@@ -118,8 +126,9 @@ export function CourseCard({
           )}
           <div className="absolute top-3 right-3 flex flex-col items-end gap-1.5">
             {price === 0 && (
-              <Badge className="border-0 bg-success text-success-foreground shadow-elevated">
-                🎁 Grátis
+              <Badge className="gap-1 border-0 bg-success text-success-foreground shadow-elevated">
+                <Gift className="h-3 w-3" aria-hidden="true" />
+                Grátis
               </Badge>
             )}
             {isEnrolled && (

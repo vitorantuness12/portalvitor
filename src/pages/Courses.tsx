@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Search, SlidersHorizontal, Gift, ArrowDownUp, GraduationCap } from 'lucide-react';
+import { Search, SlidersHorizontal, Gift, ArrowDownUp, GraduationCap, Wallet } from 'lucide-react';
 import { CourseCard } from '@/components/courses/CourseCard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -184,8 +184,8 @@ export default function CoursesPage() {
                 ))}
                 <div className="w-px bg-border shrink-0 self-stretch" />
                 <Badge variant={priceFilter === 'all' ? 'default' : 'outline'} className="cursor-pointer text-xs whitespace-nowrap shrink-0 rounded-full py-1.5 px-3" onClick={() => handlePriceFilterChange('all')}>Todos</Badge>
-                <Badge variant={priceFilter === 'free' ? 'default' : 'outline'} className="cursor-pointer text-xs whitespace-nowrap shrink-0 rounded-full py-1.5 px-3" onClick={() => handlePriceFilterChange('free')}>🎁 Grátis</Badge>
-                <Badge variant={priceFilter === 'paid' ? 'default' : 'outline'} className="cursor-pointer text-xs whitespace-nowrap shrink-0 rounded-full py-1.5 px-3" onClick={() => handlePriceFilterChange('paid')}>💰 Pagos</Badge>
+                <Badge variant={priceFilter === 'free' ? 'default' : 'outline'} className="cursor-pointer text-xs whitespace-nowrap shrink-0 rounded-full py-1.5 px-3" onClick={() => handlePriceFilterChange('free')}><Gift className="mr-1 h-3 w-3" aria-hidden="true" />Grátis</Badge>
+                <Badge variant={priceFilter === 'paid' ? 'default' : 'outline'} className="cursor-pointer text-xs whitespace-nowrap shrink-0 rounded-full py-1.5 px-3" onClick={() => handlePriceFilterChange('paid')}><Wallet className="mr-1 h-3 w-3" aria-hidden="true" />Pagos</Badge>
               </div>
             </div>
           ) : (
@@ -220,8 +220,8 @@ export default function CoursesPage() {
                 </div>
                 <div className="flex flex-wrap gap-1.5 sm:gap-2">
                   <Badge variant={priceFilter === 'all' ? 'default' : 'outline'} className="cursor-pointer text-xs py-1.5 px-3" onClick={() => handlePriceFilterChange('all')}>Todos</Badge>
-                  <Badge variant={priceFilter === 'free' ? 'default' : 'outline'} className="cursor-pointer text-xs py-1.5 px-3" onClick={() => handlePriceFilterChange('free')}>🎁 Gratuitos</Badge>
-                  <Badge variant={priceFilter === 'paid' ? 'default' : 'outline'} className="cursor-pointer text-xs py-1.5 px-3" onClick={() => handlePriceFilterChange('paid')}>💰 Pagos</Badge>
+                  <Badge variant={priceFilter === 'free' ? 'default' : 'outline'} className="cursor-pointer text-xs py-1.5 px-3" onClick={() => handlePriceFilterChange('free')}><Gift className="mr-1 h-3 w-3" aria-hidden="true" />Gratuitos</Badge>
+                  <Badge variant={priceFilter === 'paid' ? 'default' : 'outline'} className="cursor-pointer text-xs py-1.5 px-3" onClick={() => handlePriceFilterChange('paid')}><Wallet className="mr-1 h-3 w-3" aria-hidden="true" />Pagos</Badge>
                 </div>
               </div>
             </div>

@@ -99,13 +99,13 @@ export function HeroSection() {
               transition={{ delay: 0.2 }}
               className="space-y-1"
             >
-              <h1 className="font-display font-extrabold leading-[1.02] tracking-tight text-foreground">
-                <span className="block text-5xl sm:text-6xl lg:text-7xl text-[#1F2A44] dark:text-white">Transforme</span>
-                <span className="block text-5xl sm:text-6xl lg:text-7xl text-[#1F2A44] dark:text-white">
+              <h1 className="font-display font-extrabold leading-none tracking-tight text-foreground">
+                <span className="block text-5xl sm:text-6xl lg:text-7xl text-[#1F2A44] dark:text-white leading-none">Transforme</span>
+                <span className="block text-5xl sm:text-6xl lg:text-7xl text-[#1F2A44] dark:text-white leading-none">
                   seu <span className="text-[#FF7A1A]">futuro</span>
                 </span>
-                <span className="block text-5xl sm:text-6xl lg:text-7xl text-[#1F2A44] dark:text-white">com cursos</span>
-                <span className="block text-5xl sm:text-6xl lg:text-7xl text-[#FF7A1A]">online</span>
+                <span className="block text-5xl sm:text-6xl lg:text-7xl text-[#1F2A44] dark:text-white leading-none">com cursos</span>
+                <span className="block text-5xl sm:text-6xl lg:text-7xl text-[#FF7A1A] leading-none">online</span>
               </h1>
               <p className="text-lg sm:text-xl text-muted-foreground max-w-lg leading-relaxed">
                 Seja iniciante ou profissional: aprenda no seu ritmo com mais de 200 cursos,

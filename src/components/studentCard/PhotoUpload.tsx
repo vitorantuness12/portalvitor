@@ -40,20 +40,23 @@ export function PhotoUpload({ photoUrl, onPhotoChange, userId, disabled }: Photo
       // Upload to Supabase Storage
       const { error: uploadError } = await supabase.storage
         .from('student-card-photos')
-        .upload(fileName, file, { upsert: true });
+        .upload(fileName, file, { upsert: true, contentType: file.type });
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
-      const { data: urlData } = supabase.storage
+      // Bucket privado: usamos URL assinada de longa duração (10 anos)
+      const { data: signed, error: signError } = await supabase.storage
         .from('student-card-photos')
-        .getPublicUrl(fileName);
+        .createSignedUrl(fileName, 60 * 60 * 24 * 365 * 10);
 
-      onPhotoChange(urlData.publicUrl);
+      if (signError || !signed?.signedUrl) throw signError ?? new Error('Falha ao gerar URL da foto');
+
+      onPhotoChange(signed.signedUrl);
       toast.success('Foto enviada com sucesso!');
     } catch (error) {
       console.error('Error uploading photo:', error);
-      toast.error('Erro ao enviar foto. Tente novamente.');
+      const message = error instanceof Error ? error.message : 'Erro desconhecido';
+      toast.error(`Erro ao enviar foto: ${message}`);
     } finally {
       setUploading(false);
     }

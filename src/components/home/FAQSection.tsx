@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { HelpCircle, ChevronDown, MessageCircle, ArrowRight } from 'lucide-react';
+import { ArrowRight, HelpCircle, MessageCircle } from 'lucide-react';
 import {
   Accordion,
   AccordionContent,

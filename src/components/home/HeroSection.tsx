@@ -97,9 +97,9 @@ export function HeroSection() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="space-y-4"
+              className="space-y-2"
             >
-              <h1 className="font-display font-black leading-[0.95] tracking-tight">
+              <h1 className="font-display font-black leading-[1.02] tracking-tight">
                 <span className="block text-5xl sm:text-6xl lg:text-7xl">Transforme</span>
                 <span className="block text-5xl sm:text-6xl lg:text-7xl">
                   seu <span className="hero-gradient-text">futuro</span>

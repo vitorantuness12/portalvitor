@@ -138,7 +138,7 @@ export function QuestionCard({
           disabled={disabled}
           className="grid gap-2 sm:gap-3"
         >
-          {options.map((option, optIndex) => {
+          {normalizedOptions.map((option, optIndex) => {
             const state = getOptionState(optIndex);
             const optionLetter = String.fromCharCode(65 + optIndex); // A, B, C, D...
             

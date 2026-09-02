@@ -1,15 +1,7 @@
 import { motion } from 'framer-motion';
-import { Star, Award, Trophy, Flame, BookOpen, Target, Sparkles, Quote } from 'lucide-react';
+import { Star, Award, Sparkles, Quote } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-
-const badges = {
-  firstCertificate: { icon: Award, label: 'Primeiro Certificado', color: 'text-amber-500' },
-  perfectScore: { icon: Target, label: 'Nota Perfeita', color: 'text-emerald-500' },
-  dedicated: { icon: Flame, label: 'Estudante Dedicado', color: 'text-orange-500' },
-  bookworm: { icon: BookOpen, label: 'Rato de Biblioteca', color: 'text-blue-500' },
-  champion: { icon: Trophy, label: 'Campeão', color: 'text-purple-500' },
-};
 
 const testimonials = [
   {
@@ -18,7 +10,6 @@ const testimonials = [
     avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop&crop=face',
     course: 'Marketing Digital',
     score: 9.8,
-    badges: ['perfectScore', 'firstCertificate'],
     testimonial: 'A plataforma transformou minha carreira! Consegui uma promoção logo após apresentar meu certificado.',
   },
   {
@@ -27,7 +18,6 @@ const testimonials = [
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
     course: 'Gestão de Projetos',
     score: 9.2,
-    badges: ['dedicated', 'champion'],
     testimonial: 'Estudar no meu próprio ritmo foi fundamental. Os exercícios práticos realmente fixam o conteúdo.',
   },
   {
@@ -36,7 +26,6 @@ const testimonials = [
     avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
     course: 'Finanças Pessoais',
     score: 10.0,
-    badges: ['perfectScore', 'bookworm', 'champion'],
     testimonial: 'Nota 10 na prova! O material é muito bem organizado e o suporte responde super rápido.',
   },
   {
@@ -45,36 +34,36 @@ const testimonials = [
     avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face',
     course: 'Liderança',
     score: 8.7,
-    badges: ['firstCertificate', 'dedicated'],
     testimonial: 'Excelente custo-benefício. Certificado reconhecido e conteúdo atualizado.',
   },
 ];
 
 export function TestimonialsSection() {
   return (
-    <section className="py-12 sm:py-16 lg:py-20 overflow-hidden">
+    <section className="py-20 sm:py-28 lg:py-36 overflow-hidden">
       <div className="container mx-auto px-4">
+        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-10 sm:mb-14"
+          className="text-center mb-16"
         >
-          <div className="inline-flex items-center gap-2 bg-success/10 text-success px-4 py-2 rounded-full text-sm font-medium mb-4">
-            <Sparkles className="h-4 w-4" />
+          <Badge variant="secondary" className="mb-4 gap-1.5 px-4 py-1 text-xs font-semibold">
+            <Sparkles className="h-3.5 w-3.5 text-primary" />
             Histórias de Sucesso
-          </div>
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold mb-4">
-            O que nossos{' '}
-            <span className="hero-gradient-text">alunos</span> dizem
+          </Badge>
+          <h2 className="font-display font-bold text-4xl sm:text-5xl lg:text-6xl mb-4">
+            O que dizem{' '}
+            <span className="hero-gradient-text">nossos alunos</span>
           </h2>
-          <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-base sm:text-lg text-muted-foreground max-w-xl mx-auto">
             Milhares de alunos já conquistaram certificados e transformaram suas carreiras.
           </p>
         </motion.div>
 
         {/* Testimonials Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {testimonials.map((testimonial, index) => (
             <motion.div
               key={testimonial.id}
@@ -82,94 +71,79 @@ export function TestimonialsSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
-              className="group relative bg-card rounded-2xl border border-border p-4 sm:p-6 shadow-soft hover:shadow-elevated hover:border-primary/40 transition-all duration-300"
+              className="group relative bg-card rounded-3xl border border-border/70 p-8 shadow-soft hover:shadow-elevated hover:border-primary/30 transition-all duration-300"
             >
-              {/* Quote icon */}
-              <div className="absolute top-3 right-3 sm:top-4 sm:right-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                <Quote className="h-8 w-8 sm:h-12 sm:w-12 text-primary" />
+              {/* Quote decoration */}
+              <div className="absolute top-6 right-6 opacity-10 group-hover:opacity-20 transition-opacity">
+                <Quote className="h-12 w-12 text-primary" />
               </div>
 
-              {/* Header with avatar and info */}
-              <div className="flex items-start gap-3 sm:gap-4 mb-3 sm:mb-4">
-                <Avatar className="h-10 w-10 sm:h-14 sm:w-14 border-2 border-primary/20 flex-shrink-0">
+              {/* Header */}
+              <div className="flex items-center gap-4 mb-6">
+                <Avatar className="h-16 w-16 border-2 border-primary/20 ring-4 ring-primary/5">
                   <AvatarImage src={testimonial.avatar} alt={testimonial.name} />
-                  <AvatarFallback className="bg-primary text-primary-foreground text-xs sm:text-base">
+                  <AvatarFallback className="bg-primary text-primary-foreground text-lg font-bold">
                     {testimonial.name.split(' ').map(n => n[0]).join('')}
                   </AvatarFallback>
                 </Avatar>
-                <div className="flex-1 min-w-0 overflow-hidden">
-                  <h3 className="font-display font-semibold text-sm sm:text-lg tracking-tight truncate">{testimonial.name}</h3>
-                  <p className="text-xs sm:text-sm text-muted-foreground truncate">
-                    {testimonial.course}
-                  </p>
-                  {/* Stars rating */}
-                  <div className="flex items-center gap-0.5 mt-1">
+                
+                <div className="flex-1">
+                  <h3 className="font-display font-bold text-lg">{testimonial.name}</h3>
+                  <p className="text-sm text-muted-foreground">{testimonial.course}</p>
+                  <div className="flex items-center gap-1 mt-1">
                     {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        className="h-3 w-3 sm:h-3.5 sm:w-3.5 fill-amber-400 text-amber-400"
-                      />
+                      <Star key={i} className="h-4 w-4 fill-amber-400 text-amber-400" />
                     ))}
                   </div>
                 </div>
                 
-                {/* Score badge */}
-                <div className="flex flex-col items-center flex-shrink-0">
-                  <div className={`font-display text-lg sm:text-2xl font-bold tracking-tight ${testimonial.score >= 9.5 ? 'text-emerald-500' : testimonial.score >= 8 ? 'text-primary' : 'text-amber-500'}`}>
+                {/* Score */}
+                <div className="text-center">
+                  <div className={`font-display text-3xl font-black ${testimonial.score >= 9.5 ? 'text-emerald-500' : 'text-primary'}`}>
                     {testimonial.score.toFixed(1)}
                   </div>
-                  <span className="text-[9px] sm:text-[10px] text-muted-foreground uppercase tracking-wide">Nota</span>
+                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground">nota</span>
                 </div>
               </div>
 
-              {/* Testimonial text */}
-              <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4 line-clamp-2 sm:line-clamp-3">
+              {/* Testimonial */}
+              <p className="text-base text-muted-foreground leading-relaxed italic">
                 "{testimonial.testimonial}"
               </p>
-
-              {/* Badges */}
-              <div className="flex flex-wrap gap-1.5 sm:gap-2">
-                {testimonial.badges.map((badgeKey) => {
-                  const badge = badges[badgeKey as keyof typeof badges];
-                  if (!badge) return null;
-                  const Icon = badge.icon;
-                  return (
-                    <Badge
-                      key={badgeKey}
-                      variant="secondary"
-                      className="gap-1 sm:gap-1.5 py-0.5 sm:py-1 px-1.5 sm:px-2.5 bg-background text-[10px] sm:text-xs"
-                    >
-                      <Icon className={`h-3 w-3 sm:h-3.5 sm:w-3.5 ${badge.color}`} />
-                      <span className="hidden xs:inline">{badge.label}</span>
-                    </Badge>
-                  );
-                })}
-              </div>
+              
+              {/* Award badge */}
+              {testimonial.score >= 9.5 && (
+                <div className="absolute -bottom-3 -right-3">
+                  <div className="h-10 w-10 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg">
+                    <Award className="h-5 w-5 text-white" />
+                  </div>
+                </div>
+              )}
             </motion.div>
           ))}
         </div>
 
-        {/* Stats bar */}
+        {/* Stats */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.4 }}
-          className="mt-8 sm:mt-12 grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4"
+          className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4"
         >
           {[
             { value: '4.9', label: 'Nota média', icon: Star },
-            { value: '97%', label: 'Taxa de aprovação', icon: Target },
+            { value: '97%', label: 'Taxa de aprovação', icon: Award },
             { value: '5k+', label: 'Certificados', icon: Award },
             { value: '98%', label: 'Recomendam', icon: Sparkles },
           ].map((stat, index) => (
             <div
               key={stat.label}
-              className="flex flex-col items-center p-2 sm:p-4 rounded-xl bg-card border border-border/70 shadow-soft"
+              className="flex flex-col items-center p-6 rounded-2xl bg-card border border-border/70 shadow-soft"
             >
-              <stat.icon className="h-4 w-4 sm:h-5 sm:w-5 text-primary mb-1 sm:mb-2" />
-              <span className="font-display text-lg sm:text-2xl md:text-3xl font-bold tracking-tight">{stat.value}</span>
-              <span className="text-[10px] sm:text-xs md:text-sm text-muted-foreground text-center leading-tight">{stat.label}</span>
+              <stat.icon className="h-6 w-6 text-primary mb-3" />
+              <span className="font-display text-3xl md:text-4xl font-extrabold hero-gradient-text">{stat.value}</span>
+              <span className="text-sm text-muted-foreground mt-1">{stat.label}</span>
             </div>
           ))}
         </motion.div>

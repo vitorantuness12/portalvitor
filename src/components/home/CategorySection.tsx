@@ -1,16 +1,17 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Laptop, Briefcase, Megaphone, Palette, User, Heart, ArrowUpRight } from 'lucide-react';
+import { Laptop, Briefcase, Megaphone, Palette, User, Heart, ArrowRight } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { Badge } from '@/components/ui/badge';
 
 const iconMap: Record<string, React.ReactNode> = {
-  laptop: <Laptop className="h-8 w-8" />,
-  briefcase: <Briefcase className="h-8 w-8" />,
-  megaphone: <Megaphone className="h-8 w-8" />,
-  palette: <Palette className="h-8 w-8" />,
-  user: <User className="h-8 w-8" />,
-  heart: <Heart className="h-8 w-8" />,
+  laptop: <Laptop className="h-7 w-7" />,
+  briefcase: <Briefcase className="h-7 w-7" />,
+  megaphone: <Megaphone className="h-7 w-7" />,
+  palette: <Palette className="h-7 w-7" />,
+  user: <User className="h-7 w-7" />,
+  heart: <Heart className="h-7 w-7" />,
 };
 
 export function CategorySection() {
@@ -30,46 +31,60 @@ export function CategorySection() {
   if (!categories || categories.length === 0) return null;
 
   return (
-    <section className="relative py-14 sm:py-20 lg:py-28">
+    <section className="relative py-20 sm:py-28 lg:py-36">
+      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-secondary/30 via-transparent to-transparent" />
+      
       <div className="container mx-auto px-4 sm:px-6">
+        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-12"
+          className="text-center mb-14"
         >
-          <div className="max-w-xl">
-            <span className="inline-block text-xs font-bold uppercase tracking-widest text-primary mb-3">
-              Segmentos
-            </span>
-            <h2 className="font-display font-extrabold tracking-tight text-3xl sm:text-4xl lg:text-6xl mb-3">
-              Feito para o seu{' '}
-              <span className="hero-gradient-text">objetivo</span>
-            </h2>
-            <p className="text-base sm:text-lg text-muted-foreground">
-              Tecnologia, negócios, design, saúde e mais. Encontre o curso ideal para sua carreira.
-            </p>
-          </div>
+          <Badge variant="secondary" className="mb-4 px-4 py-1 text-xs font-semibold">
+            Área de Atuação
+          </Badge>
+          <h2 className="font-display font-extrabold tracking-tight text-4xl sm:text-5xl lg:text-6xl mb-4">
+            Encontre sua{' '}
+            <span className="hero-gradient-text">área</span>
+          </h2>
+          <p className="text-base sm:text-lg text-muted-foreground max-w-xl mx-auto">
+            Explore categorias pensadas para cada objetivo profissional e pessoal.
+          </p>
         </motion.div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+        {/* Category Grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
           {categories.map((category, index) => (
             <motion.div
               key={category.id}
               initial={{ opacity: 0, scale: 0.9 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
-              transition={{ delay: index * 0.05 }}
+              transition={{ delay: index * 0.06 }}
             >
               <Link
                 to={`/cursos?categoria=${category.name.toLowerCase().replace(' ', '-')}`}
-                className="pressable group relative flex flex-col items-start gap-4 p-5 sm:p-6 bg-card rounded-2xl border border-border/70 shadow-soft hover:border-primary/40 hover:-translate-y-1 hover:shadow-elevated transition-all duration-300 h-full"
+                className="group relative flex flex-col items-center text-center p-6 sm:p-8 bg-card rounded-2xl border border-border/70 shadow-soft hover:shadow-elevated hover:border-primary/40 hover:-translate-y-2 transition-all duration-300 h-full"
               >
-                <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-xl bg-primary-soft flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-primary-foreground group-hover:shadow-glow transition-all">
-                  {iconMap[category.icon || 'laptop'] || <Laptop className="h-7 w-7" />}
+                {/* Glow effect on hover */}
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                
+                <div className="relative">
+                  <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-primary-foreground group-hover:scale-110 transition-all duration-300 mb-4">
+                    {iconMap[category.icon || 'laptop'] || <Laptop className="h-7 w-7" />}
+                  </div>
+                  <h3 className="font-display font-bold text-sm sm:text-base mb-1">{category.name}</h3>
+                  <p className="text-xs text-muted-foreground line-clamp-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    Ver cursos
+                  </p>
                 </div>
-                <h3 className="font-display font-bold text-sm sm:text-base tracking-tight">{category.name}</h3>
-                <ArrowUpRight className="absolute top-4 right-4 h-4 w-4 text-muted-foreground/40 group-hover:text-primary group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+                
+                {/* Arrow indicator */}
+                <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0">
+                  <ArrowRight className="h-4 w-4 text-primary" />
+                </div>
               </Link>
             </motion.div>
           ))}

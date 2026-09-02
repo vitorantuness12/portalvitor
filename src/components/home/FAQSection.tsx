@@ -1,12 +1,14 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { HelpCircle } from 'lucide-react';
+import { HelpCircle, ChevronDown, MessageCircle } from 'lucide-react';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
 const faqs = [
   {
@@ -45,42 +47,44 @@ const faqs = [
 
 export function FAQSection() {
   return (
-    <section className="relative py-14 sm:py-20 lg:py-28">
+    <section className="relative py-20 sm:py-28 lg:py-36">
       <div className="container mx-auto px-4 sm:px-6">
+        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           className="text-center mb-14"
         >
-          <span className="inline-block text-xs font-bold uppercase tracking-widest text-primary mb-4">
+          <Badge variant="secondary" className="mb-4 px-4 py-1 text-xs font-semibold">
             FAQ
-          </span>
-          <h2 className="font-display font-extrabold tracking-tight text-3xl sm:text-4xl lg:text-6xl mb-4">
+          </Badge>
+          <h2 className="font-display font-extrabold tracking-tight text-4xl sm:text-5xl lg:text-6xl mb-4">
             Perguntas{' '}
             <span className="hero-gradient-text">Frequentes</span>
           </h2>
-          <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto">
-            Encontre respostas para as dúvidas mais comuns sobre nossa plataforma.
+          <p className="text-base sm:text-lg text-muted-foreground max-w-xl mx-auto">
+            Encontre respostas rápidas para as dúvidas mais comuns.
           </p>
         </motion.div>
 
+        {/* FAQ Accordion */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.2 }}
-          className="max-w-3xl mx-auto"
+          className="max-w-3xl mx-auto mb-14"
         >
           <Accordion type="single" collapsible className="space-y-3">
             {faqs.map((faq, index) => (
               <AccordionItem
                 key={index}
                 value={`item-${index}`}
-                className="bg-card border border-border/70 shadow-soft rounded-2xl px-5 sm:px-6 data-[state=open]:border-primary/40 data-[state=open]:shadow-elevated transition-all"
+                className="bg-card border border-border/70 rounded-2xl px-6 data-[state=open]:border-primary/30 data-[state=open]:shadow-elevated transition-all duration-300"
               >
-                <AccordionTrigger className="text-left text-sm sm:text-base font-bold py-5 hover:no-underline [&[data-state=open]>svg]:rotate-180">
-                  {faq.question}
+                <AccordionTrigger className="text-left py-5 hover:no-underline group">
+                  <span className="font-semibold text-sm sm:text-base pr-4">{faq.question}</span>
                 </AccordionTrigger>
                 <AccordionContent className="text-sm sm:text-base text-muted-foreground pb-5 leading-relaxed">
                   {faq.answer}
@@ -90,24 +94,27 @@ export function FAQSection() {
           </Accordion>
         </motion.div>
 
-        {/* Contact CTA */}
+        {/* Support CTA */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.4 }}
-          className="text-center mt-12 p-8 bg-card rounded-2xl border border-primary/30 max-w-2xl mx-auto shadow-elevated"
+          className="text-center p-10 bg-card rounded-3xl border border-border/70 shadow-elevated max-w-2xl mx-auto"
         >
-          <HelpCircle className="h-8 w-8 text-primary mx-auto mb-3" />
+          <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+            <HelpCircle className="h-8 w-8 text-primary" />
+          </div>
           <h3 className="font-display font-bold text-xl mb-2">Ainda tem dúvidas?</h3>
-          <p className="text-muted-foreground mb-4 text-sm sm:text-base">
+          <p className="text-muted-foreground mb-6 text-sm sm:text-base">
             Nossa equipe está pronta para ajudar você.
           </p>
-          <Link
-            to="/suporte"
-            className="pressable inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-xl font-bold hover:opacity-90 transition-opacity text-sm shadow-glow focus-ring"
-          >
-            Falar com Suporte
+          <Link to="/suporte">
+            <Button variant="hero" size="lg" className="gap-2 shadow-glow group">
+              <MessageCircle className="h-5 w-5" />
+              Falar com Suporte
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </Button>
           </Link>
         </motion.div>
       </div>

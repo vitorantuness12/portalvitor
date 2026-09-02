@@ -1,78 +1,87 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { UserPlus, BookOpen, FileText, Trophy, Award, ArrowRight } from 'lucide-react';
+import { UserPlus, BookOpen, FileText, Trophy, Award, ArrowRight, Check } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const steps = [
-  { icon: UserPlus, title: 'Matrícula', description: 'Crie sua conta e escolha o curso ideal para você.' },
-  { icon: BookOpen, title: 'Estudo', description: 'Acesse o conteúdo completo no seu ritmo, 24/7.' },
-  { icon: FileText, title: 'Exercícios', description: 'Pratique com exercícios para fixar o conhecimento.' },
-  { icon: Trophy, title: 'Prova Final', description: 'Faça a prova e alcance a nota mínima 7,0.' },
-  { icon: Award, title: 'Certificado', description: 'Receba seu certificado automaticamente!' },
+  { icon: UserPlus, title: 'Cadastre-se', description: 'Crie sua conta gratuitamente em segundos.' },
+  { icon: BookOpen, title: 'Escolha', description: 'Selecione o curso ideal para seus objetivos.' },
+  { icon: FileText, title: 'Estude', description: 'Aprenda no seu ritmo, a qualquer hora.' },
+  { icon: Trophy, title: 'Provo', description: 'Faça a prova final e alcance 7,0.' },
+  { icon: Award, title: 'Certifique', description: 'Receba seu certificado automaticamente!' },
 ];
 
 export function HowItWorksSection() {
   return (
-    <section className="relative py-14 sm:py-20 lg:py-28 overflow-hidden">
-      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-background via-secondary/20 to-background" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-primary/10 blur-[120px] rounded-full -z-10" />
+    <section className="relative py-20 sm:py-28 lg:py-36 overflow-hidden">
+      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-secondary/20 via-transparent to-transparent" />
+      
       <div className="container mx-auto px-4 sm:px-6">
+        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-14"
+          className="text-center mb-16"
         >
-          <span className="inline-block text-xs font-bold uppercase tracking-widest text-primary mb-4">
-            Como funciona
-          </span>
-          <h2 className="font-display font-extrabold tracking-tight text-3xl sm:text-4xl lg:text-6xl mb-4">
-            Do zero ao{' '}
-            <span className="hero-gradient-text">certificado</span>
+          <h2 className="font-display font-extrabold tracking-tight text-4xl sm:text-5xl lg:text-6xl mb-4">
+            Como{' '}
+            <span className="hero-gradient-text">funciona</span>
           </h2>
-          <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto">
-            Em apenas 5 passos simples, você sai do zero e conquista seu certificado reconhecido.
+          <p className="text-base sm:text-lg text-muted-foreground max-w-xl mx-auto">
+            Cinco passos simples para você conquistar seu certificado e transformar sua carreira.
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-5">
-          {steps.map((step, index) => {
-            const Icon = step.icon;
-            return (
-              <motion.div
-                key={step.title}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.08 }}
-                className="pressable group relative p-6 rounded-2xl border border-border/70 bg-card shadow-soft hover:border-primary/40 hover:-translate-y-1 hover:shadow-elevated transition-all duration-300"
-              >
-                <div className="absolute -top-3 left-6 font-display text-5xl font-extrabold text-primary/25 group-hover:text-primary/50 transition-colors">
-                  0{index + 1}
-                </div>
-                <div className="relative pt-6">
-                  <div className="h-12 w-12 rounded-xl bg-primary flex items-center justify-center shadow-glow mb-4">
-                    <Icon className="h-6 w-6 text-primary-foreground" />
+        {/* Steps */}
+        <div className="relative">
+          {/* Connecting line */}
+          <div className="hidden lg:block absolute top-20 left-[10%] right-[10%] h-0.5 bg-gradient-to-r from-primary/20 via-primary to-primary/20" />
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+            {steps.map((step, index) => {
+              const Icon = step.icon;
+              return (
+                <motion.div
+                  key={step.title}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.1 }}
+                  className="relative text-center"
+                >
+                  <div className="relative inline-block mb-6">
+                    {/* Step number */}
+                    <div className="absolute -top-3 -left-3 h-8 w-8 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-white text-sm font-bold shadow-glow">
+                      {index + 1}
+                    </div>
+                    
+                    {/* Icon container */}
+                    <div className="h-20 w-20 rounded-3xl bg-card border border-border/70 shadow-elevated flex items-center justify-center mx-auto group-hover:border-primary/40 group-hover:shadow-glow transition-all">
+                      <Icon className="h-8 w-8 text-primary" />
+                    </div>
                   </div>
-                  <h3 className="font-display font-bold text-lg tracking-tight mb-2">{step.title}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{step.description}</p>
-                </div>
-              </motion.div>
-            );
-          })}
+                  
+                  <h3 className="font-display font-bold text-lg mb-2">{step.title}</h3>
+                  <p className="text-sm text-muted-foreground">{step.description}</p>
+                </motion.div>
+              );
+            })}
+          </div>
         </div>
 
+        {/* CTA */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mt-12"
+          className="text-center mt-16"
         >
-          <Link
-            to="/cursos"
-            className="pressable inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-xl font-bold hover:opacity-90 transition-opacity shadow-glow focus-ring"
-          >
-            Ver Cursos Disponíveis
-            <ArrowRight className="h-4 w-4" />
+          <Link to="/cursos">
+            <Button variant="hero" size="xl" className="gap-2 text-base px-10 shadow-glow group">
+              Começar Agora
+              <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+            </Button>
           </Link>
         </motion.div>
       </div>

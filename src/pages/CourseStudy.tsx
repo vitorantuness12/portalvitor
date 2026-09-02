@@ -574,7 +574,7 @@ export default function CourseStudy() {
                                             <CardContent className="pt-0 px-3 pb-3 sm:px-6 sm:pb-6">
                                               <FormattedContent 
                                                 content={module.content} 
-                                                className="text-sm sm:text-base"
+                                                className="text-sm sm:text-base max-w-prose"
                                               />
                               
                               <div className="flex justify-end mt-4 sm:mt-6">
@@ -827,8 +827,8 @@ export default function CourseStudy() {
 
                   {!examQuestions || examQuestions.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-12 sm:py-16">
-                      <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-amber-500/20 to-amber-500/5 flex items-center justify-center mb-4">
-                        <Trophy className="h-8 w-8 sm:h-10 sm:w-10 text-amber-500/50" />
+                      <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-warning/10 flex items-center justify-center mb-4">
+                        <Trophy className="h-8 w-8 sm:h-10 sm:w-10 text-warning/60" />
                       </div>
                       <p className="text-muted-foreground text-sm sm:text-base">Prova em breve.</p>
                     </div>
@@ -839,8 +839,8 @@ export default function CourseStudy() {
                       animate={{ opacity: 1, y: 0 }}
                       className="text-center py-12 sm:py-16"
                     >
-                      <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-amber-500/20 to-orange-500/10 flex items-center justify-center">
-                        <Clock className="w-10 h-10 sm:w-12 sm:h-12 text-amber-500" />
+                      <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-6 rounded-2xl bg-warning/15 flex items-center justify-center">
+                        <Clock className="w-10 h-10 sm:w-12 sm:h-12 text-warning" />
                       </div>
                       <h3 className="text-xl sm:text-2xl font-bold mb-3">Pronto para começar?</h3>
                       <p className="text-muted-foreground mb-2 max-w-md mx-auto">
@@ -853,7 +853,7 @@ export default function CourseStudy() {
                         variant="hero" 
                         size="lg"
                         onClick={handleStartExam}
-                        className="gap-2 px-8 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
+                        className="gap-2 px-8 bg-warning text-warning-foreground hover:bg-warning/90"
                       >
                         <Clock className="h-5 w-5" />
                         Iniciar Prova
@@ -890,11 +890,11 @@ export default function CourseStudy() {
                           size="lg"
                           onClick={handleExamSubmit}
                           disabled={submitExamMutation.isPending}
-                          className="w-full sm:w-auto px-8 gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
+                          className="w-full sm:w-auto px-8 gap-2 bg-warning text-warning-foreground hover:bg-warning/90"
                         >
                           {submitExamMutation.isPending ? (
                             <>
-                              <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white" />
+                              <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-current" />
                               Enviando...
                             </>
                           ) : (

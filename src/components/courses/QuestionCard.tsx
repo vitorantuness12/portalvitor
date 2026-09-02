@@ -100,11 +100,11 @@ export function QuestionCard({
               className="flex-shrink-0"
             >
               {isCorrect ? (
-                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-emerald-500 flex items-center justify-center">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-success flex items-center justify-center">
                   <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-success-foreground" />
                 </div>
               ) : isWrong ? (
-                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-rose-500 flex items-center justify-center">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-destructive flex items-center justify-center">
                   <XCircle className="w-5 h-5 sm:w-6 sm:h-6 text-destructive-foreground" />
                 </div>
               ) : null}

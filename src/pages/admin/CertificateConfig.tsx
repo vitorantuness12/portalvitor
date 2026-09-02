@@ -430,20 +430,9 @@ export default function CertificateConfig() {
                           accept="image/*"
                           onChange={(e) => {
                             const file = e.target.files?.[0];
-                            if (file) {
-                              const handleBadgeUpload = async () => {
-                                const fileExt = file.name.split('.').pop();
-                                const fileName = `badge-right-${Date.now()}.${fileExt}`;
-                                const filePath = `certificates/${fileName}`;
-                                const { error } = await supabase.storage.from('course-thumbnails').upload(filePath, file);
-                                if (!error) {
-                                  const { data: { publicUrl } } = supabase.storage.from('course-thumbnails').getPublicUrl(filePath);
-                                  updateConfig('right_badge_url', publicUrl);
-                                }
-                              };
-                              handleBadgeUpload();
-                            }
+                            if (file) void handleImageSelect(file, 'right_badge_url');
                           }}
+
                         />
                         <Input
                           placeholder="Texto do selo (ex: QUALIDADE)"

@@ -35,6 +35,7 @@ import { ptBR } from 'date-fns/locale';
 import { Skeleton } from '@/components/ui/skeleton';
 import html2canvas from 'html2canvas';
 import { useIsPwa } from '@/hooks/useIsPwa';
+import { publicUrl } from '@/lib/site';
 import logoWhite from '@/assets/logo_formak_white.png';
 
 type StudentCardType = {
@@ -164,9 +165,8 @@ export default function StudentCard() {
     }
   };
 
-  const siteBaseUrl = 'https://formak.com.br';
   const validationUrl = studentCard
-    ? `${siteBaseUrl}/validar-carteirinha?codigo=${studentCard.card_code}`
+    ? publicUrl(`/validar-carteirinha?codigo=${studentCard.card_code}`)
     : '';
 
   if (authLoading) {
@@ -462,7 +462,7 @@ export default function StudentCard() {
                           studentName={profile?.full_name || ''}
                           photoUrl={photoUrl}
                           cardCode="CARD-XXXXXX"
-                          validationUrl={`${window.location.origin}/validar-carteirinha`}
+                          validationUrl={publicUrl('/validar-carteirinha')}
                           side="front"
                         />
                       </TabsContent>
@@ -471,7 +471,7 @@ export default function StudentCard() {
                           studentName={profile?.full_name || ''}
                           photoUrl={photoUrl}
                           cardCode="CARD-XXXXXX"
-                          validationUrl={`${window.location.origin}/validar-carteirinha`}
+                          validationUrl={publicUrl('/validar-carteirinha')}
                           side="back"
                         />
                       </TabsContent>

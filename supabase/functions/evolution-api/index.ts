@@ -36,12 +36,18 @@ function describeNetworkError(error: unknown, baseUrl: string): string {
   return msg;
 }
 
-/** fetch com tradução de erros de conexão */
-async function safeFetch(url: string, init: RequestInit, baseUrl: string) {
+/** fetch com tradução de erros de conexão/TLS */
+async function safeFetch(url: string, init: RequestInit): Promise<Response> {
   try {
     return await fetch(url, init);
   } catch (error) {
-    throw new Error(describeNetworkError(error, baseUrl));
+    let origin = url;
+    try {
+      origin = new URL(url).origin;
+    } catch {
+      // mantém a url original se não for parseável
+    }
+    throw new Error(describeNetworkError(error, origin));
   }
 }
 

@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Clock, BookOpen, Award, ArrowLeft, Play, CheckCircle, Star, ShoppingCart } from 'lucide-react';
+import { Clock, BookOpen, Award, ArrowLeft, Play, CheckCircle, Star, ShoppingCart, Loader2 } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -19,6 +20,19 @@ import {
 } from '@/components/ui/dialog';
 import { PaymentCheckout } from '@/components/payment/PaymentCheckout';
 import { useIsPwa } from '@/hooks/useIsPwa';
+import { cn } from '@/lib/utils';
+
+const levelStyles: Record<string, string> = {
+  iniciante: 'bg-success/10 text-success border-success/20',
+  intermediario: 'bg-warning/10 text-warning border-warning/20',
+  avancado: 'bg-destructive/10 text-destructive border-destructive/20',
+};
+
+const levelLabels: Record<string, string> = {
+  iniciante: 'Iniciante',
+  intermediario: 'Intermediário',
+  avancado: 'Avançado',
+};
 
 export default function CourseDetail() {
   const { id } = useParams<{ id: string }>();
@@ -151,12 +165,6 @@ export default function CourseDetail() {
     }).format(price);
   };
 
-  const levelColors: Record<string, string> = {
-    iniciante: 'bg-success/10 text-success border-success/20',
-    intermediario: 'bg-warning/10 text-warning border-warning/20',
-    avancado: 'bg-destructive/10 text-destructive border-destructive/20',
-  };
-
   if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col">
@@ -166,12 +174,12 @@ export default function CourseDetail() {
             <Skeleton className="h-8 w-32 mb-8" />
             <div className="grid lg:grid-cols-3 gap-8">
               <div className="lg:col-span-2 space-y-6">
-                <Skeleton className="aspect-video w-full rounded-xl" />
+                <Skeleton className="aspect-video w-full rounded-2xl" />
                 <Skeleton className="h-10 w-3/4" />
                 <Skeleton className="h-24 w-full" />
               </div>
               <div>
-                <Skeleton className="h-64 w-full rounded-xl" />
+                <Skeleton className="h-64 w-full rounded-2xl" />
               </div>
             </div>
           </div>
@@ -187,7 +195,7 @@ export default function CourseDetail() {
         <Header />
         <main className="flex-1 flex items-center justify-center">
           <div className="text-center">
-            <h1 className="text-2xl font-bold mb-4">Curso não encontrado</h1>
+            <h1 className="text-2xl font-bold mb-4 text-foreground">Curso não encontrado</h1>
             <Link to="/cursos">
               <Button variant="hero">Ver todos os cursos</Button>
             </Link>
@@ -203,11 +211,11 @@ export default function CourseDetail() {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      <main className="flex-1 py-4 sm:py-8">
+      <main className="flex-1 py-4 sm:py-8 pb-28 lg:pb-8">
         <div className="container mx-auto px-4">
           <Link
             to="/cursos"
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-4 sm:mb-8"
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-4 sm:mb-8 transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
             Voltar para cursos
@@ -221,17 +229,17 @@ export default function CourseDetail() {
               className="lg:col-span-2 space-y-4 sm:space-y-6"
             >
               {/* Thumbnail */}
-              <div className="relative aspect-video rounded-lg sm:rounded-xl overflow-hidden">
+              <div className="relative aspect-video rounded-2xl overflow-hidden bg-muted shadow-soft">
                 <img
                   src={course.thumbnail_url || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1200&h=675&fit=crop'}
                   alt={course.title}
                   className="w-full h-full object-cover"
                 />
                 {enrollment && (
-                  <div className="absolute inset-0 bg-background/80 flex items-center justify-center p-4">
+                  <div className="absolute inset-0 bg-background/85 flex items-center justify-center p-4">
                     <div className="text-center">
                       <CheckCircle className="h-10 w-10 sm:h-16 sm:w-16 mx-auto text-success mb-2 sm:mb-4" />
-                      <p className="text-lg sm:text-xl font-semibold">Você está matriculado</p>
+                      <p className="text-lg sm:text-xl font-semibold text-foreground">Você está matriculado</p>
                       <Link to={`/curso/${id}/estudar`}>
                         <Button variant="hero" size="default" className="mt-3 sm:mt-4">
                           <Play className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -249,11 +257,13 @@ export default function CourseDetail() {
                   {course.categories && (
                     <Badge className="text-xs">{course.categories.name}</Badge>
                   )}
-                  <Badge variant="outline" className={`text-xs ${levelColors[course.level] || ''}`}>
-                    {course.level.charAt(0).toUpperCase() + course.level.slice(1)}
+                  <Badge variant="outline" className={cn('text-xs', levelStyles[course.level])}>
+                    {levelLabels[course.level] ?? course.level}
                   </Badge>
                 </div>
-                <h1 className="text-xl sm:text-2xl lg:text-3xl font-display font-bold">{course.title}</h1>
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-display font-bold text-foreground text-balance">
+                  {course.title}
+                </h1>
                 {course.short_description && (
                   <p className="text-base sm:text-lg text-muted-foreground mt-2">
                     {course.short_description}
@@ -276,68 +286,65 @@ export default function CourseDetail() {
                 </div>
               </div>
 
-              {/* Mobile CTA - Only show on mobile when not enrolled */}
-              {!enrollment && (
-                <div className="lg:hidden bg-card rounded-lg border border-border p-4">
-                  <div className="flex items-center justify-between gap-4">
-                    <div>
-                      <p className="text-2xl font-bold text-primary">
-                        {formatPrice(Number(course.price))}
-                      </p>
-                      {isPaid && (
-                        <p className="text-xs text-muted-foreground">
-                          Pagamento único
-                        </p>
-                      )}
-                    </div>
-                    <Button
-                      variant="hero"
-                      onClick={handleEnroll}
-                      disabled={enrollMutation.isPending}
-                    >
-                      {enrollMutation.isPending ? 'Processando...' : isPaid ? (
-                        <>
-                          <ShoppingCart className="h-4 w-4 mr-1" />
-                          Comprar
-                        </>
-                      ) : 'Matricular Grátis'}
-                    </Button>
-                  </div>
-                </div>
-              )}
-
               {/* Description */}
-              <div className="prose max-w-none">
-                <h3 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-4">Sobre o curso</h3>
-                <p className="text-sm sm:text-base text-muted-foreground whitespace-pre-line">
+              <Card className="p-4 sm:p-6">
+                <h3 className="text-lg sm:text-xl font-display font-semibold mb-2 sm:mb-4 text-foreground">
+                  Sobre o curso
+                </h3>
+                <p className="text-sm sm:text-base text-muted-foreground whitespace-pre-line leading-relaxed">
                   {course.description}
                 </p>
-              </div>
+              </Card>
 
               {/* What you'll learn */}
-              <div className="bg-card rounded-lg sm:rounded-xl border border-border p-4 sm:p-6">
-                <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">O que você vai aprender</h3>
+              <Card className="p-4 sm:p-6">
+                <h3 className="text-lg sm:text-xl font-display font-semibold mb-3 sm:mb-4 text-foreground">
+                  O que você vai aprender
+                </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                   {['Conteúdo teórico completo', 'Exercícios práticos', 'Prova final avaliativa', 'Certificado de conclusão'].map((item, i) => (
                     <div key={i} className="flex items-center gap-2">
                       <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-success flex-shrink-0" />
-                      <span className="text-sm sm:text-base">{item}</span>
+                      <span className="text-sm sm:text-base text-foreground">{item}</span>
                     </div>
                   ))}
                 </div>
-              </div>
+              </Card>
+
+              {/* Includes - shown inline on mobile since sidebar is hidden */}
+              <Card className="p-4 sm:p-6 lg:hidden">
+                <h4 className="font-display font-semibold mb-3 text-sm text-foreground">Este curso inclui:</h4>
+                <div className="grid grid-cols-2 gap-2 text-xs sm:text-sm">
+                  <div className="flex items-center gap-2 text-foreground">
+                    <BookOpen className="h-3.5 w-3.5 text-primary" />
+                    Conteúdo em PDF
+                  </div>
+                  <div className="flex items-center gap-2 text-foreground">
+                    <CheckCircle className="h-3.5 w-3.5 text-primary" />
+                    Exercícios práticos
+                  </div>
+                  <div className="flex items-center gap-2 text-foreground">
+                    <Star className="h-3.5 w-3.5 text-primary" />
+                    Prova final
+                  </div>
+                  <div className="flex items-center gap-2 text-foreground">
+                    <Award className="h-3.5 w-3.5 text-primary" />
+                    Certificado
+                  </div>
+                </div>
+              </Card>
             </motion.div>
 
-            {/* Sidebar - Hidden on mobile */}
+            {/* Sidebar - Hidden on mobile, sticky purchase card on desktop */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
               className="hidden lg:block"
             >
-              <div className="sticky top-24 bg-card rounded-xl border border-border p-6 space-y-6">
+              <Card className="sticky top-24 p-6 space-y-6 shadow-elevated">
                 <div className="text-center">
-                  <p className="text-4xl font-bold text-primary">
+                  <p className="text-4xl font-display font-bold text-primary">
                     {formatPrice(Number(course.price))}
                   </p>
                   {isPaid && (
@@ -362,18 +369,25 @@ export default function CourseDetail() {
                     onClick={handleEnroll}
                     disabled={enrollMutation.isPending}
                   >
-                    {enrollMutation.isPending ? 'Processando...' : isPaid ? (
+                    {enrollMutation.isPending ? (
                       <>
-                        <ShoppingCart className="h-5 w-5 mr-2" />
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                        Processando...
+                      </>
+                    ) : isPaid ? (
+                      <>
+                        <ShoppingCart className="h-5 w-5" />
                         Comprar Agora
                       </>
-                    ) : 'Matricular Grátis'}
+                    ) : (
+                      'Matricular Grátis'
+                    )}
                   </Button>
                 )}
 
                 <div className="space-y-3 pt-4 border-t border-border">
-                  <h4 className="font-semibold">Este curso inclui:</h4>
-                  <ul className="space-y-2 text-sm">
+                  <h4 className="font-display font-semibold text-foreground">Este curso inclui:</h4>
+                  <ul className="space-y-2 text-sm text-foreground">
                     <li className="flex items-center gap-2">
                       <BookOpen className="h-4 w-4 text-primary" />
                       Conteúdo em PDF
@@ -392,34 +406,48 @@ export default function CourseDetail() {
                     </li>
                   </ul>
                 </div>
-              </div>
+              </Card>
             </motion.div>
-          </div>
-
-          {/* Mobile footer info */}
-          <div className="lg:hidden mt-6 bg-card rounded-lg border border-border p-4">
-            <h4 className="font-semibold mb-3 text-sm">Este curso inclui:</h4>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="flex items-center gap-2">
-                <BookOpen className="h-3.5 w-3.5 text-primary" />
-                Conteúdo em PDF
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle className="h-3.5 w-3.5 text-primary" />
-                Exercícios práticos
-              </div>
-              <div className="flex items-center gap-2">
-                <Star className="h-3.5 w-3.5 text-primary" />
-                Prova final
-              </div>
-              <div className="flex items-center gap-2">
-                <Award className="h-3.5 w-3.5 text-primary" />
-                Certificado
-              </div>
-            </div>
           </div>
         </div>
       </main>
+
+      {/* Sticky mobile purchase bar */}
+      {!enrollment && (
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 backdrop-blur-lg p-3 shadow-floating lg:hidden safe-area-pb">
+          <div className="container mx-auto flex items-center justify-between gap-4 px-1">
+            <div className="min-w-0">
+              <p className="text-xl font-display font-bold text-primary leading-none">
+                {formatPrice(Number(course.price))}
+              </p>
+              {isPaid && (
+                <p className="text-[11px] text-muted-foreground mt-1">Pagamento único</p>
+              )}
+            </div>
+            <Button
+              variant="hero"
+              onClick={handleEnroll}
+              disabled={enrollMutation.isPending}
+              className="shrink-0"
+            >
+              {enrollMutation.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Processando...
+                </>
+              ) : isPaid ? (
+                <>
+                  <ShoppingCart className="h-4 w-4" />
+                  Comprar
+                </>
+              ) : (
+                'Matricular Grátis'
+              )}
+            </Button>
+          </div>
+        </div>
+      )}
+
       {!isPwa && <Footer />}
 
       {/* Payment Dialog */}

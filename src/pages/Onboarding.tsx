@@ -287,7 +287,7 @@ export default function Onboarding() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1 }}
-          className="fixed bottom-6 right-6"
+          className="fixed bottom-20 right-4 z-30 sm:bottom-6 sm:right-6"
         >
           <button
             onClick={handleComplete}

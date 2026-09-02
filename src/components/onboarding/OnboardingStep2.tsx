@@ -154,15 +154,16 @@ export function OnboardingStep2({
         </div>
       )}
 
-      <div className="mt-6 sm:mt-8 w-full max-w-sm px-2">
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 p-4 backdrop-blur sm:static sm:z-auto sm:mt-8 sm:w-full sm:max-w-sm sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
         <Button
           variant="hero"
           size="lg"
-          className="w-full"
+          block
+          className="mx-auto sm:max-w-sm"
           onClick={onNext}
         >
           Continuar
-          <ArrowRight className="h-4 w-4 ml-2" />
+          <ArrowRight className="h-4 w-4" />
         </Button>
       </div>
     </motion.div>

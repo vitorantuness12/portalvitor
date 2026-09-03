@@ -238,6 +238,7 @@ export default function MyCourses() {
                           Acessar Curso
                         </Button>
                       </Link>
+                      <CourseOfflineButton courseId={enrollment.courses?.id} compact />
                       {enrollment.status === 'passed' && (
                         <Link to={`/certificado/${enrollment.id}`}>
                           <Button variant="outline" size="icon">
@@ -245,6 +246,7 @@ export default function MyCourses() {
                           </Button>
                         </Link>
                       )}
+
                     </div>
                   </div>
                 </motion.div>

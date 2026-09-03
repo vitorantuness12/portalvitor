@@ -1091,6 +1091,8 @@ export default function CourseStudy() {
           totalModules={modules.length}
           onPrevModule={handlePrevModule}
           onNextModule={handleNextModule}
+          offline={contentLocked}
+
         />
       )}
     </div>

@@ -20,6 +20,8 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useIsPwa } from '@/hooks/useIsPwa';
 import { PwaLayout } from '@/components/pwa/PwaLayout';
+import { prefetchThumbnails } from '@/lib/storageImage';
+
 
 type SortOption = 'recent' | 'price_asc' | 'price_desc' | 'title';
 
@@ -80,9 +82,13 @@ export default function CoursesPage() {
 
       const { data, error } = await query;
       if (error) throw error;
+      // Assina as capas em lote antes dos cards montarem: evita capas em branco.
+      prefetchThumbnails((data ?? []).map((c) => c.thumbnail_url));
       return data;
     },
   });
+
+
 
   const levels = [
     { value: 'iniciante', label: 'Iniciante' },
@@ -261,10 +267,11 @@ export default function CoursesPage() {
             <div className={isPwa ? 'grid grid-cols-2 gap-3' : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6'}>
               {courses.map((course, index) => (
                 isPwa ? (
-                  <CourseCard key={course.id} id={course.id} title={course.title} shortDescription={course.short_description || undefined} categoryName={course.categories?.name} price={Number(course.price)} durationHours={course.duration_hours} level={course.level} thumbnailUrl={course.thumbnail_url || undefined} compact />
+                  <CourseCard key={course.id} id={course.id} title={course.title} shortDescription={course.short_description || undefined} categoryName={course.categories?.name} price={Number(course.price)} durationHours={course.duration_hours} level={course.level} thumbnailUrl={course.thumbnail_url || undefined} compact priority={index < 6} />
                 ) : (
-                  <motion.div key={course.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.05 }}>
-                    <CourseCard id={course.id} title={course.title} shortDescription={course.short_description || undefined} categoryName={course.categories?.name} price={Number(course.price)} durationHours={course.duration_hours} level={course.level} thumbnailUrl={course.thumbnail_url || undefined} />
+                  <motion.div key={course.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: Math.min(index, 8) * 0.05 }}>
+                    <CourseCard id={course.id} title={course.title} shortDescription={course.short_description || undefined} categoryName={course.categories?.name} price={Number(course.price)} durationHours={course.duration_hours} level={course.level} thumbnailUrl={course.thumbnail_url || undefined} priority={index < 6} />
+
                   </motion.div>
                 )
               ))}

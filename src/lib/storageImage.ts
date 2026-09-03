@@ -152,6 +152,39 @@ function requestSignedUrl(path: string): Promise<string | null> {
   });
 }
 
+/** Caminho da versão leve (JPEG ~640px) gerada pela função optimize-thumbnails. */
+function thumbPathFor(path: string): string {
+  return `thumbs/${path.replace(/\.[a-z0-9]+$/i, '')}.jpg`;
+}
+
+/**
+ * Resolve a melhor URL disponível: primeiro a miniatura leve, e só se ela não
+ * existir cai para o arquivo original (bem mais pesado).
+ */
+async function requestBestUrl(path: string): Promise<string | null> {
+  const thumb = await requestSignedUrl(thumbPathFor(path));
+  if (thumb) return thumb;
+  return requestSignedUrl(path);
+}
+
+function getCachedBest(path: string): string | null | undefined {
+  const thumb = getCached(thumbPathFor(path));
+  if (thumb) return thumb;
+  if (thumb === undefined) return undefined;
+  return getCached(path);
+}
+
+/**
+ * Pré-assina as capas de uma lista de cursos assim que os dados chegam,
+ * antes mesmo dos cards montarem — evita o "flash" de capas vazias.
+ */
+export function prefetchThumbnails(urls: (string | null | undefined)[]): void {
+  for (const url of urls) {
+    const path = extractThumbnailPath(url);
+    if (path && getCachedBest(path) === undefined) void requestBestUrl(path);
+  }
+}
+
 /**
  * Resolve a URL de exibição da capa de um curso.
  * O bucket é privado, então as URLs são assinadas em lote e guardadas em cache
@@ -164,8 +197,9 @@ export function useCourseThumbnail(url?: string | null): string | undefined {
   const [resolved, setResolved] = useState<string | undefined>(() => {
     if (dead) return undefined;
     if (!path) return url ?? undefined;
-    return getCached(path) ?? undefined;
+    return getCachedBest(path) ?? undefined;
   });
+
 
   useEffect(() => {
     let active = true;
@@ -180,15 +214,16 @@ export function useCourseThumbnail(url?: string | null): string | undefined {
       return;
     }
 
-    const cached = getCached(path);
-    if (cached !== undefined) {
-      setResolved(cached ?? undefined);
+    const cached = getCachedBest(path);
+    if (cached) {
+      setResolved(cached);
       return;
     }
 
-    requestSignedUrl(path).then((signed) => {
+    requestBestUrl(path).then((signed) => {
       if (active) setResolved(signed ?? undefined);
     });
+
 
     return () => {
       active = false;
@@ -197,3 +232,4 @@ export function useCourseThumbnail(url?: string | null): string | undefined {
 
   return resolved;
 }
+

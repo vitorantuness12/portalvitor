@@ -19,6 +19,9 @@ interface CourseCardProps {
   thumbnailUrl?: string;
   isEnrolled?: boolean;
   compact?: boolean;
+  /** Carrega a capa imediatamente (cards visíveis no primeiro scroll). */
+  priority?: boolean;
+
 }
 
 const levelLabels: Record<string, string> = {
@@ -31,16 +34,18 @@ function Thumbnail({
   thumbnailUrl,
   title,
   aspect = 'aspect-video',
+  priority = false,
 }: {
   thumbnailUrl?: string;
   title: string;
   aspect?: string;
+  priority?: boolean;
 }) {
   const [failedUrl, setFailedUrl] = useState<string | null>(null);
-  const resolvedUrl = useCourseThumbnail(thumbnailUrl);
-  const failed = Boolean(resolvedUrl && failedUrl === resolvedUrl);
+  const displayUrl = useCourseThumbnail(thumbnailUrl);
+  const failed = Boolean(displayUrl && failedUrl === displayUrl);
 
-  if (!resolvedUrl || failed) {
+  if (!displayUrl || failed) {
     return (
       <div className={cn('flex h-full w-full items-center justify-center bg-muted', aspect)}>
         <ImageOff className="h-8 w-8 text-muted-foreground/50" aria-hidden="true" />
@@ -50,19 +55,22 @@ function Thumbnail({
 
   return (
     <img
-      src={resolvedUrl}
+      src={displayUrl}
       alt={title}
-      loading="lazy"
+      loading={priority ? 'eager' : 'lazy'}
+      fetchPriority={priority ? 'high' : 'auto'}
       decoding="async"
       onLoad={() => setFailedUrl(null)}
-      onError={() => setFailedUrl(resolvedUrl)}
+      onError={() => setFailedUrl(displayUrl)}
       className={cn(
         'h-full w-full object-cover text-transparent transition-transform duration-300 group-hover:scale-105',
         aspect,
       )}
     />
   );
+
 }
+
 
 export function CourseCard({
   id,
@@ -75,7 +83,9 @@ export function CourseCard({
   thumbnailUrl,
   isEnrolled,
   compact = false,
+  priority = false,
 }: CourseCardProps) {
+
   const formatPrice = (value: number) => {
     if (value === 0) return 'Grátis';
     return new Intl.NumberFormat('pt-BR', {
@@ -89,7 +99,7 @@ export function CourseCard({
       <Link to={`/curso/${id}`} className="block focus-ring rounded-2xl">
         <Card interactive className="group overflow-hidden">
           <div className="relative aspect-[4/3] overflow-hidden rounded-t-2xl">
-            <Thumbnail thumbnailUrl={thumbnailUrl} title={title} aspect="aspect-[4/3]" />
+            <Thumbnail thumbnailUrl={thumbnailUrl} title={title} aspect="aspect-[4/3]" priority={priority} />
             {price === 0 && (
               <Badge className="absolute top-2 right-2 border-0 bg-success text-success-foreground text-[10px] px-1.5 py-0.5">
                 Grátis
@@ -122,7 +132,7 @@ export function CourseCard({
     <motion.div whileHover={{ y: -4 }} transition={{ duration: 0.2 }} className="h-full">
       <Card interactive className="group flex h-full flex-col overflow-hidden">
         <div className="relative aspect-video overflow-hidden">
-          <Thumbnail thumbnailUrl={thumbnailUrl} title={title} />
+          <Thumbnail thumbnailUrl={thumbnailUrl} title={title} priority={priority} />
           {categoryName && (
             <Badge className="absolute top-3 left-3 border-0 bg-background/90 text-foreground backdrop-blur-sm">
               {categoryName}

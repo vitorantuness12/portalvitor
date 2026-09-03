@@ -215,18 +215,15 @@ export default function ValidateCertificate() {
     setQrCodeDataUrl(undefined);
 
     try {
-      const { data, error } = await supabase
-        .from('certificates')
-        .select(
-          'id, certificate_code, issued_at, courses(title, duration_hours), profiles!certificates_user_id_fkey(full_name), enrollments(exam_score, exam_completed_at)',
-        )
-        .eq('certificate_code', target)
-        .maybeSingle();
+      // Função pública: `profiles`/`enrollments` não são legíveis por visitantes.
+      const { data, error } = await supabase.functions.invoke('validate-certificate', {
+        body: { code: target },
+      });
 
       if (error) throw error;
 
-      if (data) {
-        setResult({ valid: true, certificate: data as unknown as CertificateData });
+      if (data?.valid && data.certificate) {
+        setResult({ valid: true, certificate: data.certificate as CertificateData });
         try {
           setQrCodeDataUrl(
             await QRCode.toDataURL(publicUrl(`/validar-certificado?codigo=${target}`), {

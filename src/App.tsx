@@ -74,6 +74,8 @@ function App() {
                 <Route path="/onboarding" element={<Onboarding />} />
                 <Route path="/cursos" element={<Courses />} />
                 <Route path="/meus-cursos" element={<MyCourses />} />
+                <Route path="/downloads-offline" element={<OfflineDownloads />} />
+
                 <Route path="/meu-progresso" element={<StudentDashboard />} />
                 <Route path="/meus-certificados" element={<MyCertificates />} />
                 <Route path="/perfil" element={<Profile />} />

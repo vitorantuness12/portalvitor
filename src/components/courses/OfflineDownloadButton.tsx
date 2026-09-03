@@ -113,23 +113,37 @@ export function OfflineDownloadButton({
   }
 
   return (
-    <Button
-      type="button"
-      variant="outline"
-      size={compact ? 'icon' : 'sm'}
-      onClick={handleSave}
-      disabled={busy}
-      className={cn('gap-1.5', className)}
-      aria-label="Baixar para offline"
-    >
-      {busy ? (
-        <Loader2 className="h-4 w-4 animate-spin" />
-      ) : online ? (
-        <Download className="h-4 w-4" />
-      ) : (
-        <WifiOff className="h-4 w-4" />
+    <div className={cn('flex flex-col gap-1.5', compact ? 'items-center' : 'min-w-[11rem]')}>
+      <Button
+        type="button"
+        variant="outline"
+        size={compact ? 'icon' : 'sm'}
+        onClick={handleSave}
+        disabled={busy}
+        className={cn('gap-1.5', className)}
+        aria-label="Baixar para offline"
+      >
+        {busy ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : online ? (
+          <Download className="h-4 w-4" />
+        ) : (
+          <WifiOff className="h-4 w-4" />
+        )}
+        {!compact && (
+          <span>
+            {isSaving
+              ? attempt > 1
+                ? `Tentando novamente (${attempt}/3)...`
+                : `Baixando... ${Math.round(progress)}%`
+              : 'Baixar para offline'}
+          </span>
+        )}
+      </Button>
+      {isSaving && !compact && (
+        <Progress value={progress} className="h-1.5" aria-label="Progresso do download offline" />
       )}
-      {!compact && <span>{busy ? 'Baixando...' : 'Baixar para offline'}</span>}
-    </Button>
+    </div>
   );
+
 }

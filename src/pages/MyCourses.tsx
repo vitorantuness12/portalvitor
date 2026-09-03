@@ -11,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PwaLayout } from '@/components/pwa/PwaLayout';
 import { useIsPwa } from '@/hooks/useIsPwa';
+import { CourseImage } from '@/components/courses/CourseImage';
 
 export default function MyCourses() {
   const { user, loading } = useAuth();
@@ -145,8 +146,9 @@ export default function MyCourses() {
                     to={`/curso/${enrollment.courses?.id}`}
                     className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border/50 active:scale-[0.98] transition-transform"
                   >
-                    <img
-                      src={enrollment.courses?.thumbnail_url || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=200&h=120&fit=crop'}
+                    <CourseImage
+                      thumbnailUrl={enrollment.courses?.thumbnail_url}
+                      fallbackSrc="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=200&h=120&fit=crop"
                       alt={enrollment.courses?.title}
                       className="w-16 h-12 rounded-lg object-cover shrink-0"
                     />
@@ -178,8 +180,9 @@ export default function MyCourses() {
                   className="bg-card rounded-xl border border-border overflow-hidden card-elevated"
                 >
                   <div className="relative aspect-video">
-                    <img
-                      src={enrollment.courses?.thumbnail_url || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&h=450&fit=crop'}
+                    <CourseImage
+                      thumbnailUrl={enrollment.courses?.thumbnail_url}
+                      fallbackSrc="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&h=450&fit=crop"
                       alt={enrollment.courses?.title}
                       className="w-full h-full object-cover"
                     />

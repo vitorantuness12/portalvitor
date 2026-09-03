@@ -17,6 +17,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useIsPwa } from '@/hooks/useIsPwa';
 import { PwaLayout } from '@/components/pwa/PwaLayout';
 import { format, subDays, startOfDay } from 'date-fns';
+import { CourseImage } from '@/components/courses/CourseImage';
 
 export default function StudentDashboard() {
   const { user, loading } = useAuth();
@@ -180,8 +181,9 @@ export default function StudentDashboard() {
                   Continue de onde parou
                 </p>
                 <div className="flex items-center gap-4">
-                  <img
-                    src={continueCourse.courses?.thumbnail_url || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=200&h=120&fit=crop'}
+                  <CourseImage
+                    thumbnailUrl={continueCourse.courses?.thumbnail_url}
+                    fallbackSrc="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=200&h=120&fit=crop"
                     alt={continueCourse.courses?.title || 'Curso'}
                     className={`${isPwa ? 'w-20 h-14' : 'w-28 h-20 sm:w-32 sm:h-24'} rounded-xl object-cover shrink-0 shadow-soft`}
                   />
@@ -266,8 +268,9 @@ export default function StudentDashboard() {
                     {recentCourses.map((enrollment) => (
                       <Link key={enrollment.id} to={`/curso/${enrollment.courses?.id}`} className="block">
                         <div className={`flex items-center gap-3 ${isPwa ? 'p-2' : 'p-3'} rounded-lg bg-muted/50 hover:bg-muted active:scale-[0.98] transition-all`}>
-                          <img
-                            src={enrollment.courses?.thumbnail_url || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=100&h=60&fit=crop'}
+                          <CourseImage
+                            thumbnailUrl={enrollment.courses?.thumbnail_url}
+                            fallbackSrc="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=100&h=60&fit=crop"
                             alt={enrollment.courses?.title}
                             className={`${isPwa ? 'w-14 h-10' : 'w-16 h-10 sm:w-20 sm:h-12'} rounded-lg object-cover`}
                           />

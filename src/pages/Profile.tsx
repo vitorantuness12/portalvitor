@@ -252,8 +252,8 @@ export default function Profile() {
             </Card>
           </motion.div>
 
-          {/* Save button — fixed on mobile/pwa for clarity, inline on desktop */}
-          <div className={isPwa ? 'fixed inset-x-0 bottom-16 z-30 px-4' : 'sticky bottom-4 z-10'}>
+          {/* Save button — inline no PWA (evita sobrepor a barra inferior), sticky no desktop */}
+          <div className={isPwa ? 'pt-1' : 'sticky bottom-4 z-10'}>
             <Card className="shadow-elevated border-primary/20">
               <CardContent className="p-3">
                 <Button type="submit" className="w-full" size="lg" disabled={updateProfileMutation.isPending}>

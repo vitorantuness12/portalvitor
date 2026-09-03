@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { BookOpen, Clock, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { CourseImage } from '@/components/courses/CourseImage';
 
 interface Course {
   id: string;
@@ -93,8 +94,8 @@ export function OnboardingStep2({
                 <div className="flex gap-3 sm:gap-4">
                   <div className="flex-shrink-0 h-16 w-16 sm:h-24 sm:w-32 rounded-lg overflow-hidden bg-muted">
                     {course.thumbnail_url ? (
-                      <img
-                        src={course.thumbnail_url}
+                      <CourseImage
+                        thumbnailUrl={course.thumbnail_url}
                         alt={course.title}
                         className="w-full h-full object-cover"
                       />

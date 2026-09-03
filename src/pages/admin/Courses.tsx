@@ -35,6 +35,7 @@ import { EditCourseModal } from '@/components/admin/EditCourseModal';
 import { CourseContentModal } from '@/components/admin/CourseContentModal';
 import { Link, useNavigate } from 'react-router-dom';
 import type { Tables } from '@/integrations/supabase/types';
+import { CourseImage } from '@/components/courses/CourseImage';
 
 type Course = Tables<'courses'>;
 
@@ -190,8 +191,8 @@ export default function AdminCourses() {
             <div key={course.id} className="border rounded-lg p-4 space-y-3">
               <div className="flex items-start gap-3">
                 {course.thumbnail_url ? (
-                  <img
-                    src={course.thumbnail_url}
+                  <CourseImage
+                    thumbnailUrl={course.thumbnail_url}
                     alt={course.title}
                     className="h-16 w-24 object-cover rounded flex-shrink-0"
                   />
@@ -330,8 +331,8 @@ export default function AdminCourses() {
                   <TableCell>
                     <div className="flex items-center gap-3">
                       {course.thumbnail_url ? (
-                        <img
-                          src={course.thumbnail_url}
+                        <CourseImage
+                          thumbnailUrl={course.thumbnail_url}
                           alt={course.title}
                           className="h-10 w-16 object-cover rounded"
                         />

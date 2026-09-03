@@ -17,6 +17,10 @@ interface OfflineDownloadButtonProps {
   savedAt: string | null;
   onSave: () => Promise<boolean>;
   onRemove: () => Promise<void>;
+  /** 0-100 durante o download */
+  progress?: number;
+  /** Tentativa atual quando há retentativa */
+  attempt?: number;
   /** Apenas ícone (usado em listas compactas) */
   compact?: boolean;
   className?: string;
@@ -28,12 +32,15 @@ export function OfflineDownloadButton({
   savedAt,
   onSave,
   onRemove,
+  progress = 0,
+  attempt = 0,
   compact = false,
   className,
 }: OfflineDownloadButtonProps) {
   const { toast } = useToast();
   const online = useOnlineStatus();
   const [removing, setRemoving] = useState(false);
+
 
   const handleSave = async () => {
     if (!online) {

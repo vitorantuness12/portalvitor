@@ -5,8 +5,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   BookOpen, FileText, CheckCircle, ArrowLeft, ArrowRight, 
   Trophy, Lock, ChevronDown, ChevronUp, Award, StickyNote,
-  Sparkles, Target, Clock, AlertTriangle, RotateCcw
+  Sparkles, Target, Clock, AlertTriangle, RotateCcw, WifiOff
 } from 'lucide-react';
+
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
@@ -25,9 +26,14 @@ import { FormattedContent } from '@/components/courses/FormattedContent';
 import { QuestionCard } from '@/components/courses/QuestionCard';
 import { MobileStudyNav } from '@/components/courses/MobileStudyNav';
 import { CourseDownloadActions } from '@/components/courses/CourseDownloadActions';
+import { OfflineDownloadButton } from '@/components/courses/OfflineDownloadButton';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useIsPwa } from '@/hooks/useIsPwa';
+import { useOnlineStatus } from '@/hooks/useOnlineStatus';
+import { useOfflineCourse } from '@/hooks/useOfflineCourse';
+import { clearPendingProgress, getPendingProgress, queueProgress } from '@/lib/offlineCourses';
 import { cn } from '@/lib/utils';
+
 
 const MAX_EXAM_ATTEMPTS = 3;
 const EXAM_DURATION_SECONDS = 60 * 60; // 1 hour

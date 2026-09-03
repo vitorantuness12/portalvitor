@@ -63,20 +63,6 @@ export default function AppLogin() {
                   setTimeout(() => setShowSplash(false), 800);
                 }}
               />
-              <motion.div
-                className="flex flex-col items-center gap-1"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4, duration: 0.5 }}
-              >
-                <span className="text-2xl font-bold text-white tracking-tight">Formak</span>
-                <motion.div
-                  className="h-0.5 bg-primary rounded-full"
-                  initial={{ width: 0 }}
-                  animate={{ width: 60 }}
-                  transition={{ delay: 0.6, duration: 0.6, ease: 'easeOut' }}
-                />
-              </motion.div>
             </motion.div>
           </motion.div>
         ) : (

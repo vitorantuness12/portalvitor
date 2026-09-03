@@ -11,6 +11,8 @@ interface MobileStudyNavProps {
   totalModules: number;
   onPrevModule: () => void;
   onNextModule: () => void;
+  /** Quando true, exercícios e prova ficam bloqueados (sem internet) */
+  offline?: boolean;
 }
 
 const tabs = [
@@ -29,7 +31,9 @@ export function MobileStudyNav({
   totalModules,
   onPrevModule,
   onNextModule,
+  offline = false,
 }: MobileStudyNavProps) {
+
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden">
       {/* Module navigation (only on content tab) */}
@@ -99,7 +103,10 @@ export function MobileStudyNav({
       <nav className="flex items-stretch bg-background/95 backdrop-blur-lg border-t border-border/50 safe-area-pb">
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
-          const isLocked = tab.id === 'prova' && !examUnlocked;
+          const isLocked =
+            (tab.id === 'prova' && !examUnlocked) ||
+            (offline && (tab.id === 'prova' || tab.id === 'exercicios'));
+
           const Icon = tab.icon;
 
           return (

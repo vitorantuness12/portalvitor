@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { useCourseThumbnail } from '@/lib/storageImage';
 
 interface CourseCardProps {
   id: string;
@@ -36,8 +37,9 @@ function Thumbnail({
   aspect?: string;
 }) {
   const [failed, setFailed] = useState(false);
+  const resolvedUrl = useCourseThumbnail(thumbnailUrl);
 
-  if (!thumbnailUrl || failed) {
+  if (!resolvedUrl || failed) {
     return (
       <div className={cn('flex h-full w-full items-center justify-center bg-muted', aspect)}>
         <ImageOff className="h-8 w-8 text-muted-foreground/50" aria-hidden="true" />
@@ -47,7 +49,7 @@ function Thumbnail({
 
   return (
     <img
-      src={thumbnailUrl}
+      src={resolvedUrl}
       alt={title}
       loading="lazy"
       decoding="async"

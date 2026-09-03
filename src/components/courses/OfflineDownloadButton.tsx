@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Download, Check, Loader2, Trash2, WifiOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
 import {
   DropdownMenu,
   DropdownMenuContent,

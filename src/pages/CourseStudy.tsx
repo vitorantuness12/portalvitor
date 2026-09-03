@@ -444,10 +444,7 @@ export default function CourseStudy() {
               <span className="text-xs sm:text-sm font-medium whitespace-nowrap">{currentProgress}%</span>
               <CourseDownloadActions
                 courseTitle={course.title}
-                courseDescription={course.description}
-                courseLevel={course.level}
                 courseDurationHours={course.duration_hours}
-                modules={modules}
               />
             </div>
             

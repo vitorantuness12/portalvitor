@@ -839,6 +839,19 @@ export default function CourseStudy() {
 
             {/* Exam Tab */}
             <TabsContent value="prova" className="space-y-4 sm:space-y-6">
+              {contentLocked && (
+                <Card>
+                  <CardContent className="py-10 text-center space-y-2">
+                    <WifiOff className="h-10 w-10 mx-auto text-muted-foreground/60" />
+                    <p className="font-semibold text-sm sm:text-base">Prova indisponível offline</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">
+                      Conecte-se à internet para realizar a prova final.
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+              <div className={contentLocked ? 'hidden' : 'space-y-4 sm:space-y-6'}>
+
               {/* Show results if passed or failed with no retries left */}
               {enrollment.status === 'passed' ? (
                 <motion.div

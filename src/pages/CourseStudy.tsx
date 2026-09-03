@@ -450,7 +450,10 @@ export default function CourseStudy() {
     }
   }, [currentModuleIndex, modules.length]);
 
-  if (courseLoading || enrollmentLoading) {
+  const offlineData = offlineCourse.offlineData;
+  const offlineOnly = (!course || !enrollment) && !!offlineData;
+
+  if ((courseLoading || enrollmentLoading) && !offlineOnly) {
     return (
       <div className="min-h-screen flex flex-col">
         <Header />
@@ -466,9 +469,64 @@ export default function CourseStudy() {
     );
   }
 
+  // Leitura offline: sem conexão com o servidor, mas com conteúdo salvo no aparelho
+  if (offlineOnly && offlineData) {
+    return (
+      <div className="min-h-screen flex flex-col bg-muted/30">
+        <Header />
+        <main className="flex-1 py-4 sm:py-8 pb-24">
+          <div className="container mx-auto px-4 space-y-4">
+            <div className="flex items-center gap-2 p-3 rounded-xl bg-muted border border-border text-sm">
+              <WifiOff className="h-4 w-4 text-muted-foreground shrink-0" />
+              <span className="text-muted-foreground">
+                Modo offline — você está lendo o conteúdo salvo no aparelho. Exercícios e prova precisam de internet.
+              </span>
+            </div>
+
+            <h1 className="text-lg sm:text-2xl md:text-3xl font-display font-bold line-clamp-2">
+              {offlineData.title}
+            </h1>
+
+            {offlineData.modules.map((module, index) => (
+              <Card key={index}>
+                <CardHeader
+                  className="cursor-pointer p-3 sm:p-6"
+                  onClick={() => toggleModule(index)}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                      <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs sm:text-sm font-bold flex-shrink-0">
+                        {index + 1}
+                      </div>
+                      <CardTitle className="text-sm sm:text-lg line-clamp-2">{module.title}</CardTitle>
+                    </div>
+                    {expandedModules.includes(index) ? (
+                      <ChevronUp className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+                    )}
+                  </div>
+                </CardHeader>
+                {expandedModules.includes(index) && (
+                  <CardContent className="pt-0 px-3 pb-3 sm:px-6 sm:pb-6">
+                    <FormattedContent
+                      content={module.content}
+                      className="text-sm sm:text-base max-w-prose"
+                    />
+                  </CardContent>
+                )}
+              </Card>
+            ))}
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   if (!course || !enrollment) {
     return null;
   }
+
 
   return (
     <div className="min-h-screen flex flex-col bg-muted/30">

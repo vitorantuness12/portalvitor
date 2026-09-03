@@ -42,7 +42,17 @@ import InstallApp from "./pages/InstallApp";
 import { SupportChat } from "./components/support/SupportChat";
 import { PwaRedirect } from "./components/PwaRedirect";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      // Evita refetch a cada navegação: abertura de cursos fica instantânea
+      staleTime: 5 * 60 * 1000,
+      gcTime: 30 * 60 * 1000,
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
 function App() {
   useHideToastCloseButtons();

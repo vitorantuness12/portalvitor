@@ -12,6 +12,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { PwaLayout } from '@/components/pwa/PwaLayout';
 import { useIsPwa } from '@/hooks/useIsPwa';
 import { CourseImage } from '@/components/courses/CourseImage';
+import { CourseOfflineButton } from '@/components/courses/CourseOfflineButton';
+
 
 export default function MyCourses() {
   const { user, loading } = useAuth();

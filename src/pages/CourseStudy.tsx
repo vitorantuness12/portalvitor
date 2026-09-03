@@ -747,6 +747,19 @@ export default function CourseStudy() {
               )}
             </TabsContent>
             <TabsContent value="exercicios" className="space-y-4 sm:space-y-6">
+              {contentLocked && (
+                <Card>
+                  <CardContent className="py-10 text-center space-y-2">
+                    <WifiOff className="h-10 w-10 mx-auto text-muted-foreground/60" />
+                    <p className="font-semibold text-sm sm:text-base">Exercícios indisponíveis offline</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">
+                      Conecte-se à internet para responder os exercícios de fixação.
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+              <div className={contentLocked ? 'hidden' : 'space-y-4 sm:space-y-6'}>
+
               {!exercises || exercises.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 sm:py-16">
                   <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mb-4">

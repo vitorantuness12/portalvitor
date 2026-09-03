@@ -547,14 +547,36 @@ export default function CourseStudy() {
               {course.title}
             </h1>
             
-            <div className="flex items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
+            <div className="flex items-center gap-3 sm:gap-4 mb-3">
               <Progress value={currentProgress} className="flex-1 h-1.5 sm:h-2" />
               <span className="text-xs sm:text-sm font-medium whitespace-nowrap">{currentProgress}%</span>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 mb-3 sm:mb-4">
+              <OfflineDownloadButton
+                isSaved={offlineCourse.isSaved}
+                isSaving={offlineCourse.isSaving}
+                savedAt={offlineCourse.savedAt}
+                onSave={offlineCourse.save}
+                onRemove={offlineCourse.remove}
+              />
               <CourseDownloadActions
                 courseTitle={course.title}
                 courseDurationHours={course.duration_hours}
               />
             </div>
+
+            {(contentLocked || usingOfflineContent) && (
+              <div className="flex items-start gap-2 p-3 mb-3 sm:mb-4 rounded-xl bg-muted border border-border text-xs sm:text-sm">
+                <WifiOff className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+                <span className="text-muted-foreground">
+                  Modo offline — conteúdo salvo no aparelho. Conecte-se à internet para fazer os
+                  exercícios e a prova.
+                </span>
+              </div>
+            )}
+            
+
             
             {enrollment.status === 'passed' && (
               <motion.div

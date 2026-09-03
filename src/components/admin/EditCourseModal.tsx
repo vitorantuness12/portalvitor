@@ -21,6 +21,7 @@ import {
 import { toast } from 'sonner';
 import { Upload, X, Loader2, Sparkles } from 'lucide-react';
 import type { Tables } from '@/integrations/supabase/types';
+import { createThumbnailBlob, thumbStoragePath } from '@/lib/imageThumbnail';
 
 type Course = Tables<'courses'>;
 

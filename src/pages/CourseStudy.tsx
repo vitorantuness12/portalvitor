@@ -59,6 +59,10 @@ export default function CourseStudy() {
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
   const isPwa = useIsPwa();
+  const online = useOnlineStatus();
+  const offlineCourse = useOfflineCourse(id);
+  
+
   
   const [activeTab, setActiveTab] = useState('conteudo');
   const [currentModuleIndex, setCurrentModuleIndex] = useState(0);
@@ -137,16 +141,45 @@ export default function CourseStudy() {
   const updateProgressMutation = useMutation({
     mutationFn: async (progress: number) => {
       if (!enrollment) return;
+      // Sem internet: guarda localmente e sincroniza quando voltar a conexão
+      if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        queueProgress(enrollment.id, progress);
+        return;
+      }
       const { error } = await supabase
         .from('enrollments')
         .update({ progress })
         .eq('id', enrollment.id);
-      if (error) throw error;
+      if (error) {
+        queueProgress(enrollment.id, progress);
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['enrollment', id] });
     },
   });
+
+  // Sincroniza progresso pendente ao recuperar a conexão
+  useEffect(() => {
+    if (!online) return;
+    const pending = getPendingProgress();
+    const entries = Object.entries(pending);
+    if (entries.length === 0) return;
+
+    (async () => {
+      for (const [enrollmentId, progress] of entries) {
+        const { error } = await supabase
+          .from('enrollments')
+          .update({ progress })
+          .eq('id', enrollmentId);
+        if (!error) clearPendingProgress(enrollmentId);
+      }
+      queryClient.invalidateQueries({ queryKey: ['enrollment', id] });
+    })();
+  }, [online, id, queryClient]);
+
+
 
   // Submit exam
   const submitExamMutation = useMutation({

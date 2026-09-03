@@ -835,7 +835,9 @@ export default function CourseStudy() {
                   </motion.div>
                 </>
               )}
+              </div>
             </TabsContent>
+
 
             {/* Exam Tab */}
             <TabsContent value="prova" className="space-y-4 sm:space-y-6">

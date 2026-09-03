@@ -56,6 +56,59 @@ export async function listOfflineCourseIds(): Promise<string[]> {
   }
 }
 
+export interface OfflineCourseSummary {
+  courseId: string;
+  title: string;
+  savedAt: string;
+  moduleCount: number;
+  /** Tamanho aproximado em bytes (UTF-16 do conteúdo serializado) */
+  bytes: number;
+}
+
+/** Calcula o tamanho aproximado (em bytes) de um curso salvo. */
+function estimateBytes(course: OfflineCourse): number {
+  try {
+    return new Blob([JSON.stringify(course)]).size;
+  } catch {
+    return JSON.stringify(course).length * 2;
+  }
+}
+
+/** Lista todos os cursos salvos com tamanho estimado, para a tela de gerenciamento. */
+export async function listOfflineCourses(): Promise<OfflineCourseSummary[]> {
+  const ids = await listOfflineCourseIds();
+  const items = await Promise.all(
+    ids.map(async (id) => {
+      const course = await getOfflineCourse(id);
+      if (!course) return null;
+      return {
+        courseId: course.courseId,
+        title: course.title,
+        savedAt: course.savedAt,
+        moduleCount: course.modules.length,
+        bytes: estimateBytes(course),
+      } satisfies OfflineCourseSummary;
+    })
+  );
+  return items
+    .filter((i): i is OfflineCourseSummary => i !== null)
+    .sort((a, b) => b.savedAt.localeCompare(a.savedAt));
+}
+
+/** Remove todos os downloads offline do aparelho. */
+export async function clearAllOfflineCourses(): Promise<void> {
+  const ids = await listOfflineCourseIds();
+  await Promise.all(ids.map((id) => removeOfflineCourse(id)));
+}
+
+/** Formata bytes em unidade legível (pt-BR). */
+export function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+
 /* ------------------------------------------------------------------ */
 /* Fila de progresso pendente (quando o aluno estuda sem internet)     */
 /* ------------------------------------------------------------------ */

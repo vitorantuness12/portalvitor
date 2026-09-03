@@ -10,6 +10,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Courses from "./pages/Courses";
 import MyCourses from "./pages/MyCourses";
+import OfflineDownloads from "./pages/OfflineDownloads";
 import MyCertificates from "./pages/MyCertificates";
 import StudentDashboard from "./pages/StudentDashboard";
 import Profile from "./pages/Profile";
@@ -73,6 +74,8 @@ function App() {
                 <Route path="/onboarding" element={<Onboarding />} />
                 <Route path="/cursos" element={<Courses />} />
                 <Route path="/meus-cursos" element={<MyCourses />} />
+                <Route path="/downloads-offline" element={<OfflineDownloads />} />
+
                 <Route path="/meu-progresso" element={<StudentDashboard />} />
                 <Route path="/meus-certificados" element={<MyCertificates />} />
                 <Route path="/perfil" element={<Profile />} />

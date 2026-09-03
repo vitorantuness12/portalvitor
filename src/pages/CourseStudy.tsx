@@ -559,6 +559,8 @@ export default function CourseStudy() {
                 savedAt={offlineCourse.savedAt}
                 onSave={offlineCourse.save}
                 onRemove={offlineCourse.remove}
+                progress={offlineCourse.progress}
+                attempt={offlineCourse.attempt}
               />
               <CourseDownloadActions
                 courseTitle={course.title}

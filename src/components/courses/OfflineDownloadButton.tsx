@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Download, Check, Loader2, Trash2, WifiOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,6 +18,10 @@ interface OfflineDownloadButtonProps {
   savedAt: string | null;
   onSave: () => Promise<boolean>;
   onRemove: () => Promise<void>;
+  /** 0-100 durante o download */
+  progress?: number;
+  /** Tentativa atual quando há retentativa */
+  attempt?: number;
   /** Apenas ícone (usado em listas compactas) */
   compact?: boolean;
   className?: string;
@@ -28,12 +33,15 @@ export function OfflineDownloadButton({
   savedAt,
   onSave,
   onRemove,
+  progress = 0,
+  attempt = 0,
   compact = false,
   className,
 }: OfflineDownloadButtonProps) {
   const { toast } = useToast();
   const online = useOnlineStatus();
   const [removing, setRemoving] = useState(false);
+
 
   const handleSave = async () => {
     if (!online) {
@@ -106,23 +114,37 @@ export function OfflineDownloadButton({
   }
 
   return (
-    <Button
-      type="button"
-      variant="outline"
-      size={compact ? 'icon' : 'sm'}
-      onClick={handleSave}
-      disabled={busy}
-      className={cn('gap-1.5', className)}
-      aria-label="Baixar para offline"
-    >
-      {busy ? (
-        <Loader2 className="h-4 w-4 animate-spin" />
-      ) : online ? (
-        <Download className="h-4 w-4" />
-      ) : (
-        <WifiOff className="h-4 w-4" />
+    <div className={cn('flex flex-col gap-1.5', compact ? 'items-center' : 'min-w-[11rem]')}>
+      <Button
+        type="button"
+        variant="outline"
+        size={compact ? 'icon' : 'sm'}
+        onClick={handleSave}
+        disabled={busy}
+        className={cn('gap-1.5', className)}
+        aria-label="Baixar para offline"
+      >
+        {busy ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : online ? (
+          <Download className="h-4 w-4" />
+        ) : (
+          <WifiOff className="h-4 w-4" />
+        )}
+        {!compact && (
+          <span>
+            {isSaving
+              ? attempt > 1
+                ? `Tentando novamente (${attempt}/3)...`
+                : `Baixando... ${Math.round(progress)}%`
+              : 'Baixar para offline'}
+          </span>
+        )}
+      </Button>
+      {isSaving && !compact && (
+        <Progress value={progress} className="h-1.5" aria-label="Progresso do download offline" />
       )}
-      {!compact && <span>{busy ? 'Baixando...' : 'Baixar para offline'}</span>}
-    </Button>
+    </div>
   );
+
 }

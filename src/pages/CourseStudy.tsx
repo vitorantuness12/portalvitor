@@ -349,12 +349,14 @@ export default function CourseStudy() {
   const totalSteps = modules.length + 2; // modules + exercises + exam
   const currentProgress = enrollment?.progress || 0;
 
-  // Redirect if not enrolled
+  // Redirect if not enrolled (nunca redireciona quando está sem internet)
   useEffect(() => {
+    if (!online) return;
     if (!enrollmentLoading && !enrollment && !courseLoading) {
       navigate(`/curso/${id}`);
     }
-  }, [enrollment, enrollmentLoading, courseLoading, navigate, id]);
+  }, [enrollment, enrollmentLoading, courseLoading, navigate, id, online]);
+
 
   const toggleModule = (index: number) => {
     setExpandedModules(prev => 

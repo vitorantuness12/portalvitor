@@ -24,7 +24,7 @@ export default defineConfig(({ mode }) => ({
       manifest: {
         name: "Formak",
         short_name: "Formak",
-        description: "Cursos online com certificado",
+        description: "Cursos online acessíveis e práticos para você desenvolver seu potencial, fortalecer seu currículo e transformar conhecimento em novas oportunidades.",
         start_url: "/app-login",
         display: "standalone",
         background_color: "#0d1424",

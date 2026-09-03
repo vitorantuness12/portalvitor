@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Play, ChevronDown, Bell, Users, Download } from 'lucide-react';
+import { ArrowRight, Play, ChevronDown, Bell, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import heroStudents from '@/assets/hero-students.png';
@@ -137,16 +137,6 @@ export function HeroSection() {
               </Link>
             </motion.div>
 
-            {/* App download hint */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="flex items-center gap-2 text-sm text-muted-foreground"
-            >
-              <Download className="h-4 w-4" />
-              <span>Baixar App Formak</span>
-            </motion.div>
           </motion.div>
 
           {/* Right Content - Imagem destaque + chips flutuantes */}

@@ -5,8 +5,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   BookOpen, FileText, CheckCircle, ArrowLeft, ArrowRight, 
   Trophy, Lock, ChevronDown, ChevronUp, Award, StickyNote,
-  Sparkles, Target, Clock, AlertTriangle, RotateCcw
+  Sparkles, Target, Clock, AlertTriangle, RotateCcw, WifiOff
 } from 'lucide-react';
+
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
@@ -25,9 +26,14 @@ import { FormattedContent } from '@/components/courses/FormattedContent';
 import { QuestionCard } from '@/components/courses/QuestionCard';
 import { MobileStudyNav } from '@/components/courses/MobileStudyNav';
 import { CourseDownloadActions } from '@/components/courses/CourseDownloadActions';
+import { OfflineDownloadButton } from '@/components/courses/OfflineDownloadButton';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useIsPwa } from '@/hooks/useIsPwa';
+import { useOnlineStatus } from '@/hooks/useOnlineStatus';
+import { useOfflineCourse } from '@/hooks/useOfflineCourse';
+import { clearPendingProgress, getPendingProgress, queueProgress } from '@/lib/offlineCourses';
 import { cn } from '@/lib/utils';
+
 
 const MAX_EXAM_ATTEMPTS = 3;
 const EXAM_DURATION_SECONDS = 60 * 60; // 1 hour
@@ -53,6 +59,10 @@ export default function CourseStudy() {
   const queryClient = useQueryClient();
   const isMobile = useIsMobile();
   const isPwa = useIsPwa();
+  const online = useOnlineStatus();
+  const offlineCourse = useOfflineCourse(id);
+  
+
   
   const [activeTab, setActiveTab] = useState('conteudo');
   const [currentModuleIndex, setCurrentModuleIndex] = useState(0);
@@ -131,16 +141,45 @@ export default function CourseStudy() {
   const updateProgressMutation = useMutation({
     mutationFn: async (progress: number) => {
       if (!enrollment) return;
+      // Sem internet: guarda localmente e sincroniza quando voltar a conexão
+      if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        queueProgress(enrollment.id, progress);
+        return;
+      }
       const { error } = await supabase
         .from('enrollments')
         .update({ progress })
         .eq('id', enrollment.id);
-      if (error) throw error;
+      if (error) {
+        queueProgress(enrollment.id, progress);
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['enrollment', id] });
     },
   });
+
+  // Sincroniza progresso pendente ao recuperar a conexão
+  useEffect(() => {
+    if (!online) return;
+    const pending = getPendingProgress();
+    const entries = Object.entries(pending);
+    if (entries.length === 0) return;
+
+    (async () => {
+      for (const [enrollmentId, progress] of entries) {
+        const { error } = await supabase
+          .from('enrollments')
+          .update({ progress })
+          .eq('id', enrollmentId);
+        if (!error) clearPendingProgress(enrollmentId);
+      }
+      queryClient.invalidateQueries({ queryKey: ['enrollment', id] });
+    })();
+  }, [online, id, queryClient]);
+
+
 
   // Submit exam
   const submitExamMutation = useMutation({
@@ -287,26 +326,37 @@ export default function CourseStudy() {
   };
 
   // Parse modules from content_pdf_url (stored as JSON)
-  const modules: Module[] = course?.content_pdf_url 
+  const onlineModules: Module[] = course?.content_pdf_url 
     ? (() => {
         try {
-          return JSON.parse(course.content_pdf_url);
+          const parsed = JSON.parse(course.content_pdf_url);
+          return Array.isArray(parsed) ? parsed : [];
         } catch {
           return [];
         }
       })()
     : [];
 
+  // Sem internet (ou sem conteúdo carregado), usa o conteúdo baixado no aparelho
+  const modules: Module[] =
+    onlineModules.length > 0 ? onlineModules : offlineCourse.offlineData?.modules ?? [];
+
+  const usingOfflineContent = onlineModules.length === 0 && modules.length > 0;
+  const contentLocked = !online; // exercícios e prova exigem internet
+
+
   // Calculate progress
   const totalSteps = modules.length + 2; // modules + exercises + exam
   const currentProgress = enrollment?.progress || 0;
 
-  // Redirect if not enrolled
+  // Redirect if not enrolled (nunca redireciona quando está sem internet)
   useEffect(() => {
+    if (!online) return;
     if (!enrollmentLoading && !enrollment && !courseLoading) {
       navigate(`/curso/${id}`);
     }
-  }, [enrollment, enrollmentLoading, courseLoading, navigate, id]);
+  }, [enrollment, enrollmentLoading, courseLoading, navigate, id, online]);
+
 
   const toggleModule = (index: number) => {
     setExpandedModules(prev => 
@@ -400,7 +450,10 @@ export default function CourseStudy() {
     }
   }, [currentModuleIndex, modules.length]);
 
-  if (courseLoading || enrollmentLoading) {
+  const offlineData = offlineCourse.offlineData;
+  const offlineOnly = (!course || !enrollment) && !!offlineData;
+
+  if ((courseLoading || enrollmentLoading) && !offlineOnly) {
     return (
       <div className="min-h-screen flex flex-col">
         <Header />
@@ -416,9 +469,64 @@ export default function CourseStudy() {
     );
   }
 
+  // Leitura offline: sem conexão com o servidor, mas com conteúdo salvo no aparelho
+  if (offlineOnly && offlineData) {
+    return (
+      <div className="min-h-screen flex flex-col bg-muted/30">
+        <Header />
+        <main className="flex-1 py-4 sm:py-8 pb-24">
+          <div className="container mx-auto px-4 space-y-4">
+            <div className="flex items-center gap-2 p-3 rounded-xl bg-muted border border-border text-sm">
+              <WifiOff className="h-4 w-4 text-muted-foreground shrink-0" />
+              <span className="text-muted-foreground">
+                Modo offline — você está lendo o conteúdo salvo no aparelho. Exercícios e prova precisam de internet.
+              </span>
+            </div>
+
+            <h1 className="text-lg sm:text-2xl md:text-3xl font-display font-bold line-clamp-2">
+              {offlineData.title}
+            </h1>
+
+            {offlineData.modules.map((module, index) => (
+              <Card key={index}>
+                <CardHeader
+                  className="cursor-pointer p-3 sm:p-6"
+                  onClick={() => toggleModule(index)}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                      <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs sm:text-sm font-bold flex-shrink-0">
+                        {index + 1}
+                      </div>
+                      <CardTitle className="text-sm sm:text-lg line-clamp-2">{module.title}</CardTitle>
+                    </div>
+                    {expandedModules.includes(index) ? (
+                      <ChevronUp className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+                    )}
+                  </div>
+                </CardHeader>
+                {expandedModules.includes(index) && (
+                  <CardContent className="pt-0 px-3 pb-3 sm:px-6 sm:pb-6">
+                    <FormattedContent
+                      content={module.content}
+                      className="text-sm sm:text-base max-w-prose"
+                    />
+                  </CardContent>
+                )}
+              </Card>
+            ))}
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   if (!course || !enrollment) {
     return null;
   }
+
 
   return (
     <div className="min-h-screen flex flex-col bg-muted/30">
@@ -439,14 +547,36 @@ export default function CourseStudy() {
               {course.title}
             </h1>
             
-            <div className="flex items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
+            <div className="flex items-center gap-3 sm:gap-4 mb-3">
               <Progress value={currentProgress} className="flex-1 h-1.5 sm:h-2" />
               <span className="text-xs sm:text-sm font-medium whitespace-nowrap">{currentProgress}%</span>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 mb-3 sm:mb-4">
+              <OfflineDownloadButton
+                isSaved={offlineCourse.isSaved}
+                isSaving={offlineCourse.isSaving}
+                savedAt={offlineCourse.savedAt}
+                onSave={offlineCourse.save}
+                onRemove={offlineCourse.remove}
+              />
               <CourseDownloadActions
                 courseTitle={course.title}
                 courseDurationHours={course.duration_hours}
               />
             </div>
+
+            {(contentLocked || usingOfflineContent) && (
+              <div className="flex items-start gap-2 p-3 mb-3 sm:mb-4 rounded-xl bg-muted border border-border text-xs sm:text-sm">
+                <WifiOff className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+                <span className="text-muted-foreground">
+                  Modo offline — conteúdo salvo no aparelho. Conecte-se à internet para fazer os
+                  exercícios e a prova.
+                </span>
+              </div>
+            )}
+            
+
             
             {enrollment.status === 'passed' && (
               <motion.div
@@ -480,14 +610,16 @@ export default function CourseStudy() {
                 <StickyNote className="h-4 w-4" />
                 Notas
               </TabsTrigger>
-              <TabsTrigger value="exercicios" className="gap-2 px-2 py-2 text-sm">
+              <TabsTrigger value="exercicios" className="gap-2 px-2 py-2 text-sm" disabled={contentLocked}>
                 <FileText className="h-4 w-4" />
                 Exercícios
+                {contentLocked && <WifiOff className="h-3 w-3" />}
               </TabsTrigger>
               <TabsTrigger 
                 value="prova" 
                 className="gap-2 px-2 py-2 text-sm"
-                disabled={currentProgress < 66}
+                disabled={currentProgress < 66 || contentLocked}
+
               >
                 <Trophy className="h-4 w-4" />
                 Prova
@@ -615,6 +747,19 @@ export default function CourseStudy() {
               )}
             </TabsContent>
             <TabsContent value="exercicios" className="space-y-4 sm:space-y-6">
+              {contentLocked && (
+                <Card>
+                  <CardContent className="py-10 text-center space-y-2">
+                    <WifiOff className="h-10 w-10 mx-auto text-muted-foreground/60" />
+                    <p className="font-semibold text-sm sm:text-base">Exercícios indisponíveis offline</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">
+                      Conecte-se à internet para responder os exercícios de fixação.
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+              <div className={contentLocked ? 'hidden' : 'space-y-4 sm:space-y-6'}>
+
               {!exercises || exercises.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 sm:py-16">
                   <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mb-4">
@@ -703,10 +848,25 @@ export default function CourseStudy() {
                   </motion.div>
                 </>
               )}
+              </div>
             </TabsContent>
+
 
             {/* Exam Tab */}
             <TabsContent value="prova" className="space-y-4 sm:space-y-6">
+              {contentLocked && (
+                <Card>
+                  <CardContent className="py-10 text-center space-y-2">
+                    <WifiOff className="h-10 w-10 mx-auto text-muted-foreground/60" />
+                    <p className="font-semibold text-sm sm:text-base">Prova indisponível offline</p>
+                    <p className="text-xs sm:text-sm text-muted-foreground">
+                      Conecte-se à internet para realizar a prova final.
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+              <div className={contentLocked ? 'hidden' : 'space-y-4 sm:space-y-6'}>
+
               {/* Show results if passed or failed with no retries left */}
               {enrollment.status === 'passed' ? (
                 <motion.div
@@ -906,7 +1066,9 @@ export default function CourseStudy() {
                   )}
                 </>
               )}
+              </div>
             </TabsContent>
+
           </Tabs>
         </div>
       </main>
@@ -929,6 +1091,8 @@ export default function CourseStudy() {
           totalModules={modules.length}
           onPrevModule={handlePrevModule}
           onNextModule={handleNextModule}
+          offline={contentLocked}
+
         />
       )}
     </div>

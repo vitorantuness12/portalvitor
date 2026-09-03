@@ -12,6 +12,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { PwaLayout } from '@/components/pwa/PwaLayout';
 import { useIsPwa } from '@/hooks/useIsPwa';
 import { CourseImage } from '@/components/courses/CourseImage';
+import { CourseOfflineButton } from '@/components/courses/CourseOfflineButton';
+
 
 export default function MyCourses() {
   const { user, loading } = useAuth();
@@ -141,10 +143,11 @@ export default function MyCourses() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.04 }}
+                  className="flex items-center gap-2"
                 >
                   <Link
                     to={`/curso/${enrollment.courses?.id}`}
-                    className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border/50 active:scale-[0.98] transition-transform"
+                    className="flex flex-1 min-w-0 items-center gap-3 p-3 rounded-xl bg-card border border-border/50 active:scale-[0.98] transition-transform"
                   >
                     <CourseImage
                       thumbnailUrl={enrollment.courses?.thumbnail_url}
@@ -165,7 +168,9 @@ export default function MyCourses() {
                       </div>
                     </div>
                   </Link>
+                  <CourseOfflineButton courseId={enrollment.courses?.id} compact className="shrink-0" />
                 </motion.div>
+
               ))}
             </div>
           ) : (
@@ -233,6 +238,7 @@ export default function MyCourses() {
                           Acessar Curso
                         </Button>
                       </Link>
+                      <CourseOfflineButton courseId={enrollment.courses?.id} compact />
                       {enrollment.status === 'passed' && (
                         <Link to={`/certificado/${enrollment.id}`}>
                           <Button variant="outline" size="icon">
@@ -240,6 +246,7 @@ export default function MyCourses() {
                           </Button>
                         </Link>
                       )}
+
                     </div>
                   </div>
                 </motion.div>

@@ -52,6 +52,7 @@
     "framer-motion": "^12.23.26",
     "highlight.js": "^11.11.1",
     "html2canvas": "^1.4.1",
+    "idb-keyval": "^6.3.0",
     "input-otp": "^1.4.2",
     "jspdf": "^4.1.0",
     "lucide-react": "^0.462.0",

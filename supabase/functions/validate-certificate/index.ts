@@ -24,10 +24,17 @@ Deno.serve(async (req) => {
 
   try {
     const { code } = await req.json().catch(() => ({ code: '' }));
-    const certificateCode = typeof code === 'string' ? code.trim().toUpperCase() : '';
+    const raw = typeof code === 'string' ? code.trim().toUpperCase().replace(/\s+/g, '') : '';
 
-    if (!certificateCode || certificateCode.length > 40) {
+    if (!raw || raw.length > 40) {
       return json({ valid: false, error: 'Código inválido' }, 400);
+    }
+
+    // Aceita o código com ou sem hífens (ex.: O77R68CQAXUC ou O77R-68CQ-AXUC)
+    const compact = raw.replace(/-/g, '');
+    const candidates = new Set<string>([raw, compact]);
+    if (compact.length === 12) {
+      candidates.add(`${compact.slice(0, 4)}-${compact.slice(4, 8)}-${compact.slice(8)}`);
     }
 
     const supabase = createClient(
@@ -35,14 +42,16 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     );
 
-    const { data: cert, error } = await supabase
+    const { data: matches, error } = await supabase
       .from('certificates')
       .select('id, user_id, enrollment_id, certificate_code, issued_at, courses(title, duration_hours)')
-      .eq('certificate_code', certificateCode)
-      .maybeSingle();
+      .in('certificate_code', Array.from(candidates))
+      .limit(1);
 
     if (error) throw error;
+    const cert = matches?.[0];
     if (!cert) return json({ valid: false });
+
 
     const [{ data: profile }, { data: enrollment }] = await Promise.all([
       supabase.from('profiles').select('full_name').eq('user_id', cert.user_id).maybeSingle(),

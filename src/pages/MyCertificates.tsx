@@ -13,6 +13,7 @@ import { useIsPwa } from '@/hooks/useIsPwa';
 import { PwaLayout } from '@/components/pwa/PwaLayout';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { CourseImage } from '@/components/courses/CourseImage';
 
 interface Certificate {
   id: string;
@@ -98,7 +99,7 @@ export default function MyCertificates() {
                   <Card className={`overflow-hidden shadow-soft hover:shadow-elevated transition-shadow group ${isPwa ? 'border-border/50' : ''}`}>
                     {!isPwa && (
                       <div className="relative h-32 bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-                        {cert.courses.thumbnail_url && <img src={cert.courses.thumbnail_url} alt={cert.courses.title} className="absolute inset-0 w-full h-full object-cover opacity-30" />}
+                        {cert.courses.thumbnail_url && <CourseImage thumbnailUrl={cert.courses.thumbnail_url} alt={cert.courses.title} className="absolute inset-0 w-full h-full object-cover opacity-30" />}
                         <span className="relative z-10 flex h-16 w-16 items-center justify-center rounded-2xl bg-card/80 shadow-soft">
                           <Award className="h-8 w-8 text-primary" />
                         </span>

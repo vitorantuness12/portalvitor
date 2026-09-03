@@ -21,6 +21,7 @@ import {
 import { PaymentCheckout } from '@/components/payment/PaymentCheckout';
 import { useIsPwa } from '@/hooks/useIsPwa';
 import { cn } from '@/lib/utils';
+import { CourseImage } from '@/components/courses/CourseImage';
 
 const levelStyles: Record<string, string> = {
   iniciante: 'bg-success/10 text-success border-success/20',
@@ -230,8 +231,9 @@ export default function CourseDetail() {
             >
               {/* Thumbnail */}
               <div className="relative aspect-video rounded-2xl overflow-hidden bg-muted shadow-soft">
-                <img
-                  src={course.thumbnail_url || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1200&h=675&fit=crop'}
+                <CourseImage
+                  thumbnailUrl={course.thumbnail_url}
+                  fallbackSrc="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1200&h=675&fit=crop"
                   alt={course.title}
                   className="w-full h-full object-cover"
                 />

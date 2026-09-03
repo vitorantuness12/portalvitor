@@ -166,6 +166,20 @@ export function EditCourseModal({ open, onOpenChange, course }: EditCourseModalP
 
         if (uploadError) throw uploadError;
 
+        // Miniatura leve (JPEG ~640px) gerada no cliente e salva em `thumbs/`.
+        // É o arquivo consumido pela listagem, então a capa aparece rápido no PWA.
+        const thumbBlob = await createThumbnailBlob(thumbnailFile);
+        if (thumbBlob) {
+          const { error: thumbError } = await supabase.storage
+            .from('course-thumbnails')
+            .upload(thumbStoragePath(fileName), thumbBlob, {
+              upsert: true,
+              contentType: 'image/jpeg',
+            });
+          // Falha na miniatura não bloqueia: o original ainda é exibido.
+          if (thumbError) console.warn('Falha ao gerar miniatura:', thumbError.message);
+        }
+
         // Salva o caminho permanente. A interface gera uma URL assinada atual
         // no momento da exibição, evitando links expirados no PWA.
         thumbnail_url = fileName;

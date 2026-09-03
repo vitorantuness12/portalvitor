@@ -33,16 +33,36 @@ export default function AdminCertificates() {
   } | null>(null);
   const [isValidating, setIsValidating] = useState(false);
 
+  /**
+   * Não existe FK direta entre `certificates` e `profiles`, portanto o embed
+   * do PostgREST falha (PGRST200). Buscamos os perfis em uma segunda query
+   * e fazemos o merge em memória.
+   */
+  const attachProfiles = async (rows: any[]) => {
+    const userIds = Array.from(new Set(rows.map((r) => r.user_id).filter(Boolean)));
+    if (userIds.length === 0) return rows;
+
+    const { data: profiles, error } = await supabase
+      .from('profiles')
+      .select('user_id, full_name, email')
+      .in('user_id', userIds);
+
+    if (error) throw error;
+
+    const byUser = new Map((profiles ?? []).map((p) => [p.user_id, p]));
+    return rows.map((r) => ({ ...r, profiles: byUser.get(r.user_id) ?? null }));
+  };
+
   const { data: certificates, isLoading } = useQuery({
     queryKey: ['admin-certificates'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('certificates')
-        .select('*, courses(title), profiles!certificates_user_id_fkey(full_name, email)')
+        .select('*, courses(title)')
         .order('issued_at', { ascending: false });
 
       if (error) throw error;
-      return data;
+      return attachProfiles(data ?? []);
     },
   });
 
@@ -56,16 +76,23 @@ export default function AdminCertificates() {
     setValidationResult(null);
 
     try {
-      const { data, error } = await supabase
+      // Normaliza: aceita com/sem hífens, espaços e minúsculas
+      const raw = validationCode.trim().toUpperCase().replace(/\s+/g, '');
+      const compact = raw.replace(/-/g, '');
+
+      const { data: rows, error } = await supabase
         .from('certificates')
-        .select('*, courses(title), profiles!certificates_user_id_fkey(full_name, email)')
-        .eq('certificate_code', validationCode.trim().toUpperCase())
-        .maybeSingle();
+        .select('*, courses(title)');
 
       if (error) throw error;
 
-      if (data) {
-        setValidationResult({ valid: true, certificate: data });
+      const match = (rows ?? []).find(
+        (c) => c.certificate_code.toUpperCase().replace(/-/g, '') === compact
+      );
+
+      if (match) {
+        const [withProfile] = await attachProfiles([match]);
+        setValidationResult({ valid: true, certificate: withProfile });
         toast.success('Certificado válido!');
       } else {
         setValidationResult({ valid: false });
@@ -78,6 +105,7 @@ export default function AdminCertificates() {
       setIsValidating(false);
     }
   };
+
 
   const filteredCertificates = certificates?.filter((cert) => {
     const searchLower = search.toLowerCase();

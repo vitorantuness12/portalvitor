@@ -166,15 +166,9 @@ export function EditCourseModal({ open, onOpenChange, course }: EditCourseModalP
 
         if (uploadError) throw uploadError;
 
-        // O bucket é privado (buckets públicos estão bloqueados nesta workspace),
-        // então geramos uma URL assinada de longa duração (10 anos).
-        const { data: signed, error: signError } = await supabase.storage
-          .from('course-thumbnails')
-          .createSignedUrl(fileName, 60 * 60 * 24 * 365 * 10);
-
-        if (signError || !signed?.signedUrl) throw signError ?? new Error('Falha ao gerar URL da imagem');
-
-        thumbnail_url = signed.signedUrl;
+        // Salva o caminho permanente. A interface gera uma URL assinada atual
+        // no momento da exibição, evitando links expirados no PWA.
+        thumbnail_url = fileName;
       } catch (error) {
         console.error('Erro no upload da capa:', error);
         const message = error instanceof Error ? error.message : 'Erro desconhecido';

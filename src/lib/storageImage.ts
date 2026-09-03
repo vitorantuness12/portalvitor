@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 const BUCKET = 'course-thumbnails';
 const SIGNED_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 dias
-const STORAGE_KEY = 'formak:thumb-urls:v1';
+const STORAGE_KEY = 'formak:thumb-urls:v2';
 /** Host do projeto Supabase atual — URLs de outros projetos estão mortas. */
 const CURRENT_STORAGE_HOST = 'bchuchlphwykimpwotfh.supabase.co';
 
@@ -74,7 +74,14 @@ function setCached(path: string, url: string | null) {
  */
 export function extractThumbnailPath(url?: string | null): string | null {
   if (!url) return null;
-  const match = url.match(
+  const trimmed = url.trim();
+
+  // Novos registros guardam somente o caminho permanente do objeto.
+  if (!/^https?:\/\//i.test(trimmed)) {
+    return trimmed.replace(/^\/+/, '') || null;
+  }
+
+  const match = trimmed.match(
     new RegExp(`^https?://([^/]+)/storage/v1/object/(?:public|sign)/${BUCKET}/([^?]+)`),
   );
   if (!match) return null;

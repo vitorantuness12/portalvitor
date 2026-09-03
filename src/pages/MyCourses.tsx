@@ -111,6 +111,16 @@ export default function MyCourses() {
           </motion.div>
         )}
 
+        <div className="mb-4 flex justify-end">
+          <Button asChild variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
+            <Link to="/downloads-offline">
+              <HardDrive className="h-4 w-4" />
+              Downloads offline
+            </Link>
+          </Button>
+        </div>
+
+
         {isLoading ? (
           <div className={isPwa ? 'space-y-3' : 'grid md:grid-cols-2 lg:grid-cols-3 gap-6'}>
             {[...Array(3)].map((_, i) => (

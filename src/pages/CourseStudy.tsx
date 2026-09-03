@@ -326,15 +326,24 @@ export default function CourseStudy() {
   };
 
   // Parse modules from content_pdf_url (stored as JSON)
-  const modules: Module[] = course?.content_pdf_url 
+  const onlineModules: Module[] = course?.content_pdf_url 
     ? (() => {
         try {
-          return JSON.parse(course.content_pdf_url);
+          const parsed = JSON.parse(course.content_pdf_url);
+          return Array.isArray(parsed) ? parsed : [];
         } catch {
           return [];
         }
       })()
     : [];
+
+  // Sem internet (ou sem conteúdo carregado), usa o conteúdo baixado no aparelho
+  const modules: Module[] =
+    onlineModules.length > 0 ? onlineModules : offlineCourse.offlineData?.modules ?? [];
+
+  const usingOfflineContent = onlineModules.length === 0 && modules.length > 0;
+  const contentLocked = !online; // exercícios e prova exigem internet
+
 
   // Calculate progress
   const totalSteps = modules.length + 2; // modules + exercises + exam

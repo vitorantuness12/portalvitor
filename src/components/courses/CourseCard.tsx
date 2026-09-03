@@ -36,8 +36,9 @@ function Thumbnail({
   title: string;
   aspect?: string;
 }) {
-  const [failed, setFailed] = useState(false);
+  const [failedUrl, setFailedUrl] = useState<string | null>(null);
   const resolvedUrl = useCourseThumbnail(thumbnailUrl);
+  const failed = Boolean(resolvedUrl && failedUrl === resolvedUrl);
 
   if (!resolvedUrl || failed) {
     return (
@@ -53,7 +54,8 @@ function Thumbnail({
       alt={title}
       loading="lazy"
       decoding="async"
-      onError={() => setFailed(true)}
+      onLoad={() => setFailedUrl(null)}
+      onError={() => setFailedUrl(resolvedUrl)}
       className={cn(
         'h-full w-full object-cover text-transparent transition-transform duration-300 group-hover:scale-105',
         aspect,

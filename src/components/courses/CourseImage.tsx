@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useCourseThumbnail } from '@/lib/storageImage';
 
 interface CourseImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
@@ -13,9 +14,22 @@ interface CourseImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
  */
 export function CourseImage({ thumbnailUrl, fallbackSrc, alt, ...props }: CourseImageProps) {
   const resolved = useCourseThumbnail(thumbnailUrl);
-  const src = resolved || fallbackSrc;
+  const [failedUrl, setFailedUrl] = useState<string | null>(null);
+  const src = resolved && resolved !== failedUrl ? resolved : fallbackSrc;
 
   if (!src) return null;
 
-  return <img src={src} alt={alt} loading="lazy" decoding="async" {...props} />;
+  return (
+    <img
+      src={src}
+      alt={alt}
+      loading="lazy"
+      decoding="async"
+      onLoad={() => setFailedUrl(null)}
+      onError={() => {
+        if (resolved && src === resolved) setFailedUrl(resolved);
+      }}
+      {...props}
+    />
+  );
 }

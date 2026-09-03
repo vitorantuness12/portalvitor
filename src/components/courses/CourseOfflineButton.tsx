@@ -9,7 +9,7 @@ interface CourseOfflineButtonProps {
 
 /** Botão de download offline autocontido, para usar em listas de cursos. */
 export function CourseOfflineButton({ courseId, compact, className }: CourseOfflineButtonProps) {
-  const { isSaved, isSaving, savedAt, save, remove } = useOfflineCourse(courseId);
+  const { isSaved, isSaving, savedAt, save, remove, progress, attempt } = useOfflineCourse(courseId);
 
   if (!courseId) return null;
 
@@ -20,6 +20,8 @@ export function CourseOfflineButton({ courseId, compact, className }: CourseOffl
       savedAt={savedAt}
       onSave={save}
       onRemove={remove}
+      progress={progress}
+      attempt={attempt}
       compact={compact}
       className={className}
     />

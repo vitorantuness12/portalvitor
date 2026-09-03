@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Play, ChevronDown, Bell, Users, Download } from 'lucide-react';
+import { ArrowRight, Play, ChevronDown, Bell, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import heroStudents from '@/assets/hero-students.png';

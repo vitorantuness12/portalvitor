@@ -610,14 +610,16 @@ export default function CourseStudy() {
                 <StickyNote className="h-4 w-4" />
                 Notas
               </TabsTrigger>
-              <TabsTrigger value="exercicios" className="gap-2 px-2 py-2 text-sm">
+              <TabsTrigger value="exercicios" className="gap-2 px-2 py-2 text-sm" disabled={contentLocked}>
                 <FileText className="h-4 w-4" />
                 Exercícios
+                {contentLocked && <WifiOff className="h-3 w-3" />}
               </TabsTrigger>
               <TabsTrigger 
                 value="prova" 
                 className="gap-2 px-2 py-2 text-sm"
-                disabled={currentProgress < 66}
+                disabled={currentProgress < 66 || contentLocked}
+
               >
                 <Trophy className="h-4 w-4" />
                 Prova

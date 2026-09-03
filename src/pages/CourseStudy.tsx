@@ -1038,7 +1038,9 @@ export default function CourseStudy() {
                   )}
                 </>
               )}
+              </div>
             </TabsContent>
+
           </Tabs>
         </div>
       </main>

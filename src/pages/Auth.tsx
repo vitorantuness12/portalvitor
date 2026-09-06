@@ -54,11 +54,33 @@ export default function AuthPage() {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // Guarda o código de indicação vindo do link (?ref=CODIGO) até o cadastro terminar.
   useEffect(() => {
-    if (user) {
-      navigate('/meus-cursos');
+    const ref = searchParams.get('ref');
+    if (ref && ref.trim()) {
+      localStorage.setItem('formak_referral_code', ref.trim().toUpperCase());
     }
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const registerReferral = async () => {
+      const code = localStorage.getItem('formak_referral_code');
+      if (!code) return;
+      try {
+        await supabase.functions.invoke('referral-register', { body: { code } });
+      } catch (err) {
+        console.error('Erro ao registrar indicação:', err);
+      } finally {
+        localStorage.removeItem('formak_referral_code');
+      }
+    };
+
+    void registerReferral();
+    navigate('/meus-cursos');
   }, [user, navigate]);
+
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;

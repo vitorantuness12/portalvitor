@@ -14,6 +14,18 @@ export type Database = {
   }
   public: {
     Tables: {
+      _probe_ddl: {
+        Row: {
+          id: number | null
+        }
+        Insert: {
+          id?: number | null
+        }
+        Update: {
+          id?: number | null
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           created_at: string | null

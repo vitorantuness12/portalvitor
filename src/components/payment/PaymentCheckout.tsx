@@ -396,15 +396,65 @@ export function PaymentCheckout({
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Amount */}
       <Card>
-        <CardContent className="pt-6">
+        <CardContent className="pt-6 space-y-4">
+          {coupon && (
+            <div className="space-y-1 text-sm">
+              <div className="flex items-center justify-between text-muted-foreground">
+                <span>Subtotal</span>
+                <span className="line-through">R$ {amount.toFixed(2).replace('.', ',')}</span>
+              </div>
+              <div className="flex items-center justify-between text-emerald-600 font-medium">
+                <span>Cupom {coupon.code}</span>
+                <span>- R$ {coupon.discount.toFixed(2).replace('.', ',')}</span>
+              </div>
+            </div>
+          )}
           <div className="flex items-center justify-between">
             <span className="text-muted-foreground">Total a pagar</span>
             <span className="text-2xl font-bold text-primary">
-              R$ {amount.toFixed(2).replace('.', ',')}
+              R$ {totalAmount.toFixed(2).replace('.', ',')}
             </span>
           </div>
+
+          {allowCoupon && (
+            <div className="space-y-2 border-t border-border pt-4">
+              <Label htmlFor="coupon">Cupom de desconto</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="coupon"
+                  placeholder="DIGITE SEU CUPOM"
+                  value={couponInput}
+                  onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                  disabled={!!coupon}
+                  className="uppercase"
+                />
+                {coupon ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setCoupon(null);
+                      setCouponInput('');
+                    }}
+                  >
+                    Remover
+                  </Button>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleApplyCoupon}
+                    disabled={validatingCoupon || !couponInput.trim()}
+                  >
+                    {validatingCoupon ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Aplicar'}
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
+
 
       {/* Payment Method */}
       <Card>

@@ -22,6 +22,9 @@ import { PaymentCheckout } from '@/components/payment/PaymentCheckout';
 import { useIsPwa } from '@/hooks/useIsPwa';
 import { cn } from '@/lib/utils';
 import { CourseImage } from '@/components/courses/CourseImage';
+import { Seo } from '@/components/seo/Seo';
+import { SITE_URL } from '@/lib/site';
+
 
 const levelStyles: Record<string, string> = {
   iniciante: 'bg-success/10 text-success border-success/20',
@@ -208,11 +211,42 @@ export default function CourseDetail() {
   }
 
   const isPaid = Number(course.price) > 0;
+  const courseDescription =
+    course.short_description ||
+    (course.description ? String(course.description).slice(0, 155) : '') ||
+    `Curso online de ${course.title} com certificado. Estude no seu ritmo na Formak.`;
 
   return (
     <div className="min-h-screen flex flex-col">
+      <Seo
+        title={`${course.title} — curso online com certificado`}
+        description={courseDescription}
+        path={`/curso/${course.id}`}
+        jsonLd={{
+          '@context': 'https://schema.org',
+          '@type': 'Course',
+          name: course.title,
+          description: courseDescription,
+          url: `${SITE_URL}/curso/${course.id}`,
+          inLanguage: 'pt-BR',
+          provider: { '@type': 'Organization', name: 'Formak', url: SITE_URL },
+          offers: {
+            '@type': 'Offer',
+            price: Number(course.price ?? 0).toFixed(2),
+            priceCurrency: 'BRL',
+            availability: 'https://schema.org/InStock',
+            url: `${SITE_URL}/curso/${course.id}`,
+          },
+          hasCourseInstance: {
+            '@type': 'CourseInstance',
+            courseMode: 'online',
+            courseWorkload: `PT${Number(course.duration_hours ?? 0)}H`,
+          },
+        }}
+      />
       <Header />
       <main className="flex-1 py-4 sm:py-8 pb-28 lg:pb-8">
+
         <div className="container mx-auto px-4">
           <Link
             to="/cursos"

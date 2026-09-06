@@ -21,6 +21,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useIsPwa } from '@/hooks/useIsPwa';
 import { PwaLayout } from '@/components/pwa/PwaLayout';
 import { prefetchThumbnails } from '@/lib/storageImage';
+import { Seo } from '@/components/seo/Seo';
 
 
 type SortOption = 'recent' | 'price_asc' | 'price_desc' | 'title';
@@ -110,6 +111,11 @@ export default function CoursesPage() {
 
   return (
     <PwaLayout>
+      <Seo
+        title="Cursos online com certificado"
+        description="Explore mais de 100 cursos online com certificado em diversas áreas. Estude no seu ritmo, pelo computador ou celular, e conquiste novas oportunidades."
+        path="/cursos"
+      />
       {/* Hero - hidden in PWA */}
       {!isPwa && (
         <section className="hero-gradient py-10 md:py-16">

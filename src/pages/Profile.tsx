@@ -104,7 +104,7 @@ export default function Profile() {
         : { data: [] };
       const enrollmentByCourse = new Map((courseEns ?? []).map((e) => [e.course_id, e]));
 
-      return (trackEns ?? [])
+      const mapped = (trackEns ?? [])
         .map((te) => {
           const track = te.learning_tracks as { id: string; title: string; slug: string; thumbnail_url: string | null } | null;
           if (!track) return null;
@@ -117,9 +117,24 @@ export default function Profile() {
             });
           const done = courses.filter((c) => c.completed).length;
           const nextCourse = courses.find((c) => !c.completed) ?? courses[0];
-          return { ...track, courses, done, total: courses.length, nextCourseId: nextCourse?.id };
+          return { ...track, courses, done, total: courses.length, nextCourseId: nextCourse?.id, certificate: null as { code: string; issued_at: string } | null };
         })
-        .filter(Boolean) as Array<{ id: string; title: string; slug: string; thumbnail_url: string | null; courses: Array<{ id: string; title: string; thumbnail_url: string | null; progress: number; completed: boolean }>; done: number; total: number; nextCourseId?: string }>;
+        .filter(Boolean) as Array<{ id: string; title: string; slug: string; thumbnail_url: string | null; courses: Array<{ id: string; title: string; thumbnail_url: string | null; progress: number; completed: boolean }>; done: number; total: number; nextCourseId?: string; certificate: { code: string; issued_at: string } | null }>;
+
+      // Emite/recupera o certificado das trilhas 100% concluídas
+      await Promise.all(mapped.map(async (track) => {
+        if (track.total > 0 && track.done === track.total) {
+          const { data } = await (supabase.rpc as unknown as (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown }>)(
+            'issue_track_certificate', { _track_id: track.id }
+          );
+          const result = data as { success?: boolean; code?: string; issued_at?: string } | null;
+          if (result?.success && result.code) {
+            track.certificate = { code: result.code, issued_at: result.issued_at ?? new Date().toISOString() };
+          }
+        }
+      }));
+
+      return mapped;
     },
     enabled: !!user,
   });

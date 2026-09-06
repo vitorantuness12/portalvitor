@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Camera, Save, Loader2, User, MessageSquare, Clock, CheckCircle, ChevronLeft, ChevronRight, Phone, Mail, CalendarDays, Settings2, Route, PlayCircle, BookOpen } from 'lucide-react';
+import { Camera, Save, Loader2, User, MessageSquare, Clock, CheckCircle, ChevronLeft, ChevronRight, Phone, Mail, CalendarDays, Settings2, Route, PlayCircle, BookOpen, Award, QrCode } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -401,6 +401,29 @@ export default function Profile() {
                             </div>
                           ))}
                         </div>
+                        {track.certificate && (
+                          <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-full bg-primary/15 flex items-center justify-center shrink-0">
+                              <Award className="h-5 w-5 text-primary" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-semibold text-foreground truncate">Certificado: {track.title}</p>
+                              <p className="text-[11px] text-muted-foreground">
+                                Emitido em {format(new Date(track.certificate.issued_at), "dd/MM/yyyy", { locale: ptBR })} · 100% concluído
+                              </p>
+                              <p className="text-[10px] text-muted-foreground font-mono">{track.certificate.code}</p>
+                            </div>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              className="h-7 px-2.5 text-[11px] shrink-0 gap-1"
+                              onClick={() => navigate(`/validar-certificado?codigo=${encodeURIComponent(track.certificate!.code)}`)}
+                            >
+                              <QrCode className="h-3 w-3" />Ver
+                            </Button>
+                          </div>
+                        )}
                       </div>
                     );
                   })}

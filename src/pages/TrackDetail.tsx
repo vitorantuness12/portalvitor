@@ -113,7 +113,14 @@ export default function TrackDetail() {
   const issueCertificate = useMutation({
     mutationFn: async () => {
       if (!track) throw new Error('Trilha não encontrada');
-      const { data, error } = await supabase.rpc('issue_track_certificate', { _track_id: track.id });
+      // RPC criada via SQL; ainda não presente nos tipos gerados.
+      const { data, error } = await (supabase.rpc as unknown as (
+        fn: string,
+        args: Record<string, unknown>,
+      ) => Promise<{ data: unknown; error: { message: string } | null }>)('issue_track_certificate', {
+        _track_id: track.id,
+      });
+
       if (error) throw error;
       const result = data as unknown as { success: boolean; error?: string; code?: string };
       if (!result?.success) throw new Error(result?.error || 'Não foi possível emitir o certificado');

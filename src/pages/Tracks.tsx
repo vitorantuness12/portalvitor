@@ -45,9 +45,11 @@ export default function Tracks() {
   return (
     <PwaLayout>
       <Seo
-        title="Trilhas de carreira | Formak"
+        title="Trilhas de carreira"
         description="Combos de cursos com desconto e certificado de trilha para você avançar mais rápido na carreira."
+        path="/trilhas"
       />
+
       <div className="container mx-auto px-4 py-6 sm:py-10 space-y-6">
         <PageHeader
           eyebrow="Trilhas"

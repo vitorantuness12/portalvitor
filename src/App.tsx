@@ -15,6 +15,7 @@ import MyCertificates from "./pages/MyCertificates";
 import StudentDashboard from "./pages/StudentDashboard";
 import Profile from "./pages/Profile";
 import CourseDetail from "./pages/CourseDetail";
+import CategoryPage from "./pages/CategoryPage";
 import CourseStudy from "./pages/CourseStudy";
 import CourseCertificate from "./pages/CourseCertificate";
 import ValidateCertificate from "./pages/ValidateCertificate";
@@ -79,6 +80,7 @@ function App() {
                 <Route path="/meu-progresso" element={<StudentDashboard />} />
                 <Route path="/meus-certificados" element={<MyCertificates />} />
                 <Route path="/perfil" element={<Profile />} />
+                <Route path="/categoria/:slug" element={<CategoryPage />} />
                 <Route path="/curso/:id" element={<CourseDetail />} />
                 <Route path="/curso/:id/estudar" element={<CourseStudy />} />
                 <Route path="/curso/:id/certificado" element={<CourseCertificate />} />

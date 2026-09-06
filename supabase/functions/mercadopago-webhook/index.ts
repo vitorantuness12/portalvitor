@@ -215,7 +215,17 @@ serve(async (req) => {
 
         if (localPayment.reference_type === "course") {
           // Create enrollment for the course
-          const { error: enrollmentError } = await supabase
+          // Evita matrícula duplicada quando o MP reenvia a mesma notificação.
+          const { data: existingEnrollment } = await supabase
+            .from("enrollments")
+            .select("id")
+            .eq("user_id", localPayment.user_id)
+            .eq("course_id", localPayment.reference_id)
+            .maybeSingle();
+
+          const { error: enrollmentError } = existingEnrollment
+            ? { error: null }
+            : await supabase
             .from("enrollments")
             .insert({
               user_id: localPayment.user_id,

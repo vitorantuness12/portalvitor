@@ -95,6 +95,10 @@ function App() {
                 <Route path="/minha-carteirinha" element={<StudentCard />} />
                 <Route path="/validar-carteirinha" element={<ValidateStudentCard />} />
                 <Route path="/suporte/:id" element={<SupportTicket />} />
+                <Route path="/trilhas" element={<Tracks />} />
+                <Route path="/trilha/:slug" element={<TrackDetail />} />
+                <Route path="/indicacoes" element={<Referrals />} />
+
 
                 {/* Admin Routes */}
                 <Route path="/admin" element={<AdminLayout />}>

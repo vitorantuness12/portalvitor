@@ -7,7 +7,7 @@ const corsHeaders = {
 };
 
 interface CreatePaymentRequest {
-  referenceType: "student_card" | "course";
+  referenceType: "student_card" | "course" | "track";
   referenceId: string;
   amount: number;
   paymentMethod: "pix" | "credit_card" | "debit_card";
@@ -15,10 +15,12 @@ interface CreatePaymentRequest {
   payerEmail: string;
   payerName: string;
   payerCpf?: string;
+  couponCode?: string;
   // Card data (only for card payments)
   cardToken?: string;
   installments?: number;
 }
+
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {

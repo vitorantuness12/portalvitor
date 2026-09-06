@@ -22,7 +22,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { formatCpf } from '@/lib/masks';
 
 interface PaymentCheckoutProps {
-  referenceType: 'student_card' | 'course';
+  referenceType: 'student_card' | 'course' | 'track';
   referenceId: string;
   amount: number;
   description: string;
@@ -31,6 +31,12 @@ interface PaymentCheckoutProps {
 }
 
 type PaymentStatus = 'idle' | 'processing' | 'awaiting_pix' | 'approved' | 'rejected';
+
+interface AppliedCoupon {
+  code: string;
+  discount: number;
+  finalAmount: number;
+}
 
 export function PaymentCheckout({
   referenceType,
@@ -55,6 +61,56 @@ export function PaymentCheckout({
     cpf: '',
   });
   const [checkingStatus, setCheckingStatus] = useState(false);
+  const [couponInput, setCouponInput] = useState('');
+  const [coupon, setCoupon] = useState<AppliedCoupon | null>(null);
+  const [validatingCoupon, setValidatingCoupon] = useState(false);
+
+  const allowCoupon = referenceType !== 'student_card';
+  const totalAmount = coupon ? coupon.finalAmount : amount;
+
+  const handleApplyCoupon = async () => {
+    const code = couponInput.trim();
+    if (!code) return;
+
+    setValidatingCoupon(true);
+    try {
+      const { data, error } = await supabase.rpc('validate_coupon', {
+        _code: code,
+        _amount: amount,
+        _scope: referenceType,
+        _scope_id: referenceId,
+      });
+
+      if (error) throw error;
+
+      const result = data as unknown as {
+        valid: boolean;
+        error?: string;
+        code?: string;
+        discount?: number;
+        final_amount?: number;
+      };
+
+      if (!result?.valid) {
+        setCoupon(null);
+        toast.error(result?.error || 'Cupom inválido');
+        return;
+      }
+
+      setCoupon({
+        code: result.code ?? code.toUpperCase(),
+        discount: Number(result.discount ?? 0),
+        finalAmount: Number(result.final_amount ?? amount),
+      });
+      toast.success('Cupom aplicado!');
+    } catch (err) {
+      console.error('Coupon error:', err);
+      toast.error('Não foi possível validar o cupom');
+    } finally {
+      setValidatingCoupon(false);
+    }
+  };
+
 
   // Poll for PIX payment status
   useEffect(() => {
@@ -120,6 +176,8 @@ export function PaymentCheckout({
           payerEmail: formData.email,
           payerName: formData.name,
           payerCpf: formData.cpf.replace(/\D/g, ''),
+          couponCode: coupon?.code,
+
         },
       });
 
@@ -338,15 +396,65 @@ export function PaymentCheckout({
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Amount */}
       <Card>
-        <CardContent className="pt-6">
+        <CardContent className="pt-6 space-y-4">
+          {coupon && (
+            <div className="space-y-1 text-sm">
+              <div className="flex items-center justify-between text-muted-foreground">
+                <span>Subtotal</span>
+                <span className="line-through">R$ {amount.toFixed(2).replace('.', ',')}</span>
+              </div>
+              <div className="flex items-center justify-between text-emerald-600 font-medium">
+                <span>Cupom {coupon.code}</span>
+                <span>- R$ {coupon.discount.toFixed(2).replace('.', ',')}</span>
+              </div>
+            </div>
+          )}
           <div className="flex items-center justify-between">
             <span className="text-muted-foreground">Total a pagar</span>
             <span className="text-2xl font-bold text-primary">
-              R$ {amount.toFixed(2).replace('.', ',')}
+              R$ {totalAmount.toFixed(2).replace('.', ',')}
             </span>
           </div>
+
+          {allowCoupon && (
+            <div className="space-y-2 border-t border-border pt-4">
+              <Label htmlFor="coupon">Cupom de desconto</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="coupon"
+                  placeholder="DIGITE SEU CUPOM"
+                  value={couponInput}
+                  onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                  disabled={!!coupon}
+                  className="uppercase"
+                />
+                {coupon ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setCoupon(null);
+                      setCouponInput('');
+                    }}
+                  >
+                    Remover
+                  </Button>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleApplyCoupon}
+                    disabled={validatingCoupon || !couponInput.trim()}
+                  >
+                    {validatingCoupon ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Aplicar'}
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
+
 
       {/* Payment Method */}
       <Card>

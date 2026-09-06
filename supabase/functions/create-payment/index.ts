@@ -7,7 +7,7 @@ const corsHeaders = {
 };
 
 interface CreatePaymentRequest {
-  referenceType: "student_card" | "course";
+  referenceType: "student_card" | "course" | "track";
   referenceId: string;
   amount: number;
   paymentMethod: "pix" | "credit_card" | "debit_card";
@@ -15,10 +15,12 @@ interface CreatePaymentRequest {
   payerEmail: string;
   payerName: string;
   payerCpf?: string;
+  couponCode?: string;
   // Card data (only for card payments)
   cardToken?: string;
   installments?: number;
 }
+
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -55,14 +57,84 @@ serve(async (req) => {
     }
 
     const body: CreatePaymentRequest = await req.json();
-    const { referenceType, referenceId, amount, paymentMethod, description, payerEmail, payerName, payerCpf, cardToken, installments } = body;
+    const { referenceType, referenceId, amount, paymentMethod, description, payerEmail, payerName, payerCpf, couponCode, cardToken, installments } = body;
 
     // Validate required fields
-    if (!referenceType || !referenceId || !amount || !paymentMethod || !description || !payerEmail || !payerName) {
+    if (!referenceType || !referenceId || !paymentMethod || !description || !payerEmail || !payerName) {
       return new Response(JSON.stringify({ error: "Missing required fields" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // ---------------------------------------------------------------
+    // Preço confiável: para curso e trilha o valor SEMPRE vem do banco,
+    // nunca do cliente (evita manipulação do valor no navegador).
+    // ---------------------------------------------------------------
+    let baseAmount = Number(amount) || 0;
+
+    if (referenceType === "course") {
+      const { data: course } = await supabase
+        .from("courses")
+        .select("price, title, status")
+        .eq("id", referenceId)
+        .maybeSingle();
+      if (!course || course.status !== "active") {
+        return new Response(JSON.stringify({ error: "Curso indisponível" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      baseAmount = Number(course.price) || 0;
+    } else if (referenceType === "track") {
+      const { data: track } = await supabase
+        .from("learning_tracks")
+        .select("price, title, is_active")
+        .eq("id", referenceId)
+        .maybeSingle();
+      if (!track || !track.is_active) {
+        return new Response(JSON.stringify({ error: "Trilha indisponível" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      baseAmount = Number(track.price) || 0;
+    }
+
+    // Aplica cupom (validação e cálculo feitos no banco)
+    let discount = 0;
+    let couponId: string | null = null;
+    let couponCodeApplied: string | null = null;
+
+    if (couponCode && couponCode.trim() && referenceType !== "student_card") {
+      const { data: couponResult, error: couponError } = await supabase.rpc("validate_coupon", {
+        _code: couponCode.trim(),
+        _amount: baseAmount,
+        _scope: referenceType,
+        _scope_id: referenceId,
+      });
+
+      if (couponError) {
+        console.error("Coupon validation error:", couponError);
+      } else if (couponResult?.valid) {
+        discount = Number(couponResult.discount) || 0;
+        couponId = couponResult.coupon_id;
+        couponCodeApplied = couponResult.code;
+      } else {
+        return new Response(JSON.stringify({ error: couponResult?.error || "Cupom inválido" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
+    const finalAmount = Math.max(Math.round((baseAmount - discount) * 100) / 100, 0);
+
+    if (finalAmount <= 0) {
+      return new Response(
+        JSON.stringify({ error: "Valor inválido para pagamento. Use a liberação gratuita." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
     }
 
     // Create local payment record first
@@ -72,10 +144,18 @@ serve(async (req) => {
         user_id: userData.user.id,
         reference_type: referenceType,
         reference_id: referenceId,
-        amount,
+        amount: finalAmount,
         payment_method: paymentMethod,
         status: "pending",
-        metadata: { description, payer_email: payerEmail, payer_name: payerName },
+        metadata: {
+          description,
+          payer_email: payerEmail,
+          payer_name: payerName,
+          base_amount: baseAmount,
+          discount,
+          coupon_id: couponId,
+          coupon_code: couponCodeApplied,
+        },
       })
       .select()
       .single();
@@ -87,7 +167,8 @@ serve(async (req) => {
 
     // Build Mercado Pago payment request
     let mpPaymentData: Record<string, unknown> = {
-      transaction_amount: amount,
+      transaction_amount: finalAmount,
+
       description,
       external_reference: payment.id,
       notification_url: `${SUPABASE_URL}/functions/v1/mercadopago-webhook`,

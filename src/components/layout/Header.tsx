@@ -11,7 +11,9 @@ import {
   IdCard,
   Download,
   GraduationCap,
+  Gift,
 } from 'lucide-react';
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
@@ -33,6 +35,7 @@ import logoText from '@/assets/logo_formak.png';
 const publicNav = [
   { to: '/', label: 'Início', end: true },
   { to: '/cursos', label: 'Cursos', end: false },
+  { to: '/trilhas', label: 'Trilhas', end: false },
 ];
 
 /** Atalhos da conta, reutilizados no menu do desktop e no painel mobile. */
@@ -41,8 +44,10 @@ const accountLinks = [
   { to: '/meus-cursos', label: 'Meus Cursos', icon: BookOpen },
   { to: '/meus-certificados', label: 'Meus Certificados', icon: Award },
   { to: '/minha-carteirinha', label: 'Minha Carteirinha', icon: IdCard },
+  { to: '/indicacoes', label: 'Indique e Ganhe', icon: Gift },
   { to: '/perfil', label: 'Editar Perfil', icon: Settings },
 ];
+
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);

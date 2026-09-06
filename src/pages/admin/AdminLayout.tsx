@@ -18,6 +18,9 @@ import {
   Wallet,
   Activity,
   Phone,
+  Ticket,
+  Gift,
+
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -36,7 +39,11 @@ const sidebarLinks = [
   { href: '/admin/jobs', icon: Activity, label: 'Monitor Jobs' },
   { href: '/admin/usuarios', icon: Users, label: 'Usuários' },
   { href: '/admin/categorias', icon: FolderOpen, label: 'Categorias' },
+  { href: '/admin/trilhas', icon: Layers, label: 'Trilhas' },
+  { href: '/admin/cupons', icon: Ticket, label: 'Cupons' },
+  { href: '/admin/indicacoes', icon: Gift, label: 'Indicações' },
   { href: '/admin/pagamentos', icon: Wallet, label: 'Pagamentos' },
+
   { href: '/admin/certificados', icon: Award, label: 'Certificados' },
   { href: '/admin/config-certificado', icon: Settings, label: 'Editar Certificado' },
   { href: '/admin/carteirinhas', icon: CreditCard, label: 'Carteirinhas' },

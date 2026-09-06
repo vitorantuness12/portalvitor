@@ -37,6 +37,13 @@ import CertificateConfig from "./pages/admin/CertificateConfig";
 import AdminPayments from "./pages/admin/Payments";
 import JobsMonitor from "./pages/admin/JobsMonitor";
 import WhatsAppAdmin from "./pages/admin/WhatsApp";
+import AdminTracks from "./pages/admin/Tracks";
+import AdminCoupons from "./pages/admin/Coupons";
+import AdminReferrals from "./pages/admin/Referrals";
+import Tracks from "./pages/Tracks";
+import TrackDetail from "./pages/TrackDetail";
+import Referrals from "./pages/Referrals";
+
 import NotFound from "./pages/NotFound";
 import Onboarding from "./pages/Onboarding";
 import AppLogin from "./pages/AppLogin";
@@ -88,6 +95,10 @@ function App() {
                 <Route path="/minha-carteirinha" element={<StudentCard />} />
                 <Route path="/validar-carteirinha" element={<ValidateStudentCard />} />
                 <Route path="/suporte/:id" element={<SupportTicket />} />
+                <Route path="/trilhas" element={<Tracks />} />
+                <Route path="/trilha/:slug" element={<TrackDetail />} />
+                <Route path="/indicacoes" element={<Referrals />} />
+
 
                 {/* Admin Routes */}
                 <Route path="/admin" element={<AdminLayout />}>
@@ -105,6 +116,10 @@ function App() {
                   <Route path="carteirinhas" element={<AdminStudentCards />} />
                   <Route path="suporte" element={<AdminSupportTickets />} />
                   <Route path="whatsapp" element={<WhatsAppAdmin />} />
+                  <Route path="trilhas" element={<AdminTracks />} />
+                  <Route path="cupons" element={<AdminCoupons />} />
+                  <Route path="indicacoes" element={<AdminReferrals />} />
+
                 </Route>
 
                 <Route path="*" element={<NotFound />} />

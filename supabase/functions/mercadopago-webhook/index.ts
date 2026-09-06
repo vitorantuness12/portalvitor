@@ -240,7 +240,110 @@ serve(async (req) => {
             console.log(`Enrollment created for user ${localPayment.user_id} in course ${localPayment.reference_id}`);
           }
         }
+
+        // ---------------- Trilha de carreira ----------------
+        if (localPayment.reference_type === "track") {
+          const trackId = localPayment.reference_id;
+
+          // Matrícula na trilha (idempotente)
+          await supabase
+            .from("track_enrollments")
+            .upsert(
+              { user_id: localPayment.user_id, track_id: trackId },
+              { onConflict: "user_id,track_id", ignoreDuplicates: true },
+            );
+
+          const { data: trackCourses } = await supabase
+            .from("track_courses")
+            .select("course_id")
+            .eq("track_id", trackId);
+
+          for (const tc of trackCourses ?? []) {
+            const { data: existing } = await supabase
+              .from("enrollments")
+              .select("id")
+              .eq("user_id", localPayment.user_id)
+              .eq("course_id", tc.course_id)
+              .maybeSingle();
+
+            if (!existing) {
+              const { error: err } = await supabase.from("enrollments").insert({
+                user_id: localPayment.user_id,
+                course_id: tc.course_id,
+                status: "in_progress",
+                progress: 0,
+              });
+              if (err) console.error("Error creating track enrollment:", err);
+            }
+          }
+          console.log(`Track ${trackId} liberada para ${localPayment.user_id}`);
+        }
       }
+
+      // ------------- Cupom e indicação (apenas ao aprovar) -------------
+      if (status === "approved" && !localPayment.paid_at) {
+        const meta = (localPayment.metadata ?? {}) as Record<string, unknown>;
+        const couponId = meta.coupon_id as string | undefined;
+        const discount = Number(meta.discount ?? 0);
+
+        if (couponId) {
+          const { data: alreadyRedeemed } = await supabase
+            .from("coupon_redemptions")
+            .select("id")
+            .eq("payment_id", localPayment.id)
+            .maybeSingle();
+
+          if (!alreadyRedeemed) {
+            await supabase.from("coupon_redemptions").insert({
+              coupon_id: couponId,
+              user_id: localPayment.user_id,
+              payment_id: localPayment.id,
+              discount_amount: discount,
+            });
+
+            const { data: coupon } = await supabase
+              .from("coupons")
+              .select("used_count")
+              .eq("id", couponId)
+              .maybeSingle();
+
+            if (coupon) {
+              await supabase
+                .from("coupons")
+                .update({ used_count: (coupon.used_count ?? 0) + 1 })
+                .eq("id", couponId);
+            }
+          }
+        }
+
+        // Programa de indicação: primeira compra do indicado gera prêmio
+        const { data: referral } = await supabase
+          .from("referrals")
+          .select("id, referrer_id, status")
+          .eq("referred_id", localPayment.user_id)
+          .maybeSingle();
+
+        if (referral && referral.status === "pending") {
+          await supabase
+            .from("referrals")
+            .update({ status: "converted", converted_at: new Date().toISOString() })
+            .eq("id", referral.id);
+
+          const expiresAt = new Date();
+          expiresAt.setMonth(expiresAt.getMonth() + 6);
+
+          await supabase.from("referral_rewards").insert({
+            user_id: referral.referrer_id,
+            referral_id: referral.id,
+            reason: "referral",
+            status: "available",
+            expires_at: expiresAt.toISOString(),
+          });
+
+          console.log(`Prêmio de indicação gerado para ${referral.referrer_id}`);
+        }
+      }
+
 
       console.log("Payment updated successfully:", localPayment.id, status);
     }

@@ -1159,6 +1159,15 @@ export type Database = {
         }
         Returns: boolean
       }
+      validate_coupon: {
+        Args: {
+          _amount: number
+          _code: string
+          _scope?: string
+          _scope_id?: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       course_status: "active" | "inactive"

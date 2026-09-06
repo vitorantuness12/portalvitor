@@ -116,6 +116,10 @@ function App() {
                   <Route path="carteirinhas" element={<AdminStudentCards />} />
                   <Route path="suporte" element={<AdminSupportTickets />} />
                   <Route path="whatsapp" element={<WhatsAppAdmin />} />
+                  <Route path="trilhas" element={<AdminTracks />} />
+                  <Route path="cupons" element={<AdminCoupons />} />
+                  <Route path="indicacoes" element={<AdminReferrals />} />
+
                 </Route>
 
                 <Route path="*" element={<NotFound />} />

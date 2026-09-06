@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Camera, Save, Loader2, User, MessageSquare, Clock, CheckCircle, ChevronLeft, ChevronRight, Phone, Mail, CalendarDays, Settings2, Route, PlayCircle, BookOpen } from 'lucide-react';
+import { Camera, Save, Loader2, User, MessageSquare, Clock, CheckCircle, ChevronLeft, ChevronRight, Phone, Mail, CalendarDays, Settings2, Route, PlayCircle, BookOpen, Award, QrCode } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -104,7 +104,7 @@ export default function Profile() {
         : { data: [] };
       const enrollmentByCourse = new Map((courseEns ?? []).map((e) => [e.course_id, e]));
 
-      return (trackEns ?? [])
+      const mapped = (trackEns ?? [])
         .map((te) => {
           const track = te.learning_tracks as { id: string; title: string; slug: string; thumbnail_url: string | null } | null;
           if (!track) return null;
@@ -117,9 +117,24 @@ export default function Profile() {
             });
           const done = courses.filter((c) => c.completed).length;
           const nextCourse = courses.find((c) => !c.completed) ?? courses[0];
-          return { ...track, courses, done, total: courses.length, nextCourseId: nextCourse?.id };
+          return { ...track, courses, done, total: courses.length, nextCourseId: nextCourse?.id, certificate: null as { code: string; issued_at: string } | null };
         })
-        .filter(Boolean) as Array<{ id: string; title: string; slug: string; thumbnail_url: string | null; courses: Array<{ id: string; title: string; thumbnail_url: string | null; progress: number; completed: boolean }>; done: number; total: number; nextCourseId?: string }>;
+        .filter(Boolean) as Array<{ id: string; title: string; slug: string; thumbnail_url: string | null; courses: Array<{ id: string; title: string; thumbnail_url: string | null; progress: number; completed: boolean }>; done: number; total: number; nextCourseId?: string; certificate: { code: string; issued_at: string } | null }>;
+
+      // Emite/recupera o certificado das trilhas 100% concluídas
+      await Promise.all(mapped.map(async (track) => {
+        if (track.total > 0 && track.done === track.total) {
+          const { data } = await (supabase.rpc as unknown as (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown }>)(
+            'issue_track_certificate', { _track_id: track.id }
+          );
+          const result = data as { success?: boolean; code?: string; issued_at?: string } | null;
+          if (result?.success && result.code) {
+            track.certificate = { code: result.code, issued_at: result.issued_at ?? new Date().toISOString() };
+          }
+        }
+      }));
+
+      return mapped;
     },
     enabled: !!user,
   });
@@ -386,6 +401,29 @@ export default function Profile() {
                             </div>
                           ))}
                         </div>
+                        {track.certificate && (
+                          <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-full bg-primary/15 flex items-center justify-center shrink-0">
+                              <Award className="h-5 w-5 text-primary" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-semibold text-foreground truncate">Certificado: {track.title}</p>
+                              <p className="text-[11px] text-muted-foreground">
+                                Emitido em {format(new Date(track.certificate.issued_at), "dd/MM/yyyy", { locale: ptBR })} · 100% concluído
+                              </p>
+                              <p className="text-[10px] text-muted-foreground font-mono">{track.certificate.code}</p>
+                            </div>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              className="h-7 px-2.5 text-[11px] shrink-0 gap-1"
+                              onClick={() => navigate(`/validar-certificado?codigo=${encodeURIComponent(track.certificate!.code)}`)}
+                            >
+                              <QrCode className="h-3 w-3" />Ver
+                            </Button>
+                          </div>
+                        )}
                       </div>
                     );
                   })}

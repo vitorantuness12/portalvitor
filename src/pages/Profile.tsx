@@ -1,7 +1,8 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Camera, Save, Loader2, User, MessageSquare, Clock, CheckCircle, ChevronLeft, ChevronRight, Phone, Mail, CalendarDays, Settings2 } from 'lucide-react';
+import { Camera, Save, Loader2, User, MessageSquare, Clock, CheckCircle, ChevronLeft, ChevronRight, Phone, Mail, CalendarDays, Settings2, Route, PlayCircle, BookOpen } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -76,6 +77,52 @@ export default function Profile() {
   const tickets = ticketsData?.tickets || [];
   const totalTickets = ticketsData?.total || 0;
   const totalPages = Math.ceil(totalTickets / ticketsPerPage);
+
+  // Trilhas compradas pelo aluno + progresso por curso
+  const { data: myTracks, isLoading: isLoadingTracks } = useQuery({
+    queryKey: ['my-tracks', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data: trackEns, error: teError } = await supabase
+        .from('track_enrollments')
+        .select('track_id, learning_tracks(id, title, slug, thumbnail_url)')
+        .eq('user_id', user.id);
+      if (teError) throw teError;
+      const trackIds = (trackEns ?? []).map((t) => t.track_id);
+      if (trackIds.length === 0) return [];
+
+      const { data: trackCourses, error: tcError } = await supabase
+        .from('track_courses')
+        .select('track_id, position, courses(id, title, thumbnail_url)')
+        .in('track_id', trackIds)
+        .order('position', { ascending: true });
+      if (tcError) throw tcError;
+
+      const courseIds = (trackCourses ?? []).map((tc) => (tc.courses as { id: string } | null)?.id).filter(Boolean) as string[];
+      const { data: courseEns } = courseIds.length
+        ? await supabase.from('enrollments').select('course_id, status, progress').eq('user_id', user.id).in('course_id', courseIds)
+        : { data: [] };
+      const enrollmentByCourse = new Map((courseEns ?? []).map((e) => [e.course_id, e]));
+
+      return (trackEns ?? [])
+        .map((te) => {
+          const track = te.learning_tracks as { id: string; title: string; slug: string; thumbnail_url: string | null } | null;
+          if (!track) return null;
+          const courses = (trackCourses ?? [])
+            .filter((tc) => tc.track_id === te.track_id && tc.courses)
+            .map((tc) => {
+              const course = tc.courses as { id: string; title: string; thumbnail_url: string | null };
+              const enr = enrollmentByCourse.get(course.id);
+              return { ...course, progress: enr?.progress ?? 0, completed: enr?.status === 'completed' || enr?.status === 'passed' };
+            });
+          const done = courses.filter((c) => c.completed).length;
+          const nextCourse = courses.find((c) => !c.completed) ?? courses[0];
+          return { ...track, courses, done, total: courses.length, nextCourseId: nextCourse?.id };
+        })
+        .filter(Boolean) as Array<{ id: string; title: string; slug: string; thumbnail_url: string | null; courses: Array<{ id: string; title: string; thumbnail_url: string | null; progress: number; completed: boolean }>; done: number; total: number; nextCourseId?: string }>;
+    },
+    enabled: !!user,
+  });
 
   useEffect(() => {
     if (profile) {
@@ -267,6 +314,94 @@ export default function Profile() {
             </Card>
           </div>
         </form>
+
+        {/* Minhas Trilhas */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }} className="mt-5">
+          <Card className={isPwa ? 'border-border/50' : ''}>
+            <CardHeader className="pb-3">
+              <CardTitle className={`flex items-center gap-2 ${isPwa ? 'text-base' : ''}`}>
+                <Route className="h-4 w-4 text-primary" />Minhas Trilhas
+              </CardTitle>
+              {!isPwa && <CardDescription>Trilhas de carreira que você adquiriu e seu progresso</CardDescription>}
+            </CardHeader>
+            <CardContent>
+              {isLoadingTracks ? (
+                <div className="space-y-2">
+                  {Array.from({ length: 2 }).map((_, i) => (
+                    <div key={i} className="p-3 rounded-lg border border-border/50 space-y-2">
+                      <Skeleton className="h-4 w-2/3" />
+                      <Skeleton className="h-2 w-full" />
+                      <Skeleton className="h-8 w-full" />
+                    </div>
+                  ))}
+                </div>
+              ) : myTracks && myTracks.length > 0 ? (
+                <div className="space-y-3">
+                  {myTracks.map((track) => {
+                    const percent = track.total ? Math.round((track.done / track.total) * 100) : 0;
+                    return (
+                      <div key={track.id} className="rounded-xl border border-border/50 p-3 space-y-3">
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/trilha/${track.slug}`)}
+                          className="flex items-center gap-3 w-full text-left group"
+                        >
+                          {track.thumbnail_url ? (
+                            <img src={track.thumbnail_url} alt={track.title} className="h-12 w-12 rounded-lg object-cover shrink-0" loading="lazy" />
+                          ) : (
+                            <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                              <Route className="h-5 w-5 text-primary" />
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-sm text-foreground truncate group-hover:text-primary transition-colors">{track.title}</p>
+                            <p className="text-[11px] text-muted-foreground">{track.done}/{track.total} cursos concluídos</p>
+                          </div>
+                          <Badge variant="secondary" className="text-[10px] shrink-0">{percent}%</Badge>
+                        </button>
+                        <Progress value={percent} className="h-1.5" />
+                        <div className="space-y-1.5">
+                          {track.courses.map((course) => (
+                            <div key={course.id} className="flex items-center gap-2">
+                              <div className="flex-1 min-w-0">
+                                <p className={`text-xs truncate ${course.completed ? 'text-muted-foreground line-through' : 'text-foreground'}`}>{course.title}</p>
+                                {!course.completed && course.progress > 0 && (
+                                  <Progress value={course.progress} className="h-1 mt-1" />
+                                )}
+                              </div>
+                              {course.completed ? (
+                                <Badge variant="outline" className="text-[10px] shrink-0 text-success border-success/40">Concluído</Badge>
+                              ) : (
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant={course.id === track.nextCourseId ? 'default' : 'outline'}
+                                  className="h-7 px-2.5 text-[11px] shrink-0 gap-1"
+                                  onClick={() => navigate(`/curso/${course.id}/estudar`)}
+                                >
+                                  <PlayCircle className="h-3 w-3" />
+                                  {course.progress > 0 ? 'Continuar' : 'Começar'}
+                                </Button>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-6">
+                  <BookOpen className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+                  <p className="text-sm text-muted-foreground">Você ainda não possui trilhas</p>
+                  <Button type="button" variant="outline" size="sm" className="mt-3" onClick={() => navigate('/trilhas')}>
+                    Conhecer trilhas
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
 
         {/* Support Tickets */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="mt-5">

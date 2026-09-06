@@ -18,6 +18,9 @@ import {
   Wallet,
   Activity,
   Phone,
+  Ticket,
+  Gift,
+
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';

@@ -176,6 +176,8 @@ export function PaymentCheckout({
           payerEmail: formData.email,
           payerName: formData.name,
           payerCpf: formData.cpf.replace(/\D/g, ''),
+          couponCode: coupon?.code,
+
         },
       });
 

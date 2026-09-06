@@ -22,6 +22,9 @@ import { PaymentCheckout } from '@/components/payment/PaymentCheckout';
 import { useIsPwa } from '@/hooks/useIsPwa';
 import { cn } from '@/lib/utils';
 import { CourseImage } from '@/components/courses/CourseImage';
+import { Seo } from '@/components/seo/Seo';
+import { SITE_URL } from '@/lib/site';
+
 
 const levelStyles: Record<string, string> = {
   iniciante: 'bg-success/10 text-success border-success/20',

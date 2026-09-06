@@ -37,6 +37,13 @@ import CertificateConfig from "./pages/admin/CertificateConfig";
 import AdminPayments from "./pages/admin/Payments";
 import JobsMonitor from "./pages/admin/JobsMonitor";
 import WhatsAppAdmin from "./pages/admin/WhatsApp";
+import AdminTracks from "./pages/admin/Tracks";
+import AdminCoupons from "./pages/admin/Coupons";
+import AdminReferrals from "./pages/admin/Referrals";
+import Tracks from "./pages/Tracks";
+import TrackDetail from "./pages/TrackDetail";
+import Referrals from "./pages/Referrals";
+
 import NotFound from "./pages/NotFound";
 import Onboarding from "./pages/Onboarding";
 import AppLogin from "./pages/AppLogin";

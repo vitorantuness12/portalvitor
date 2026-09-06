@@ -22,7 +22,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { formatCpf } from '@/lib/masks';
 
 interface PaymentCheckoutProps {
-  referenceType: 'student_card' | 'course';
+  referenceType: 'student_card' | 'course' | 'track';
   referenceId: string;
   amount: number;
   description: string;
@@ -31,6 +31,12 @@ interface PaymentCheckoutProps {
 }
 
 type PaymentStatus = 'idle' | 'processing' | 'awaiting_pix' | 'approved' | 'rejected';
+
+interface AppliedCoupon {
+  code: string;
+  discount: number;
+  finalAmount: number;
+}
 
 export function PaymentCheckout({
   referenceType,
@@ -55,6 +61,56 @@ export function PaymentCheckout({
     cpf: '',
   });
   const [checkingStatus, setCheckingStatus] = useState(false);
+  const [couponInput, setCouponInput] = useState('');
+  const [coupon, setCoupon] = useState<AppliedCoupon | null>(null);
+  const [validatingCoupon, setValidatingCoupon] = useState(false);
+
+  const allowCoupon = referenceType !== 'student_card';
+  const totalAmount = coupon ? coupon.finalAmount : amount;
+
+  const handleApplyCoupon = async () => {
+    const code = couponInput.trim();
+    if (!code) return;
+
+    setValidatingCoupon(true);
+    try {
+      const { data, error } = await supabase.rpc('validate_coupon', {
+        _code: code,
+        _amount: amount,
+        _scope: referenceType,
+        _scope_id: referenceId,
+      });
+
+      if (error) throw error;
+
+      const result = data as unknown as {
+        valid: boolean;
+        error?: string;
+        code?: string;
+        discount?: number;
+        final_amount?: number;
+      };
+
+      if (!result?.valid) {
+        setCoupon(null);
+        toast.error(result?.error || 'Cupom inválido');
+        return;
+      }
+
+      setCoupon({
+        code: result.code ?? code.toUpperCase(),
+        discount: Number(result.discount ?? 0),
+        finalAmount: Number(result.final_amount ?? amount),
+      });
+      toast.success('Cupom aplicado!');
+    } catch (err) {
+      console.error('Coupon error:', err);
+      toast.error('Não foi possível validar o cupom');
+    } finally {
+      setValidatingCoupon(false);
+    }
+  };
+
 
   // Poll for PIX payment status
   useEffect(() => {

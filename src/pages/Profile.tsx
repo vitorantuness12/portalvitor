@@ -1,7 +1,8 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Camera, Save, Loader2, User, MessageSquare, Clock, CheckCircle, ChevronLeft, ChevronRight, Phone, Mail, CalendarDays, Settings2 } from 'lucide-react';
+import { Camera, Save, Loader2, User, MessageSquare, Clock, CheckCircle, ChevronLeft, ChevronRight, Phone, Mail, CalendarDays, Settings2, Route, PlayCircle, BookOpen } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -76,6 +77,52 @@ export default function Profile() {
   const tickets = ticketsData?.tickets || [];
   const totalTickets = ticketsData?.total || 0;
   const totalPages = Math.ceil(totalTickets / ticketsPerPage);
+
+  // Trilhas compradas pelo aluno + progresso por curso
+  const { data: myTracks, isLoading: isLoadingTracks } = useQuery({
+    queryKey: ['my-tracks', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data: trackEns, error: teError } = await supabase
+        .from('track_enrollments')
+        .select('track_id, learning_tracks(id, title, slug, thumbnail_url)')
+        .eq('user_id', user.id);
+      if (teError) throw teError;
+      const trackIds = (trackEns ?? []).map((t) => t.track_id);
+      if (trackIds.length === 0) return [];
+
+      const { data: trackCourses, error: tcError } = await supabase
+        .from('track_courses')
+        .select('track_id, position, courses(id, title, thumbnail_url)')
+        .in('track_id', trackIds)
+        .order('position', { ascending: true });
+      if (tcError) throw tcError;
+
+      const courseIds = (trackCourses ?? []).map((tc) => (tc.courses as { id: string } | null)?.id).filter(Boolean) as string[];
+      const { data: courseEns } = courseIds.length
+        ? await supabase.from('enrollments').select('course_id, status, progress').eq('user_id', user.id).in('course_id', courseIds)
+        : { data: [] };
+      const enrollmentByCourse = new Map((courseEns ?? []).map((e) => [e.course_id, e]));
+
+      return (trackEns ?? [])
+        .map((te) => {
+          const track = te.learning_tracks as { id: string; title: string; slug: string; thumbnail_url: string | null } | null;
+          if (!track) return null;
+          const courses = (trackCourses ?? [])
+            .filter((tc) => tc.track_id === te.track_id && tc.courses)
+            .map((tc) => {
+              const course = tc.courses as { id: string; title: string; thumbnail_url: string | null };
+              const enr = enrollmentByCourse.get(course.id);
+              return { ...course, progress: enr?.progress ?? 0, completed: enr?.status === 'completed' || enr?.status === 'passed' };
+            });
+          const done = courses.filter((c) => c.completed).length;
+          const nextCourse = courses.find((c) => !c.completed) ?? courses[0];
+          return { ...track, courses, done, total: courses.length, nextCourseId: nextCourse?.id };
+        })
+        .filter(Boolean) as Array<{ id: string; title: string; slug: string; thumbnail_url: string | null; courses: Array<{ id: string; title: string; thumbnail_url: string | null; progress: number; completed: boolean }>; done: number; total: number; nextCourseId?: string }>;
+    },
+    enabled: !!user,
+  });
 
   useEffect(() => {
     if (profile) {

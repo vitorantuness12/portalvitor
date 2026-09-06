@@ -1159,6 +1159,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      issue_track_certificate: { Args: { _track_id: string }; Returns: Json }
       validate_coupon: {
         Args: {
           _amount: number

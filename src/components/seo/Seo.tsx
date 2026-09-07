@@ -17,7 +17,7 @@ export interface SeoProps {
 }
 
 const BRAND = 'Formak';
-const DEFAULT_IMAGE = `${SITE_URL}/og-formak.jpg`;
+const DEFAULT_IMAGE = `${SITE_URL}/__l5e/assets-v1/c55fcd1f-6f95-438e-9425-bef0e445bb09/og-formak.jpg`;
 
 /**
  * Define título, descrição, canonical, tags sociais e JSON-LD por rota.

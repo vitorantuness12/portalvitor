@@ -418,6 +418,9 @@ export default function CourseDetail() {
                   </div>
                 )}
 
+                {hasHealthDisclaimer(course.id) && <HealthDisclaimer />}
+
+
                 {enrollment ? (
                   <Link to={`/curso/${id}/estudar`} className="block">
                     <Button variant="hero" size="lg" className="w-full">

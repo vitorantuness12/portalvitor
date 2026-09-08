@@ -30,7 +30,7 @@ const signupSchema = loginSchema.extend({
 });
 
 const brandHighlights = [
-  { icon: Award, text: 'Certificado reconhecido ao concluir cada curso' },
+  { icon: Award, text: 'Certificado próprio de conclusão ao final de cada curso' },
   { icon: InfinityIcon, text: 'Acesso vitalício ao conteúdo adquirido' },
   { icon: Users, text: 'Comunidade e suporte para tirar dúvidas' },
   { icon: ShieldCheck, text: 'Compra 100% segura e protegida' },
@@ -424,7 +424,7 @@ export default function AuthPage() {
             Aprenda com os melhores
           </h3>
           <p className="text-base opacity-90 mb-10">
-            Cursos desenvolvidos por especialistas, com certificado reconhecido e acesso vitalício.
+            Cursos desenvolvidos por especialistas, com certificado próprio de conclusão e acesso vitalício.
           </p>
 
           <ul className="space-y-4">

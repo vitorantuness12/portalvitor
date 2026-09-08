@@ -34,7 +34,7 @@ const testimonials = [
     avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face',
     course: 'Liderança',
     score: 8.7,
-    testimonial: 'Excelente custo-benefício. Certificado reconhecido e conteúdo atualizado.',
+    testimonial: 'Excelente custo-benefício. Certificado de conclusão e conteúdo atualizado.',
   },
 ];
 

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Clock, BookOpen, Award, ArrowLeft, Play, CheckCircle, Star, ShoppingCart, Loader2 } from 'lucide-react';
+import { Clock, BookOpen, Award, ArrowLeft, Play, CheckCircle, Star, ShoppingCart, Loader2, Info } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';

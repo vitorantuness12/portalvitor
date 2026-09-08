@@ -500,6 +500,9 @@ export default function CourseDetail() {
                 </div>
               </div>
             )}
+
+            {hasHealthDisclaimer(course.id) && <HealthDisclaimer compact />}
+
             <div className="flex items-center justify-between gap-4">
               <div className="min-w-0">
               <p className="text-xl font-display font-bold text-primary leading-none">

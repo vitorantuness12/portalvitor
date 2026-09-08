@@ -342,7 +342,12 @@ export default function CourseDetail() {
                   O que você vai aprender
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
-                  {['Conteúdo teórico completo', 'Exercícios práticos', 'Prova final avaliativa', 'Certificado de conclusão'].map((item, i) => (
+                  {[
+                    'Conteúdo teórico completo',
+                    course.categories?.name === 'Segurança do Trabalho' ? 'Atividades teóricas e estudos de caso' : 'Exercícios práticos',
+                    'Prova final avaliativa',
+                    'Certificado de conclusão',
+                  ].map((item, i) => (
                     <div key={i} className="flex items-center gap-2">
                       <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-success flex-shrink-0" />
                       <span className="text-sm sm:text-base text-foreground">{item}</span>

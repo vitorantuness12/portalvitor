@@ -23,6 +23,7 @@ import { useIsPwa } from '@/hooks/useIsPwa';
 import { cn } from '@/lib/utils';
 import { CourseImage } from '@/components/courses/CourseImage';
 import { FreeCourseDisclaimer } from '@/components/courses/FreeCourseDisclaimer';
+import { HealthDisclaimer, hasHealthDisclaimer } from '@/components/courses/HealthDisclaimer';
 import { Seo } from '@/components/seo/Seo';
 import { SITE_URL } from '@/lib/site';
 
@@ -326,6 +327,8 @@ export default function CourseDetail() {
               {/* Disclaimer */}
               <FreeCourseDisclaimer />
 
+              {hasHealthDisclaimer(course.id) && <HealthDisclaimer className="mt-4" />}
+
               {/* Description */}
               <Card className="p-4 sm:p-6">
                 <h3 className="text-lg sm:text-xl font-display font-semibold mb-2 sm:mb-4 text-foreground">
@@ -415,6 +418,9 @@ export default function CourseDetail() {
                   </div>
                 )}
 
+                {hasHealthDisclaimer(course.id) && <HealthDisclaimer />}
+
+
                 {enrollment ? (
                   <Link to={`/curso/${id}/estudar`} className="block">
                     <Button variant="hero" size="lg" className="w-full">
@@ -494,6 +500,9 @@ export default function CourseDetail() {
                 </div>
               </div>
             )}
+
+            {hasHealthDisclaimer(course.id) && <HealthDisclaimer compact />}
+
             <div className="flex items-center justify-between gap-4">
               <div className="min-w-0">
               <p className="text-xl font-display font-bold text-primary leading-none">

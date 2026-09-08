@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Clock, BookOpen, Award, ArrowLeft, Play, CheckCircle, Star, ShoppingCart, Loader2 } from 'lucide-react';
+import { Clock, BookOpen, Award, ArrowLeft, Play, CheckCircle, Star, ShoppingCart, Loader2, Info } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
@@ -399,6 +399,22 @@ export default function CourseDetail() {
                   )}
                 </div>
 
+                {course.categories?.name === 'Segurança do Trabalho' && (
+                  <div className="rounded-xl border-l-4 border-info bg-info/10 p-4 text-sm">
+                    <div className="flex items-start gap-3">
+                      <Info className="h-5 w-5 text-info flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-semibold text-info-foreground mb-1">
+                          Importante sobre este curso
+                        </p>
+                        <p className="text-info-foreground/90 leading-relaxed">
+                          Este curso livre é predominantemente teórico e tem finalidade educacional. O certificado próprio da Formak não substitui treinamentos ocupacionais teóricos e práticos, quando exigidos pela Norma Regulamentadora aplicável. Também não substitui avaliação clínica, autorização do empregador, instrução no local de trabalho, supervisão profissional ou demais requisitos legais.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {enrollment ? (
                   <Link to={`/curso/${id}/estudar`} className="block">
                     <Button variant="hero" size="lg" className="w-full">
@@ -462,8 +478,24 @@ export default function CourseDetail() {
       {/* Sticky mobile purchase bar */}
       {!enrollment && (
         <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 backdrop-blur-lg p-3 shadow-floating lg:hidden safe-area-pb">
-          <div className="container mx-auto flex items-center justify-between gap-4 px-1">
-            <div className="min-w-0">
+          <div className="container mx-auto px-1 space-y-2">
+            {course.categories?.name === 'Segurança do Trabalho' && (
+              <div className="rounded-lg border-l-4 border-info bg-info/10 p-2.5 text-xs">
+                <div className="flex items-start gap-2">
+                  <Info className="h-4 w-4 text-info flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-semibold text-info-foreground mb-0.5">
+                      Importante sobre este curso
+                    </p>
+                    <p className="text-info-foreground/90 leading-relaxed">
+                      Este curso livre é predominantemente teórico e tem finalidade educacional. O certificado próprio da Formak não substitui treinamentos ocupacionais teóricos e práticos, quando exigidos pela Norma Regulamentadora aplicável. Também não substitui avaliação clínica, autorização do empregador, instrução no local de trabalho, supervisão profissional ou demais requisitos legais.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+            <div className="flex items-center justify-between gap-4">
+              <div className="min-w-0">
               <p className="text-xl font-display font-bold text-primary leading-none">
                 {formatPrice(Number(course.price))}
               </p>
@@ -493,6 +525,7 @@ export default function CourseDetail() {
             </Button>
           </div>
         </div>
+      </div>
       )}
 
       {!isPwa && <Footer />}

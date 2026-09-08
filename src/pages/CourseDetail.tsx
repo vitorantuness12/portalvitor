@@ -366,7 +366,7 @@ export default function CourseDetail() {
                   </div>
                   <div className="flex items-center gap-2 text-foreground">
                     <CheckCircle className="h-3.5 w-3.5 text-primary" />
-                    Exercícios práticos
+                    {course.categories?.name === 'Segurança do Trabalho' ? 'Atividades teóricas e estudos de caso' : 'Exercícios práticos'}
                   </div>
                   <div className="flex items-center gap-2 text-foreground">
                     <Star className="h-3.5 w-3.5 text-primary" />
@@ -374,7 +374,7 @@ export default function CourseDetail() {
                   </div>
                   <div className="flex items-center gap-2 text-foreground">
                     <Award className="h-3.5 w-3.5 text-primary" />
-                    Certificado
+                    {course.categories?.name === 'Segurança do Trabalho' ? 'Certificado próprio de conclusão' : 'Certificado'}
                   </div>
                 </div>
               </Card>

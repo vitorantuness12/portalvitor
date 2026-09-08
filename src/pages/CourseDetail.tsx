@@ -525,6 +525,7 @@ export default function CourseDetail() {
             </Button>
           </div>
         </div>
+      </div>
       )}
 
       {!isPwa && <Footer />}

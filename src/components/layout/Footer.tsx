@@ -16,7 +16,7 @@ export function Footer() {
             </Link>
             <p className="text-sm text-muted-foreground">
               Transformando vidas através da educação online de qualidade.
-              Cursos livres com certificado reconhecido.
+              Cursos livres com certificado próprio de conclusão. Não são autorizados ou reconhecidos pelo MEC e não habilitam para profissões regulamentadas.
             </p>
           </div>
 

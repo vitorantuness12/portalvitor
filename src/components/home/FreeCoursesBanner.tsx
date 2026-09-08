@@ -61,7 +61,7 @@ export function FreeCoursesBanner() {
                 hoje mesmo
               </h2>
               <p className="text-base sm:text-lg text-muted-foreground max-w-xl mx-auto">
-                Cursos gratuitos para você dar os primeiros passos na sua capacitação profissional.
+                Cursos gratuitos para você dar os primeiros passos no aprendizado de novos temas.
               </p>
             </motion.div>
 

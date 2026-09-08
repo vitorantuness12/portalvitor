@@ -22,6 +22,7 @@ import { PaymentCheckout } from '@/components/payment/PaymentCheckout';
 import { useIsPwa } from '@/hooks/useIsPwa';
 import { cn } from '@/lib/utils';
 import { CourseImage } from '@/components/courses/CourseImage';
+import { FreeCourseDisclaimer } from '@/components/courses/FreeCourseDisclaimer';
 import { Seo } from '@/components/seo/Seo';
 import { SITE_URL } from '@/lib/site';
 

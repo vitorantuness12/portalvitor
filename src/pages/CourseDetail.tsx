@@ -327,6 +327,8 @@ export default function CourseDetail() {
               {/* Disclaimer */}
               <FreeCourseDisclaimer />
 
+              {hasHealthDisclaimer(course.id) && <HealthDisclaimer className="mt-4" />}
+
               {/* Description */}
               <Card className="p-4 sm:p-6">
                 <h3 className="text-lg sm:text-xl font-display font-semibold mb-2 sm:mb-4 text-foreground">

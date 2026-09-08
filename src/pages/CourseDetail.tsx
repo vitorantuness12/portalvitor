@@ -24,6 +24,7 @@ import { cn } from '@/lib/utils';
 import { CourseImage } from '@/components/courses/CourseImage';
 import { FreeCourseDisclaimer } from '@/components/courses/FreeCourseDisclaimer';
 import { HealthDisclaimer, hasHealthDisclaimer } from '@/components/courses/HealthDisclaimer';
+import { ProfessionDisclaimer, hasProfessionDisclaimer } from '@/components/courses/ProfessionDisclaimer';
 import { Seo } from '@/components/seo/Seo';
 import { SITE_URL } from '@/lib/site';
 
@@ -328,6 +329,7 @@ export default function CourseDetail() {
               <FreeCourseDisclaimer />
 
               {hasHealthDisclaimer(course.id) && <HealthDisclaimer className="mt-4" />}
+              {hasProfessionDisclaimer(course.id) && <ProfessionDisclaimer courseId={course.id} className="mt-4" />}
 
               {/* Description */}
               <Card className="p-4 sm:p-6">
@@ -419,6 +421,7 @@ export default function CourseDetail() {
                 )}
 
                 {hasHealthDisclaimer(course.id) && <HealthDisclaimer />}
+                {hasProfessionDisclaimer(course.id) && <ProfessionDisclaimer courseId={course.id} />}
 
 
                 {enrollment ? (
@@ -502,6 +505,7 @@ export default function CourseDetail() {
             )}
 
             {hasHealthDisclaimer(course.id) && <HealthDisclaimer compact />}
+            {hasProfessionDisclaimer(course.id) && <ProfessionDisclaimer courseId={course.id} compact />}
 
             <div className="flex items-center justify-between gap-4">
               <div className="min-w-0">

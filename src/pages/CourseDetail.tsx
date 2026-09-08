@@ -314,11 +314,11 @@ export default function CourseDetail() {
                   </span>
                   <span className="flex items-center gap-1 sm:gap-2">
                     <BookOpen className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                    Curso completo
+                    {course.categories?.name === 'Segurança do Trabalho' ? 'Conteúdo introdutório' : 'Curso completo'}
                   </span>
                   <span className="flex items-center gap-1 sm:gap-2">
                     <Award className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                    Certificado
+                    {course.categories?.name === 'Segurança do Trabalho' ? 'Certificado próprio de conclusão' : 'Certificado'}
                   </span>
                 </div>
               </div>

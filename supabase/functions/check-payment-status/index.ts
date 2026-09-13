@@ -120,6 +120,30 @@ serve(async (req) => {
                 })
                 .eq("id", payment.reference_id);
             }
+
+            if (payment.reference_type === "course") {
+              const { data: existingEnrollment } = await supabase
+                .from("enrollments")
+                .select("id")
+                .eq("user_id", payment.user_id)
+                .eq("course_id", payment.reference_id)
+                .maybeSingle();
+
+              if (!existingEnrollment) {
+                const { error: enrollmentError } = await supabase
+                  .from("enrollments")
+                  .insert({
+                    user_id: payment.user_id,
+                    course_id: payment.reference_id,
+                    status: "in_progress",
+                    progress: 0,
+                  });
+
+                if (enrollmentError) {
+                  throw new Error("Failed to release course access");
+                }
+              }
+            }
           } else if (mpPayment.status === "rejected") {
             newStatus = "rejected";
             updateData.status = "rejected";

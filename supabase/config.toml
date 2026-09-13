@@ -5,3 +5,12 @@ verify_jwt = false
 
 [functions.optimize-thumbnails]
 verify_jwt = false
+
+[functions.create-payment]
+verify_jwt = false
+
+[functions.check-payment-status]
+verify_jwt = false
+
+[functions.mercadopago-webhook]
+verify_jwt = false

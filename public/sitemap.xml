@@ -36,11 +36,6 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://formak.com.br/categoria/design</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://formak.com.br/categoria/desenvolvimento-pessoal</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
@@ -86,11 +81,6 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://formak.com.br/curso/31bb1f51-54b3-4585-83a9-9025e0733dc3</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://formak.com.br/curso/368e957d-5636-4041-9509-b2d1525561b6</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
@@ -122,21 +112,6 @@
   </url>
   <url>
     <loc>https://formak.com.br/curso/5a16b7f4-73f6-4570-ac6f-f3f5a21c85f9</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://formak.com.br/curso/14dd82b2-a720-4b04-8561-b99c71112f24</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://formak.com.br/curso/6c8da803-cf9d-46ad-befe-88350a015f6e</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://formak.com.br/curso/4d53a701-3ff1-4ce8-8d31-44f1dc02291f</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -181,11 +156,6 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://formak.com.br/curso/5e9f93dc-8d70-44d7-b929-7082fa7c5aeb</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://formak.com.br/curso/681bd582-eb38-4652-9675-a21a71f01fd4</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
@@ -196,32 +166,12 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://formak.com.br/curso/d77c3bf8-2077-4b93-8dd9-ff76fb2d1140</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://formak.com.br/curso/75e2dd82-ca36-4d26-b565-7b2aa4073f14</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://formak.com.br/curso/6858df55-1752-4c53-ada8-632e441dc936</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://formak.com.br/curso/697bc3f4-4da1-4731-98b8-3b8fca37bd59</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://formak.com.br/curso/6b05ffd2-02fc-42b9-a76b-53de85a9a660</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://formak.com.br/curso/3400ef66-84e3-45d7-9ec0-ae395656a2aa</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -322,11 +272,6 @@
   </url>
   <url>
     <loc>https://formak.com.br/curso/f55924a0-4965-4f56-a220-cd525eaf329c</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://formak.com.br/curso/eae9c86d-6c9c-4a51-ac36-1b866e8b6970</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>

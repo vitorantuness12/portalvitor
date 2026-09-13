@@ -127,7 +127,12 @@ export default function BulkCreateCourseAI() {
     .map((t) => t.trim())
     .filter((t) => t.length > 0);
   const manualParseResult = parseManualCourses(topics);
-  const inputCourses = creationMode === 'manual'
+  const inputCourses: Array<{
+    topic: string;
+    lineNumber: number;
+    level?: ManualCourseInput['level'];
+    price?: number;
+  }> = creationMode === 'manual'
     ? manualParseResult.courses
     : parsedTopics.map((topic, index) => ({ topic, lineNumber: index + 1 }));
   const hasManualErrors = creationMode === 'manual' && manualParseResult.errors.length > 0;
@@ -351,8 +356,8 @@ export default function BulkCreateCourseAI() {
     const initialQueue: CourseQueueItem[] = inputCourses.map((course) => ({
       topic: course.topic,
       status: 'pending',
-      level: 'level' in course ? course.level : undefined,
-      price: 'price' in course ? course.price : undefined,
+      level: course.level,
+      price: course.price,
     }));
 
     setQueue(initialQueue);

@@ -101,12 +101,12 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://formak.com.br/curso/368e957d-5636-4041-9509-b2d1525561b6</loc>
+    <loc>https://formak.com.br/curso/2bf17b1c-2bed-470e-915c-650be92cd28f</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://formak.com.br/curso/2bf17b1c-2bed-470e-915c-650be92cd28f</loc>
+    <loc>https://formak.com.br/curso/368e957d-5636-4041-9509-b2d1525561b6</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -186,17 +186,22 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://formak.com.br/curso/a8eff1b7-2790-45ec-8dba-9af69de47bf2</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://formak.com.br/curso/56e3cb40-62b2-4c63-a6a5-627bc6650726</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://formak.com.br/curso/a8eff1b7-2790-45ec-8dba-9af69de47bf2</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://formak.com.br/curso/66a37382-546b-4fef-94d5-970892bb16cc</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://formak.com.br/curso/ab87654f-6f9f-4c4c-a4cd-2b602f8f25ae</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -216,7 +221,22 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://formak.com.br/curso/f3214c0b-398d-4814-889e-e7f0acebf928</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://formak.com.br/curso/6b05ffd2-02fc-42b9-a76b-53de85a9a660</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://formak.com.br/curso/bb1f2242-3096-4d70-8e76-2493bdf7a2bc</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://formak.com.br/curso/3824e53b-9954-47e7-83b2-58c767bc1a46</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -251,7 +271,32 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://formak.com.br/curso/4477d6cc-7d56-4c1a-a75a-804fa9ff39a0</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://formak.com.br/curso/bed5669f-0388-4405-8010-ab6b32a26b07</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://formak.com.br/curso/8dc8af9d-151a-450b-8aa8-fd85c7e42bd5</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://formak.com.br/curso/35bdab25-1461-4f8f-aada-cf1c081a7164</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://formak.com.br/curso/7f9fafbb-7544-4c69-a40b-2069ee631898</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://formak.com.br/curso/4851d63b-dc78-46d9-ac88-a5e35cfbd620</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -267,6 +312,11 @@
   </url>
   <url>
     <loc>https://formak.com.br/curso/aa7c7c19-5ded-44c6-9973-c90dc8e8ffdf</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://formak.com.br/curso/6a7e7d7d-d7d0-43c0-a88f-ba44a052f750</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -316,12 +366,12 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://formak.com.br/curso/4965c8f0-bc06-4b12-92a5-76917a5f7a13</loc>
+    <loc>https://formak.com.br/curso/4c1bd47a-2bd6-47c4-a0bb-07a41b24ab5f</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://formak.com.br/curso/4c1bd47a-2bd6-47c4-a0bb-07a41b24ab5f</loc>
+    <loc>https://formak.com.br/curso/4965c8f0-bc06-4b12-92a5-76917a5f7a13</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>

@@ -325,9 +325,6 @@ export default function CourseDetail() {
                 </div>
               </div>
 
-              {/* Disclaimer */}
-              <FreeCourseDisclaimer />
-
               {hasHealthDisclaimer(course.id) && <HealthDisclaimer className="mt-4" />}
               {hasProfessionDisclaimer(course.id) && <ProfessionDisclaimer courseId={course.id} className="mt-4" />}
 
@@ -360,6 +357,9 @@ export default function CourseDetail() {
                   ))}
                 </div>
               </Card>
+
+              {/* Free course disclaimer */}
+              <FreeCourseDisclaimer />
 
               {/* Includes - shown inline on mobile since sidebar is hidden */}
               <Card className="p-4 sm:p-6 lg:hidden">

@@ -20,6 +20,7 @@ import {
   Phone,
   Ticket,
   Gift,
+  BadgeDollarSign,
 
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
@@ -42,6 +43,7 @@ const sidebarLinks = [
   { href: '/admin/trilhas', icon: Layers, label: 'Trilhas' },
   { href: '/admin/cupons', icon: Ticket, label: 'Cupons' },
   { href: '/admin/indicacoes', icon: Gift, label: 'Indicações' },
+  { href: '/admin/vendas', icon: BadgeDollarSign, label: 'Vendas' },
   { href: '/admin/pagamentos', icon: Wallet, label: 'Pagamentos' },
 
   { href: '/admin/certificados', icon: Award, label: 'Certificados' },
@@ -75,7 +77,7 @@ function SidebarContent({ openTicketsCount }: { openTicketsCount: number }) {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-1">
+      <nav className="flex-1 overflow-y-auto p-4 space-y-1">
         {sidebarLinks.map((link) => {
           const isActive = link.exact
             ? location.pathname === link.href

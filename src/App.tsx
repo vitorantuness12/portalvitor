@@ -40,6 +40,7 @@ import WhatsAppAdmin from "./pages/admin/WhatsApp";
 import AdminTracks from "./pages/admin/Tracks";
 import AdminCoupons from "./pages/admin/Coupons";
 import AdminReferrals from "./pages/admin/Referrals";
+import AdminSales from "./pages/admin/Sales";
 import Tracks from "./pages/Tracks";
 import TrackDetail from "./pages/TrackDetail";
 import Referrals from "./pages/Referrals";
@@ -119,6 +120,7 @@ function App() {
                   <Route path="trilhas" element={<AdminTracks />} />
                   <Route path="cupons" element={<AdminCoupons />} />
                   <Route path="indicacoes" element={<AdminReferrals />} />
+                  <Route path="vendas" element={<AdminSales />} />
 
                 </Route>
 

@@ -12,13 +12,31 @@ interface CoverRequest {
 }
 
 function buildPrompt(title: string, theme: string): string {
-  return `Crie uma capa premium para o curso "${title}". Formato horizontal 16:9.
+  return `Crie uma capa premium de curso online em formato horizontal 16:9 para o tema "${theme}".
 
-Represente visualmente o tema "${theme}" de forma clara, profissional e contemporânea. Use composição editorial/publicitária, fotografia realista ou elementos gráficos sofisticados adequados ao assunto, iluminação profissional, poucos elementos e excelente hierarquia visual.
+DIREÇÃO VISUAL:
+- Estética de thumbnail publicitária cinematográfica, moderna, intensa e profissional.
+- Composição dividida e equilibrada: título ocupando aproximadamente 55% do lado esquerdo; cena temática ocupando aproximadamente 45% do lado direito.
+- Fundo predominantemente preto ou grafite, com iluminação dramática e alto contraste.
+- Paleta principal em laranja e dourado, com branco para contraste e pequenos acentos cromáticos coerentes com o tema.
+- Fotografia realista e nítida de uma pessoa em contexto profissional ou educacional relacionado ao tema, acompanhada por poucos objetos que comuniquem imediatamente o assunto.
+- Profundidade cinematográfica, recorte preciso, luz de contorno quente e acabamento editorial sofisticado.
+- Use linhas, faixas ou pinceladas discretas apenas para organizar a hierarquia; preserve áreas de respiro.
 
-Exiba somente o título "${title}", grande e perfeitamente legível, integrado ao design.
+TIPOGRAFIA E HIERARQUIA:
+- Exiba SOMENTE o título exato "${title}", em português, sem alterar, resumir ou acrescentar palavras.
+- Quebre o título em no máximo 3 ou 4 linhas bem equilibradas.
+- Use letras grandes, fortes, condensadas e perfeitamente legíveis, combinando branco e dourado/laranja para destacar as palavras mais importantes.
+- Garanta leitura imediata mesmo quando a capa estiver reduzida a uma miniatura pequena.
+- Mantenha todo o texto dentro de uma margem segura, sem cortar letras nas bordas.
 
-A imagem deve parecer criada por um designer profissional, não por IA. Evite visual genérico, excesso de 3D, brilhos, objetos aleatórios, composição poluída, textos extras, logos e marcas. Alta qualidade.`;
+RESTRIÇÕES:
+- Não inclua subtítulos, slogans, listas, etiquetas, selos, números, textos decorativos, marcas, logos ou marca-d'água.
+- Não copie personagens, cenários ou identidade de outras marcas; use apenas a linguagem visual e a energia publicitária como referência.
+- Evite texto ilegível, letras deformadas, mãos deformadas, excesso de elementos, aparência genérica, composição poluída, neon exagerado ou render 3D artificial.
+- Não coloque informações importantes nos 5% externos da imagem.
+
+Resultado final: uma capa de curso original, impactante e coerente com o tema, com qualidade de direção de arte profissional e pronta para uso como thumbnail 16:9.`;
 }
 
 serve(async (req) => {

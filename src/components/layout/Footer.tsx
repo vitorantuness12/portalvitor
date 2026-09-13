@@ -66,11 +66,6 @@ export function Footer() {
                   Marketing
                 </Link>
               </li>
-              <li>
-                <Link to="/cursos?categoria=design" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                  Design
-                </Link>
-              </li>
             </ul>
           </div>
 

@@ -77,7 +77,7 @@ function SidebarContent({ openTicketsCount }: { openTicketsCount: number }) {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-1">
+      <nav className="flex-1 overflow-y-auto p-4 space-y-1">
         {sidebarLinks.map((link) => {
           const isActive = link.exact
             ? location.pathname === link.href

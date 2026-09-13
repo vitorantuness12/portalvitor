@@ -8,35 +8,37 @@ const corsHeaders = {
 
 interface CoverRequest {
   title: string;
-  theme?: string;
 }
 
-function buildPrompt(title: string, theme: string): string {
-  return `Crie uma capa premium de curso online em formato horizontal 16:9 para o tema "${theme}".
+const COMPOSITION_VARIANTS = [
+  "large title on the left, active subject on the right",
+  "active subject on the left, large title on the right",
+  "dynamic diagonal split between typography and scene",
+  "central subject with the title integrated into the composition",
+  "iconic topic-related object with typography as the dominant element",
+  "full-screen cinematic environment with an overlaid title",
+  "technology concept combining a person and a clean interface without readable UI text",
+  "premium editorial composition with bold graphic rhythm",
+  "cinematic close-up with strong foreground and background separation",
+  "wide perspective showing a realistic professional environment",
+] as const;
 
-DIREÇÃO VISUAL:
-- Estética de thumbnail publicitária cinematográfica, moderna, intensa e profissional.
-- Composição dividida e equilibrada: título ocupando aproximadamente 55% do lado esquerdo; cena temática ocupando aproximadamente 45% do lado direito.
-- Fundo predominantemente preto ou grafite, com iluminação dramática e alto contraste.
-- Paleta principal em laranja e dourado, com branco para contraste e pequenos acentos cromáticos coerentes com o tema.
-- Fotografia realista e nítida de uma pessoa em contexto profissional ou educacional relacionado ao tema, acompanhada por poucos objetos que comuniquem imediatamente o assunto.
-- Profundidade cinematográfica, recorte preciso, luz de contorno quente e acabamento editorial sofisticado.
-- Use linhas, faixas ou pinceladas discretas apenas para organizar a hierarquia; preserve áreas de respiro.
+function chooseCompositionVariant(): string {
+  const index = crypto.getRandomValues(new Uint32Array(1))[0] % COMPOSITION_VARIANTS.length;
+  return `${index + 1}: ${COMPOSITION_VARIANTS[index]}`;
+}
 
-TIPOGRAFIA E HIERARQUIA:
-- Exiba SOMENTE o título exato "${title}", em português, sem alterar, resumir ou acrescentar palavras.
-- Quebre o título em no máximo 3 ou 4 linhas bem equilibradas.
-- Use letras grandes, fortes, condensadas e perfeitamente legíveis, combinando branco e dourado/laranja para destacar as palavras mais importantes.
-- Garanta leitura imediata mesmo quando a capa estiver reduzida a uma miniatura pequena.
-- Mantenha todo o texto dentro de uma margem segura, sem cortar letras nas bordas.
+function buildPrompt(title: string, compositionVariant: string): string {
+  return `Create a premium cinematic 16:9 course cover for the Brazilian course:
+"${title}"
 
-RESTRIÇÕES:
-- Não inclua subtítulos, slogans, listas, etiquetas, selos, números, textos decorativos, marcas, logos ou marca-d'água.
-- Não copie personagens, cenários ou identidade de outras marcas; use apenas a linguagem visual e a energia publicitária como referência.
-- Evite texto ilegível, letras deformadas, mãos deformadas, excesso de elementos, aparência genérica, composição poluída, neon exagerado ou render 3D artificial.
-- Não coloque informações importantes nos 5% externos da imagem.
+Infer the subject, profession, environment and visual concept directly from the title. Create a striking, clearly relevant scene with realistic commercial photography or premium cinematic rendering, professional lighting, depth, high contrast and sophisticated advertising art direction. People, when appropriate, must be diverse and actively performing something related to the course.
 
-Resultado final: uma capa de curso original, impactante e coerente com o tema, com qualidade de direção de arte profissional e pronta para uso como thumbnail 16:9.`;
+Integrate ONLY the exact Portuguese title. Identify its 2–3 most important words and make them dominant through scale, weight, contrast and restrained professional graphic treatment. Keep every word exact, highly legible at thumbnail size and inside safe margins.
+
+Composition variant ${compositionVariant}. Choose a distinct subject-appropriate palette, perspective, typography and lighting so the result does not resemble a repeated template.
+
+No extra text, random words on objects or screens, subtitles, slogans, teacher or platform names, fake logos, brands, watermarks, clutter, malformed lettering, cheap templates or generic stock-photo appearance.`;
 }
 
 serve(async (req) => {
@@ -83,7 +85,7 @@ serve(async (req) => {
     if (!title) {
       throw new Error("O título do curso é obrigatório");
     }
-    const theme = (body.theme || title).trim();
+    const compositionVariant = chooseCompositionVariant();
 
     const response = await fetch("https://api.openai.com/v1/images/generations", {
       method: "POST",
@@ -92,9 +94,9 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-image-1",
-        prompt: buildPrompt(title, theme),
-        size: "1536x1024",
+        model: "gpt-image-2",
+        prompt: buildPrompt(title, compositionVariant),
+        size: "1280x720",
         quality: "high",
         n: 1,
       }),

@@ -59,11 +59,8 @@ export function EditCourseModal({ open, onOpenChange, course }: EditCourseModalP
 
     setIsGenerating(true);
     try {
-      const theme =
-        categories?.find((c) => c.id === formData.category_id)?.name || title;
-
       const { data, error } = await supabase.functions.invoke('generate-course-cover', {
-        body: { title, theme },
+        body: { title },
       });
 
       if (error) throw error;

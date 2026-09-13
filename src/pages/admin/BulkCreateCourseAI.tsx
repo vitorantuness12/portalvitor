@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Layers, Check, X, Pause, Play, AlertCircle, Loader2, Wand2, RefreshCw, Clock } from 'lucide-react';
+import { Sparkles, Layers, Check, X, Pause, Play, AlertCircle, Loader2, Wand2, RefreshCw, Clock, ListChecks } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -34,7 +34,63 @@ interface CourseQueueItem {
   moduleProgress?: { current: number; total: number };
 }
 
+type CreationMode = 'automatic' | 'manual';
+
+interface ManualCourseInput {
+  topic: string;
+  level: 'iniciante' | 'intermediario' | 'avancado';
+  price: number;
+  lineNumber: number;
+}
+
+const LEVEL_ALIASES: Record<string, ManualCourseInput['level']> = {
+  iniciante: 'iniciante',
+  intermediario: 'intermediario',
+  intermediário: 'intermediario',
+  avancado: 'avancado',
+  avançado: 'avancado',
+};
+
+const parseManualCourses = (value: string): { courses: ManualCourseInput[]; errors: string[] } => {
+  const courses: ManualCourseInput[] = [];
+  const errors: string[] = [];
+
+  value.split('\n').forEach((rawLine, index) => {
+    const line = rawLine.trim();
+    if (!line) return;
+
+    const parts = line.split('|').map((part) => part.trim());
+    if (parts.length !== 3) {
+      errors.push(`Linha ${index + 1}: use Título | nível | valor.`);
+      return;
+    }
+
+    const [topic, rawLevel, rawPrice] = parts;
+    const level = LEVEL_ALIASES[rawLevel.toLocaleLowerCase('pt-BR')];
+    const normalizedPrice = rawPrice.replace(/r\$/gi, '').replace(/\s/g, '').replace(',', '.');
+    const parsedPrice = Number(normalizedPrice);
+
+    if (!topic || topic.length > 200) {
+      errors.push(`Linha ${index + 1}: informe um título com até 200 caracteres.`);
+      return;
+    }
+    if (!level) {
+      errors.push(`Linha ${index + 1}: nível deve ser iniciante, intermediário ou avançado.`);
+      return;
+    }
+    if (!Number.isFinite(parsedPrice) || parsedPrice < 0 || parsedPrice > 100000) {
+      errors.push(`Linha ${index + 1}: informe um valor válido entre 0 e 100.000.`);
+      return;
+    }
+
+    courses.push({ topic, level, price: parsedPrice, lineNumber: index + 1 });
+  });
+
+  return { courses, errors };
+};
+
 export default function BulkCreateCourseAI() {
+  const [creationMode, setCreationMode] = useState<CreationMode>('automatic');
   const [topics, setTopics] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [autoCategory, setAutoCategory] = useState(true);
@@ -70,6 +126,19 @@ export default function BulkCreateCourseAI() {
     .split('\n')
     .map((t) => t.trim())
     .filter((t) => t.length > 0);
+  const manualParseResult = parseManualCourses(topics);
+  const inputCourses: Array<{
+    topic: string;
+    lineNumber: number;
+    level?: ManualCourseInput['level'];
+    price?: number;
+  }> = creationMode === 'manual'
+    ? manualParseResult.courses
+    : parsedTopics.map((topic, index) => ({ topic, lineNumber: index + 1 }));
+  const hasManualErrors = creationMode === 'manual' && manualParseResult.errors.length > 0;
+  const canStart = inputCourses.length > 0
+    && !hasManualErrors
+    && (creationMode !== 'manual' || Boolean(categoryId));
 
   const completedCount = queue.filter((c) => c.status === 'success').length;
   const errorCount = queue.filter((c) => c.status === 'error').length;
@@ -264,18 +333,31 @@ export default function BulkCreateCourseAI() {
   };
 
   const handleStart = async () => {
-    if (parsedTopics.length === 0) {
+    if (inputCourses.length === 0) {
       toast({
-        title: 'Nenhum tema informado',
-        description: 'Adicione pelo menos um tema de curso (um por linha).',
+        title: 'Nenhum curso informado',
+        description: creationMode === 'manual'
+          ? 'Adicione pelo menos uma linha no formato solicitado.'
+          : 'Adicione pelo menos um tema de curso (um por linha).',
         variant: 'destructive',
       });
       return;
     }
 
-    const initialQueue: CourseQueueItem[] = parsedTopics.map((topic) => ({
-      topic,
+    if (hasManualErrors || (creationMode === 'manual' && !categoryId)) {
+      toast({
+        title: 'Revise os dados',
+        description: !categoryId ? 'Selecione a categoria dos cursos.' : 'Corrija as linhas indicadas antes de iniciar.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const initialQueue: CourseQueueItem[] = inputCourses.map((course) => ({
+      topic: course.topic,
       status: 'pending',
+      level: course.level,
+      price: course.price,
     }));
 
     setQueue(initialQueue);
@@ -320,10 +402,12 @@ export default function BulkCreateCourseAI() {
             },
             body: JSON.stringify({
               topic: initialQueue[i].topic,
-              categoryId: autoCategory ? null : (categoryId || null),
-              autoCategory,
-              price: autoPrice ? null : (parseFloat(price) || 0),
-              autoPrice,
+              categoryId: creationMode === 'manual' ? categoryId : (autoCategory ? null : (categoryId || null)),
+              autoCategory: creationMode === 'manual' ? false : autoCategory,
+              price: creationMode === 'manual' ? initialQueue[i].price : (autoPrice ? null : (parseFloat(price) || 0)),
+              autoPrice: creationMode === 'manual' ? false : autoPrice,
+              level: creationMode === 'manual' ? initialQueue[i].level : undefined,
+              manualEntry: creationMode === 'manual',
               durationRange: durationRange !== 'auto' ? durationRange : null,
               contentDepth,
               openaiModel,
@@ -421,7 +505,7 @@ export default function BulkCreateCourseAI() {
   };
 
   const getEstimatedTime = () => {
-    const courseCount = parsedTopics.length;
+    const courseCount = inputCourses.length;
     if (!isO1Model) return `~${courseCount * 2} minutos`;
     
     const depthMultiplier = contentDepth === 'enciclopedico' ? 4 : contentDepth === 'profissional' ? 3 : contentDepth === 'muito_extenso' ? 2.5 : 2;
@@ -454,10 +538,44 @@ export default function BulkCreateCourseAI() {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="topics">Temas dos Cursos *</Label>
+                <Label>Como deseja informar os cursos?</Label>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2" role="group" aria-label="Modo de criação em massa">
+                  <Button
+                    type="button"
+                    variant={creationMode === 'automatic' ? 'default' : 'outline'}
+                    onClick={() => setCreationMode('automatic')}
+                    disabled={isRunning}
+                    className="h-auto justify-start py-3"
+                  >
+                    <Wand2 className="h-4 w-4" />
+                    IA define os dados
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={creationMode === 'manual' ? 'default' : 'outline'}
+                    onClick={() => {
+                      setCreationMode('manual');
+                      setAutoCategory(false);
+                      setAutoPrice(false);
+                    }}
+                    disabled={isRunning}
+                    className="h-auto justify-start py-3"
+                  >
+                    <ListChecks className="h-4 w-4" />
+                    Informar os dados
+                  </Button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="topics">
+                  {creationMode === 'manual' ? 'Título, nível e valor dos cursos *' : 'Temas dos Cursos *'}
+                </Label>
                 <Textarea
                   id="topics"
-                  placeholder="Python para Iniciantes&#10;Excel Avançado para Negócios&#10;Marketing Digital na Prática&#10;Gestão de Projetos com Scrum"
+                  placeholder={creationMode === 'manual'
+                    ? 'Python para Iniciantes | iniciante | 19,90\nExcel para Negócios | intermediário | 29,90\nGestão de Projetos | avançado | 49,90'
+                    : 'Python para Iniciantes\nExcel Avançado para Negócios\nMarketing Digital na Prática\nGestão de Projetos com Scrum'}
                   value={topics}
                   onChange={(e) => setTopics(e.target.value)}
                   disabled={isRunning}
@@ -465,12 +583,24 @@ export default function BulkCreateCourseAI() {
                   className="font-mono text-sm"
                 />
                 <p className="text-xs text-muted-foreground">
-                  {parsedTopics.length} tema(s) detectado(s) - um por linha
+                  {creationMode === 'manual'
+                    ? `${manualParseResult.courses.length} curso(s) válido(s) — use Título | nível | valor`
+                    : `${parsedTopics.length} tema(s) detectado(s) — um por linha`}
                 </p>
+                {hasManualErrors && (
+                  <div className="space-y-1 rounded-md border border-destructive/40 bg-destructive/5 p-3" role="alert">
+                    {manualParseResult.errors.slice(0, 5).map((error) => (
+                      <p key={error} className="text-xs text-destructive">{error}</p>
+                    ))}
+                    {manualParseResult.errors.length > 5 && (
+                      <p className="text-xs text-destructive">E mais {manualParseResult.errors.length - 5} erro(s).</p>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="space-y-4">
-                <div className="flex items-center justify-between p-3 rounded-lg border bg-muted/50">
+                {creationMode === 'automatic' && <div className="flex items-center justify-between p-3 rounded-lg border bg-muted/50">
                   <div className="flex items-center gap-2">
                     <Wand2 className="h-4 w-4 text-primary" />
                     <div>
@@ -484,12 +614,12 @@ export default function BulkCreateCourseAI() {
                     onCheckedChange={setAutoCategory}
                     disabled={isRunning}
                   />
-                </div>
+                </div>}
 
                 <div className="grid sm:grid-cols-2 gap-4">
-                  {!autoCategory && (
+                  {(creationMode === 'manual' || !autoCategory) && (
                     <div className="space-y-2">
-                      <Label>Categoria (para todos)</Label>
+                      <Label>Categoria (para todos) {creationMode === 'manual' && '*'}</Label>
                       <Select
                         value={categoryId}
                         onValueChange={setCategoryId}
@@ -509,7 +639,7 @@ export default function BulkCreateCourseAI() {
                     </div>
                   )}
 
-                  {!autoPrice && (
+                  {creationMode === 'automatic' && !autoPrice && (
                     <div className={`space-y-2 ${autoCategory ? 'sm:col-span-2' : ''}`}>
                       <Label htmlFor="price">Preço (R$) para todos</Label>
                       <Input
@@ -527,7 +657,7 @@ export default function BulkCreateCourseAI() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between p-3 rounded-lg border bg-muted/50">
+              {creationMode === 'automatic' && <div className="flex items-center justify-between p-3 rounded-lg border bg-muted/50">
                 <div className="flex items-center gap-2">
                   <Wand2 className="h-4 w-4 text-primary" />
                   <div>
@@ -541,7 +671,7 @@ export default function BulkCreateCourseAI() {
                   onCheckedChange={setAutoPrice}
                   disabled={isRunning}
                 />
-              </div>
+              </div>}
 
               <div className="space-y-2">
                 <Label>Carga Horária</Label>
@@ -712,10 +842,10 @@ export default function BulkCreateCourseAI() {
                     variant="hero"
                     size="lg"
                     className="flex-1"
-                    disabled={parsedTopics.length === 0}
+                    disabled={!canStart}
                   >
                     <Sparkles className="h-5 w-5" />
-                    Iniciar Geração ({parsedTopics.length} cursos)
+                    Iniciar Geração ({inputCourses.length} cursos)
                   </Button>
                 ) : (
                   <>
@@ -749,7 +879,7 @@ export default function BulkCreateCourseAI() {
                 )}
               </div>
 
-              {parsedTopics.length > 0 && !isRunning && (
+              {inputCourses.length > 0 && !isRunning && (
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <Clock className="h-3 w-3" />
                   Tempo estimado: {getEstimatedTime()}
@@ -917,7 +1047,7 @@ export default function BulkCreateCourseAI() {
                 <div className="text-sm text-muted-foreground">
                   <p className="font-medium text-foreground">Como funciona</p>
                   <ul className="mt-2 space-y-1 list-disc list-inside">
-                    <li>A IA analisa cada tema e define nível, carga horária, categoria e preço</li>
+                    <li>{creationMode === 'manual' ? 'O título, o nível, o valor e a categoria informados são mantidos' : 'A IA analisa cada tema e define nível, carga horária, categoria e preço'}</li>
                     <li>Cada curso é gerado como um job assíncrono com progresso em tempo real</li>
                     <li>Módulos são gerados um a um com salvamento incremental</li>
                     <li>Se um job travar, o sistema retoma automaticamente de onde parou</li>

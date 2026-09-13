@@ -8,6 +8,8 @@ const corsHeaders = {
 
 interface BulkCourseRequest {
   topic: string;
+  level?: string;
+  manualEntry?: boolean;
   categoryId?: string;
   autoCategory?: boolean;
   price?: number;
@@ -108,7 +110,32 @@ serve(async (req) => {
       });
     }
 
-    const { topic, categoryId, autoCategory, price, autoPrice, durationRange, contentDepth, openaiModel, additionalInstructions }: BulkCourseRequest = await req.json();
+    const { topic, level: requestedLevel, manualEntry, categoryId, autoCategory, price, autoPrice, durationRange, contentDepth, openaiModel, additionalInstructions }: BulkCourseRequest = await req.json();
+
+    const normalizedTopic = typeof topic === "string" ? topic.trim() : "";
+    const validLevels = ["iniciante", "intermediario", "avancado"];
+    const normalizedPrice = typeof price === "number" ? price : Number(price);
+
+    if (!normalizedTopic || normalizedTopic.length > 200) {
+      return new Response(JSON.stringify({ error: "Informe um título válido com até 200 caracteres." }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (manualEntry && (!requestedLevel || !validLevels.includes(requestedLevel))) {
+      return new Response(JSON.stringify({ error: "Nível inválido. Use iniciante, intermediario ou avancado." }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (manualEntry && (!categoryId || !Number.isFinite(normalizedPrice) || normalizedPrice < 0 || normalizedPrice > 100000)) {
+      return new Response(JSON.stringify({ error: "Categoria e valor válido são obrigatórios no modo manual." }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const validModels = ["gpt-4o-mini", "gpt-4o", "o1", "o1-mini", "o3-mini"];
     const selectedModel = validModels.includes(openaiModel || "") ? openaiModel : "gpt-4o-mini";
@@ -148,6 +175,67 @@ serve(async (req) => {
       }
     }
 
+    if (manualEntry) {
+      let categoryName: string | null = null;
+      const { data: selectedCategory } = await supabase
+        .from("categories")
+        .select("name")
+        .eq("id", categoryId)
+        .maybeSingle();
+      categoryName = selectedCategory?.name || null;
+
+      if (!categoryName) {
+        return new Response(JSON.stringify({ error: "A categoria selecionada não foi encontrada." }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const titleInstruction = `O título final do curso deve ser exatamente: "${normalizedTopic}". Não altere, amplie ou reescreva esse título.`;
+      const combinedInstructions = [titleInstruction, additionalInstructions?.trim()].filter(Boolean).join("\n\n");
+      const manualDuration = forcedDuration || 10;
+
+      const { data: job, error: jobError } = await supabase
+        .from("course_generation_jobs")
+        .insert({
+          user_id: user.id,
+          topic: normalizedTopic,
+          level: requestedLevel,
+          duration: manualDuration,
+          category_id: categoryId,
+          price: normalizedPrice,
+          content_depth: contentDepth || "detalhado",
+          openai_model: selectedModel,
+          additional_instructions: combinedInstructions,
+          status: "pending",
+          progress_detail: "Dados confirmados, aguardando processamento..."
+        })
+        .select()
+        .single();
+
+      if (jobError) {
+        console.error("Failed to create manual bulk job:", jobError);
+        throw new Error("Falha ao criar job de geração");
+      }
+
+      return new Response(JSON.stringify({
+        success: true,
+        async: true,
+        jobId: job.id,
+        analysis: {
+          level: requestedLevel,
+          duration: manualDuration,
+          moduleCount: forcedModuleCount || 4,
+          category: categoryName,
+          price: normalizedPrice,
+          reasoning: "Dados definidos pelo administrador",
+        },
+        message: "Dados confirmados. Job criado para processamento.",
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // Step 1: Analyze topic (quick call)
     let analysisPrompt = `Analise este tema de curso e determine:
 1. O nível (iniciante, intermediario ou avancado)`;
@@ -174,7 +262,7 @@ serve(async (req) => {
 
     analysisPrompt += `
 
-TEMA: "${topic}"
+TEMA: "${normalizedTopic}"
 ${additionalInstructions ? `CONTEXTO ADICIONAL: ${additionalInstructions}` : ""}
 ${forcedDuration ? `\nIMPORTANTE: A duração DEVE ser ${forcedDuration} horas.` : ""}
 
@@ -270,7 +358,7 @@ REGRA DE MÓDULOS:
       .from("course_generation_jobs")
       .insert({
         user_id: user.id,
-        topic,
+         topic: normalizedTopic,
         level,
         duration: finalDuration,
         category_id: finalCategoryId || null,

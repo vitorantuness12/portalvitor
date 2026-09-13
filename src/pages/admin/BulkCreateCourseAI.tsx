@@ -38,10 +38,13 @@ type CreationMode = 'automatic' | 'manual';
 
 interface ManualCourseInput {
   topic: string;
+  duration: number;
   level: 'iniciante' | 'intermediario' | 'avancado';
   price: number;
   lineNumber: number;
 }
+
+const VALID_DURATIONS = [5, 10, 20, 40, 60, 80] as const;
 
 const LEVEL_ALIASES: Record<string, ManualCourseInput['level']> = {
   iniciante: 'iniciante',
@@ -60,18 +63,23 @@ const parseManualCourses = (value: string): { courses: ManualCourseInput[]; erro
     if (!line) return;
 
     const parts = line.split('|').map((part) => part.trim());
-    if (parts.length !== 3) {
-      errors.push(`Linha ${index + 1}: use Título | nível | valor.`);
+    if (parts.length !== 4) {
+      errors.push(`Linha ${index + 1}: use Título | carga horária | nível | valor.`);
       return;
     }
 
-    const [topic, rawLevel, rawPrice] = parts;
+    const [topic, rawDuration, rawLevel, rawPrice] = parts;
+    const parsedDuration = Number(rawDuration.toLocaleLowerCase('pt-BR').replace(/\s*horas?\s*/g, '').trim());
     const level = LEVEL_ALIASES[rawLevel.toLocaleLowerCase('pt-BR')];
     const normalizedPrice = rawPrice.replace(/r\$/gi, '').replace(/\s/g, '').replace(',', '.');
     const parsedPrice = Number(normalizedPrice);
 
     if (!topic || topic.length > 200) {
       errors.push(`Linha ${index + 1}: informe um título com até 200 caracteres.`);
+      return;
+    }
+    if (!VALID_DURATIONS.includes(parsedDuration as typeof VALID_DURATIONS[number])) {
+      errors.push(`Linha ${index + 1}: carga horária deve ser 5, 10, 20, 40, 60 ou 80 horas.`);
       return;
     }
     if (!level) {
@@ -83,7 +91,7 @@ const parseManualCourses = (value: string): { courses: ManualCourseInput[]; erro
       return;
     }
 
-    courses.push({ topic, level, price: parsedPrice, lineNumber: index + 1 });
+    courses.push({ topic, duration: parsedDuration, level, price: parsedPrice, lineNumber: index + 1 });
   });
 
   return { courses, errors };
@@ -130,6 +138,7 @@ export default function BulkCreateCourseAI() {
   const inputCourses: Array<{
     topic: string;
     lineNumber: number;
+    duration?: number;
     level?: ManualCourseInput['level'];
     price?: number;
   }> = creationMode === 'manual'
@@ -358,6 +367,7 @@ export default function BulkCreateCourseAI() {
       status: 'pending',
       level: course.level,
       price: course.price,
+      duration: course.duration,
     }));
 
     setQueue(initialQueue);
@@ -407,8 +417,9 @@ export default function BulkCreateCourseAI() {
               price: creationMode === 'manual' ? initialQueue[i].price : (autoPrice ? null : (parseFloat(price) || 0)),
               autoPrice: creationMode === 'manual' ? false : autoPrice,
               level: creationMode === 'manual' ? initialQueue[i].level : undefined,
+              duration: creationMode === 'manual' ? initialQueue[i].duration : undefined,
               manualEntry: creationMode === 'manual',
-              durationRange: durationRange !== 'auto' ? durationRange : null,
+              durationRange: creationMode === 'manual' ? null : (durationRange !== 'auto' ? durationRange : null),
               contentDepth,
               openaiModel,
               additionalInstructions,
@@ -569,12 +580,12 @@ export default function BulkCreateCourseAI() {
 
               <div className="space-y-2">
                 <Label htmlFor="topics">
-                  {creationMode === 'manual' ? 'Título, nível e valor dos cursos *' : 'Temas dos Cursos *'}
+                  {creationMode === 'manual' ? 'Título, carga horária, nível e valor dos cursos *' : 'Temas dos Cursos *'}
                 </Label>
                 <Textarea
                   id="topics"
                   placeholder={creationMode === 'manual'
-                    ? 'Python para Iniciantes | iniciante | 19,90\nExcel para Negócios | intermediário | 29,90\nGestão de Projetos | avançado | 49,90'
+                    ? 'Python para Iniciantes | 10 | iniciante | 19,90\nExcel para Negócios | 20 | intermediário | 29,90\nGestão de Projetos | 40 | avançado | 49,90'
                     : 'Python para Iniciantes\nExcel Avançado para Negócios\nMarketing Digital na Prática\nGestão de Projetos com Scrum'}
                   value={topics}
                   onChange={(e) => setTopics(e.target.value)}
@@ -584,7 +595,7 @@ export default function BulkCreateCourseAI() {
                 />
                 <p className="text-xs text-muted-foreground">
                   {creationMode === 'manual'
-                    ? `${manualParseResult.courses.length} curso(s) válido(s) — use Título | nível | valor`
+                    ? `${manualParseResult.courses.length} curso(s) válido(s) — use Título | carga horária | nível | valor`
                     : `${parsedTopics.length} tema(s) detectado(s) — um por linha`}
                 </p>
                 {hasManualErrors && (
@@ -673,7 +684,7 @@ export default function BulkCreateCourseAI() {
                 />
               </div>}
 
-              <div className="space-y-2">
+              {creationMode === 'automatic' && <div className="space-y-2">
                 <Label>Carga Horária</Label>
                 <Select
                   value={durationRange}
@@ -697,7 +708,7 @@ export default function BulkCreateCourseAI() {
                     <SelectItem value="80">80 horas</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
+              </div>}
 
               <div className="space-y-2">
                 <Label>Modelo de IA</Label>

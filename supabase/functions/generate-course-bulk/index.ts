@@ -9,6 +9,7 @@ const corsHeaders = {
 interface BulkCourseRequest {
   topic: string;
   level?: string;
+  duration?: number;
   manualEntry?: boolean;
   categoryId?: string;
   autoCategory?: boolean;
@@ -110,11 +111,13 @@ serve(async (req) => {
       });
     }
 
-    const { topic, level: requestedLevel, manualEntry, categoryId, autoCategory, price, autoPrice, durationRange, contentDepth, openaiModel, additionalInstructions }: BulkCourseRequest = await req.json();
+    const { topic, level: requestedLevel, duration: requestedDuration, manualEntry, categoryId, autoCategory, price, autoPrice, durationRange, contentDepth, openaiModel, additionalInstructions }: BulkCourseRequest = await req.json();
 
     const normalizedTopic = typeof topic === "string" ? topic.trim() : "";
     const validLevels = ["iniciante", "intermediario", "avancado"];
     const normalizedPrice = typeof price === "number" ? price : Number(price);
+    const normalizedDuration = typeof requestedDuration === "number" ? requestedDuration : Number(requestedDuration);
+    const validDurations = [5, 10, 20, 40, 60, 80];
 
     if (!normalizedTopic || normalizedTopic.length > 200) {
       return new Response(JSON.stringify({ error: "Informe um título válido com até 200 caracteres." }), {
@@ -125,6 +128,13 @@ serve(async (req) => {
 
     if (manualEntry && (!requestedLevel || !validLevels.includes(requestedLevel))) {
       return new Response(JSON.stringify({ error: "Nível inválido. Use iniciante, intermediario ou avancado." }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (manualEntry && !validDurations.includes(normalizedDuration)) {
+      return new Response(JSON.stringify({ error: "Carga horária inválida. Use 5, 10, 20, 40, 60 ou 80 horas." }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -193,7 +203,7 @@ serve(async (req) => {
 
       const titleInstruction = `O título final do curso deve ser exatamente: "${normalizedTopic}". Não altere, amplie ou reescreva esse título.`;
       const combinedInstructions = [titleInstruction, additionalInstructions?.trim()].filter(Boolean).join("\n\n");
-      const manualDuration = forcedDuration || 10;
+      const manualDuration = normalizedDuration;
 
       const { data: job, error: jobError } = await supabase
         .from("course_generation_jobs")
@@ -225,7 +235,7 @@ serve(async (req) => {
         analysis: {
           level: requestedLevel,
           duration: manualDuration,
-          moduleCount: forcedModuleCount || 4,
+          moduleCount: manualDuration === 5 ? 3 : manualDuration === 10 ? 4 : manualDuration === 20 ? 5 : manualDuration === 40 ? 7 : manualDuration === 60 ? 9 : 12,
           category: categoryName,
           price: normalizedPrice,
           reasoning: "Dados definidos pelo administrador",

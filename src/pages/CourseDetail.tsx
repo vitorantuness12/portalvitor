@@ -28,6 +28,8 @@ import { ProfessionDisclaimer, hasProfessionDisclaimer } from '@/components/cour
 import { RelatedCourses } from '@/components/courses/RelatedCourses';
 import { Seo } from '@/components/seo/Seo';
 import { SITE_URL } from '@/lib/site';
+import { buildCourseSeo } from '@/lib/courseSeo';
+import { slugify } from '@/lib/slug';
 
 
 const levelStyles: Record<string, string> = {
@@ -221,38 +223,65 @@ export default function CourseDetail() {
     .replace(/[\u0300-\u036f]/g, '')
     .toLocaleLowerCase('pt-BR');
   const isHealthCourse = normalizedCategory === 'saude';
-  const courseDescription =
-    course.short_description ||
-    (course.description ? String(course.description).slice(0, 155) : '') ||
-    `Curso online de ${course.title} com certificado. Estude no seu ritmo na Formak.`;
+  const categoryName = course.categories?.name ?? null;
+  const courseSeo = buildCourseSeo({
+    title: course.title,
+    category: categoryName,
+    durationHours: Number(course.duration_hours ?? 0),
+    level: course.level,
+  });
+  const courseUrl = `${SITE_URL}/curso/${course.id}`;
+  const courseSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Course',
+    name: course.title,
+    description: courseSeo.description,
+    url: courseUrl,
+    inLanguage: 'pt-BR',
+    educationalLevel: levelLabels[course.level] ?? course.level,
+    ...(categoryName ? { about: categoryName } : {}),
+    isAccessibleForFree: Number(course.price ?? 0) === 0,
+    provider: { '@type': 'Organization', name: 'Formak', url: SITE_URL },
+    offers: {
+      '@type': 'Offer',
+      price: Number(course.price ?? 0).toFixed(2),
+      priceCurrency: 'BRL',
+      availability: 'https://schema.org/InStock',
+      url: courseUrl,
+    },
+    hasCourseInstance: {
+      '@type': 'CourseInstance',
+      courseMode: 'online',
+      courseWorkload: `PT${Number(course.duration_hours ?? 0)}H`,
+      inLanguage: 'pt-BR',
+    },
+  };
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Início', item: SITE_URL },
+      { '@type': 'ListItem', position: 2, name: 'Cursos', item: `${SITE_URL}/cursos` },
+      ...(categoryName
+        ? [{
+            '@type': 'ListItem',
+            position: 3,
+            name: categoryName,
+            item: `${SITE_URL}/categoria/${slugify(categoryName)}`,
+          }]
+        : []),
+      { '@type': 'ListItem', position: categoryName ? 4 : 3, name: course.title, item: courseUrl },
+    ],
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
       <Seo
-        title={`${course.title} — curso online com certificado`}
-        description={courseDescription}
+        title={courseSeo.title}
+        description={courseSeo.description}
         path={`/curso/${course.id}`}
-        jsonLd={{
-          '@context': 'https://schema.org',
-          '@type': 'Course',
-          name: course.title,
-          description: courseDescription,
-          url: `${SITE_URL}/curso/${course.id}`,
-          inLanguage: 'pt-BR',
-          provider: { '@type': 'Organization', name: 'Formak', url: SITE_URL },
-          offers: {
-            '@type': 'Offer',
-            price: Number(course.price ?? 0).toFixed(2),
-            priceCurrency: 'BRL',
-            availability: 'https://schema.org/InStock',
-            url: `${SITE_URL}/curso/${course.id}`,
-          },
-          hasCourseInstance: {
-            '@type': 'CourseInstance',
-            courseMode: 'online',
-            courseWorkload: `PT${Number(course.duration_hours ?? 0)}H`,
-          },
-        }}
+        noIndex={course.status !== 'active'}
+        jsonLd={[courseSchema, breadcrumbSchema]}
       />
       <Header />
       <main className="flex-1 py-4 sm:py-8 pb-28 lg:pb-8">

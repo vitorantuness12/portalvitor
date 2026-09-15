@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   CreditCard, 
@@ -9,7 +10,10 @@ import {
   AlertCircle,
   CheckCircle,
   Loader2,
-  RefreshCw
+  RefreshCw,
+  ShieldCheck,
+  ShoppingBag,
+  Trash2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,6 +24,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { formatCpf } from '@/lib/masks';
+import {
+  CheckoutCourseSuggestions,
+  type CheckoutCourseOption,
+} from '@/components/payment/CheckoutCourseSuggestions';
 
 interface PaymentCheckoutProps {
   referenceType: 'student_card' | 'course' | 'track';
@@ -28,6 +36,8 @@ interface PaymentCheckoutProps {
   description: string;
   onSuccess: () => void;
   onCancel?: () => void;
+  primaryCourse?: CheckoutCourseOption;
+  categoryId?: string | null;
 }
 
 type PaymentStatus = 'idle' | 'processing' | 'awaiting_pix' | 'approved' | 'rejected';
@@ -45,6 +55,8 @@ export function PaymentCheckout({
   description,
   onSuccess,
   onCancel,
+  primaryCourse,
+  categoryId,
 }: PaymentCheckoutProps) {
   const [paymentMethod, setPaymentMethod] = useState<'pix' | 'credit_card'>('pix');
   const [status, setStatus] = useState<PaymentStatus>('idle');
@@ -64,9 +76,59 @@ export function PaymentCheckout({
   const [couponInput, setCouponInput] = useState('');
   const [coupon, setCoupon] = useState<AppliedCoupon | null>(null);
   const [validatingCoupon, setValidatingCoupon] = useState(false);
+  const [selectedCourseIds, setSelectedCourseIds] = useState<string[]>([]);
 
   const allowCoupon = referenceType !== 'student_card';
-  const totalAmount = coupon ? coupon.finalAmount : amount;
+  const { data: suggestedCourses = [], isLoading: suggestionsLoading } = useQuery({
+    queryKey: ['checkout-course-suggestions', categoryId, referenceId],
+    enabled: referenceType === 'course' && Boolean(categoryId && primaryCourse),
+    queryFn: async (): Promise<CheckoutCourseOption[]> => {
+      if (!categoryId) return [];
+      const { data: sessionData } = await supabase.auth.getSession();
+      const userId = sessionData.session?.user.id;
+      let ownedIds = new Set<string>();
+      if (userId) {
+        const { data: enrollments, error: enrollmentError } = await supabase
+          .from('enrollments')
+          .select('course_id')
+          .eq('user_id', userId);
+        if (enrollmentError) throw enrollmentError;
+        ownedIds = new Set((enrollments ?? []).map((item) => item.course_id));
+      }
+
+      const { data, error } = await supabase
+        .from('courses')
+        .select('id, title, price, thumbnail_url')
+        .eq('status', 'active')
+        .eq('category_id', categoryId)
+        .neq('id', referenceId)
+        .gt('price', 0)
+        .order('price', { ascending: true })
+        .limit(10);
+      if (error) throw error;
+
+      return (data ?? [])
+        .filter((course) => !ownedIds.has(course.id))
+        .slice(0, 5)
+        .map((course) => ({
+          id: course.id,
+          title: course.title,
+          price: Number(course.price),
+          thumbnailUrl: course.thumbnail_url,
+        }));
+    },
+  });
+
+  const selectedCourses = suggestedCourses.filter((course) => selectedCourseIds.includes(course.id));
+  const subtotal = amount + selectedCourses.reduce((total, course) => total + course.price, 0);
+  const totalAmount = coupon ? Math.max(subtotal - coupon.discount, 0) : subtotal;
+
+  const toggleCourse = (courseId: string) => {
+    setCoupon(null);
+    setSelectedCourseIds((current) =>
+      current.includes(courseId) ? current.filter((id) => id !== courseId) : [...current, courseId],
+    );
+  };
 
   const handleApplyCoupon = async () => {
     const code = couponInput.trim();
@@ -76,7 +138,7 @@ export function PaymentCheckout({
     try {
       const { data, error } = await supabase.rpc('validate_coupon', {
         _code: code,
-        _amount: amount,
+        _amount: subtotal,
         _scope: referenceType,
         _scope_id: referenceId,
       });
@@ -100,7 +162,7 @@ export function PaymentCheckout({
       setCoupon({
         code: result.code ?? code.toUpperCase(),
         discount: Number(result.discount ?? 0),
-        finalAmount: Number(result.final_amount ?? amount),
+        finalAmount: Number(result.final_amount ?? subtotal),
       });
       toast.success('Cupom aplicado!');
     } catch (err) {
@@ -170,13 +232,14 @@ export function PaymentCheckout({
         body: {
           referenceType,
           referenceId,
-          amount,
+          amount: subtotal,
           paymentMethod,
           description,
           payerEmail: formData.email,
           payerName: formData.name,
           payerCpf: formData.cpf.replace(/\D/g, ''),
           couponCode: coupon?.code,
+          courseIds: referenceType === 'course' ? selectedCourseIds : undefined,
 
         },
       });
@@ -265,7 +328,11 @@ export function PaymentCheckout({
           <CheckCircle className="h-12 w-12 text-emerald-500" />
         </div>
         <h3 className="text-xl font-semibold mb-2">Pagamento Aprovado!</h3>
-        <p className="text-muted-foreground">Seu pagamento foi confirmado com sucesso.</p>
+        <p className="text-muted-foreground">
+          {referenceType === 'course' && selectedCourseIds.length > 0
+            ? `${selectedCourseIds.length + 1} cursos foram liberados para você.`
+            : 'Seu pagamento foi confirmado com sucesso.'}
+        </p>
       </motion.div>
     );
   }
@@ -393,15 +460,62 @@ export function PaymentCheckout({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-5">
+      {primaryCourse && (
+        <section className="space-y-3 rounded-lg border border-border bg-muted/30 p-4">
+          <div className="flex items-center gap-2">
+            <ShoppingBag className="h-4 w-4 text-primary" />
+            <h3 className="font-display text-base font-semibold text-foreground">Resumo da compra</h3>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="min-w-0 flex-1">
+              <p className="text-xs text-muted-foreground">Curso principal</p>
+              <p className="line-clamp-2 text-sm font-semibold text-foreground">{primaryCourse.title}</p>
+            </div>
+            <span className="shrink-0 text-sm font-bold text-foreground">
+              R$ {amount.toFixed(2).replace('.', ',')}
+            </span>
+          </div>
+          {selectedCourses.map((course) => (
+            <div key={course.id} className="flex items-center gap-3 border-t border-border pt-3">
+              <div className="min-w-0 flex-1">
+                <p className="line-clamp-1 text-sm text-foreground">{course.title}</p>
+              </div>
+              <span className="shrink-0 text-sm font-medium text-foreground">
+                R$ {course.price.toFixed(2).replace('.', ',')}
+              </span>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => toggleCourse(course.id)}
+                aria-label={`Remover ${course.title}`}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          ))}
+        </section>
+      )}
+
+      {referenceType === 'course' && (
+        <CheckoutCourseSuggestions
+          courses={suggestedCourses}
+          selectedIds={selectedCourseIds}
+          isLoading={suggestionsLoading}
+          onToggle={toggleCourse}
+        />
+      )}
+
       {/* Amount */}
-      <Card>
+      <Card className="rounded-lg shadow-none">
         <CardContent className="pt-6 space-y-4">
           {coupon && (
             <div className="space-y-1 text-sm">
               <div className="flex items-center justify-between text-muted-foreground">
                 <span>Subtotal</span>
-                <span className="line-through">R$ {amount.toFixed(2).replace('.', ',')}</span>
+                <span className="line-through">R$ {subtotal.toFixed(2).replace('.', ',')}</span>
               </div>
               <div className="flex items-center justify-between text-emerald-600 font-medium">
                 <span>Cupom {coupon.code}</span>
@@ -457,7 +571,7 @@ export function PaymentCheckout({
 
 
       {/* Payment Method */}
-      <Card>
+      <Card className="rounded-lg shadow-none">
         <CardHeader>
           <CardTitle className="text-lg">Forma de Pagamento</CardTitle>
         </CardHeader>
@@ -491,7 +605,7 @@ export function PaymentCheckout({
       </Card>
 
       {/* Payer Info */}
-      <Card>
+      <Card className="rounded-lg shadow-none">
         <CardHeader>
           <CardTitle className="text-lg">Dados do Pagador</CardTitle>
         </CardHeader>
@@ -565,6 +679,10 @@ export function PaymentCheckout({
           )}
         </Button>
       </div>
+      <p className="flex items-center justify-center gap-2 text-center text-xs text-muted-foreground">
+        <ShieldCheck className="h-4 w-4 text-success" />
+        Pagamento processado com segurança pelo Mercado Pago
+      </p>
     </form>
   );
 }

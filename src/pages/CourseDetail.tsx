@@ -553,7 +553,7 @@ export default function CourseDetail() {
 
       {/* Payment Dialog */}
       <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-h-[92vh] max-w-3xl overflow-y-auto p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle>Comprar Curso</DialogTitle>
           </DialogHeader>
@@ -563,6 +563,13 @@ export default function CourseDetail() {
               referenceId={id}
               amount={Number(course.price)}
               description={`Curso: ${course.title}`}
+              categoryId={course.category_id}
+              primaryCourse={{
+                id: course.id,
+                title: course.title,
+                price: Number(course.price),
+                thumbnailUrl: course.thumbnail_url,
+              }}
               onSuccess={handlePaymentSuccess}
               onCancel={() => setShowPaymentDialog(false)}
             />

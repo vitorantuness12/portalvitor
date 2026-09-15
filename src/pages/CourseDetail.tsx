@@ -29,6 +29,7 @@ import { RelatedCourses } from '@/components/courses/RelatedCourses';
 import { Seo } from '@/components/seo/Seo';
 import { SITE_URL } from '@/lib/site';
 import { buildCourseSeo } from '@/lib/courseSeo';
+import { slugify } from '@/lib/slug';
 
 
 const levelStyles: Record<string, string> = {
@@ -266,13 +267,7 @@ export default function CourseDetail() {
             '@type': 'ListItem',
             position: 3,
             name: categoryName,
-            item: `${SITE_URL}/categoria/${categoryName
-              .normalize('NFD')
-              .replace(/[\u0300-\u036f]/g, '')
-              .toLowerCase()
-              .trim()
-              .replace(/[^a-z0-9]+/g, '-')
-              .replace(/^-+|-+$/g, '')}`,
+            item: `${SITE_URL}/categoria/${slugify(categoryName)}`,
           }]
         : []),
       { '@type': 'ListItem', position: categoryName ? 4 : 3, name: course.title, item: courseUrl },
@@ -285,6 +280,7 @@ export default function CourseDetail() {
         title={courseSeo.title}
         description={courseSeo.description}
         path={`/curso/${course.id}`}
+        noIndex={course.status !== 'active'}
         jsonLd={[courseSchema, breadcrumbSchema]}
       />
       <Header />

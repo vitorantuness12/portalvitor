@@ -214,6 +214,12 @@ export default function CourseDetail() {
   }
 
   const isPaid = Number(course.price) > 0;
+  const normalizedCategory = course.categories?.name
+    ?.trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLocaleLowerCase('pt-BR');
+  const isHealthCourse = normalizedCategory === 'saude';
   const courseDescription =
     course.short_description ||
     (course.description ? String(course.description).slice(0, 155) : '') ||
@@ -359,9 +365,7 @@ export default function CourseDetail() {
 
               {/* Free course disclaimer */}
               <FreeCourseDisclaimer />
-              {course.categories?.name?.trim().toLocaleLowerCase('pt-BR') === 'saúde' && (
-                <HealthDisclaimer />
-              )}
+              {isHealthCourse && <HealthDisclaimer />}
 
               {/* Includes - shown inline on mobile since sidebar is hidden */}
               <Card className="p-4 sm:p-6 lg:hidden">
@@ -505,7 +509,7 @@ export default function CourseDetail() {
               </div>
             )}
 
-            {hasHealthDisclaimer(course.id) && <HealthDisclaimer compact />}
+            {isHealthCourse && <HealthDisclaimer compact />}
             {hasProfessionDisclaimer(course.id) && <ProfessionDisclaimer courseId={course.id} compact />}
 
             <div className="flex items-center justify-between gap-4">

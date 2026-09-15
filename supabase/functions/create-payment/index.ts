@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { fulfillPayment } from "../_shared/fulfill-payment.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -19,6 +20,7 @@ interface CreatePaymentRequest {
   // Card data (only for card payments)
   cardToken?: string;
   installments?: number;
+  courseIds?: string[];
 }
 
 
@@ -57,7 +59,7 @@ serve(async (req) => {
     }
 
     const body: CreatePaymentRequest = await req.json();
-    const { referenceType, referenceId, amount, paymentMethod, description, payerEmail, payerName, payerCpf, couponCode, cardToken, installments } = body;
+    const { referenceType, referenceId, amount, paymentMethod, description, payerEmail, payerName, payerCpf, couponCode, cardToken, installments, courseIds } = body;
 
     // Validate required fields
     if (!referenceType || !referenceId || !paymentMethod || !description || !payerEmail || !payerName) {
@@ -72,20 +74,54 @@ serve(async (req) => {
     // nunca do cliente (evita manipulação do valor no navegador).
     // ---------------------------------------------------------------
     let baseAmount = Number(amount) || 0;
+    let validatedCourses: Array<{ id: string; title: string; price: number; category_id: string | null }> = [];
 
     if (referenceType === "course") {
-      const { data: course } = await supabase
-        .from("courses")
-        .select("price, title, status")
-        .eq("id", referenceId)
-        .maybeSingle();
-      if (!course || course.status !== "active") {
-        return new Response(JSON.stringify({ error: "Curso indisponível" }), {
+      const requestedIds = [...new Set([referenceId, ...(courseIds ?? [])])];
+      if (requestedIds.length > 6 || requestedIds.some((courseId) => typeof courseId !== "string")) {
+        return new Response(JSON.stringify({ error: "Seleção de cursos inválida" }), {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      baseAmount = Number(course.price) || 0;
+
+      const { data: courses, error: coursesError } = await supabase
+        .from("courses")
+        .select("id, price, title, status, category_id")
+        .in("id", requestedIds);
+      if (coursesError || !courses || courses.length !== requestedIds.length || courses.some((course) => course.status !== "active")) {
+        return new Response(JSON.stringify({ error: "Um ou mais cursos estão indisponíveis" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const primaryCourse = courses.find((course) => course.id === referenceId);
+      if (!primaryCourse || courses.some((course) => course.category_id !== primaryCourse.category_id)) {
+        return new Response(JSON.stringify({ error: "Os cursos adicionais devem ser da mesma categoria" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const { data: existingEnrollments, error: enrollmentError } = await supabase
+        .from("enrollments")
+        .select("course_id")
+        .eq("user_id", userData.user.id)
+        .in("course_id", requestedIds);
+      if (enrollmentError) throw enrollmentError;
+      const ownedIds = new Set((existingEnrollments ?? []).map((item) => item.course_id));
+      if (ownedIds.has(referenceId)) {
+        return new Response(JSON.stringify({ error: "Você já possui acesso ao curso principal" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      validatedCourses = courses
+        .filter((course) => !ownedIds.has(course.id))
+        .map((course) => ({ ...course, price: Number(course.price) || 0 }));
+      baseAmount = validatedCourses.reduce((total, course) => total + course.price, 0);
     } else if (referenceType === "track") {
       const { data: track } = await supabase
         .from("learning_tracks")
@@ -107,11 +143,33 @@ serve(async (req) => {
     let couponCodeApplied: string | null = null;
 
     if (couponCode && couponCode.trim() && referenceType !== "student_card") {
+      let couponAmount = baseAmount;
+      let couponScopeId = referenceId;
+
+      if (referenceType === "course" && validatedCourses.length > 1) {
+        const { data: couponRecord } = await supabase
+          .from("coupons")
+          .select("scope, scope_id")
+          .ilike("code", couponCode.trim())
+          .maybeSingle();
+        if (couponRecord?.scope === "course" && couponRecord.scope_id) {
+          const eligibleCourse = validatedCourses.find((course) => course.id === couponRecord.scope_id);
+          if (!eligibleCourse) {
+            return new Response(JSON.stringify({ error: "Cupom não válido para os cursos selecionados" }), {
+              status: 400,
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+          }
+          couponAmount = eligibleCourse.price;
+          couponScopeId = eligibleCourse.id;
+        }
+      }
+
       const { data: couponResult, error: couponError } = await supabase.rpc("validate_coupon", {
         _code: couponCode.trim(),
-        _amount: baseAmount,
+        _amount: couponAmount,
         _scope: referenceType,
-        _scope_id: referenceId,
+        _scope_id: couponScopeId,
       });
 
       if (couponError) {
@@ -165,11 +223,28 @@ serve(async (req) => {
       throw new Error("Failed to create payment record");
     }
 
+    if (referenceType === "course" && validatedCourses.length) {
+      const { error: itemsError } = await supabase.from("payment_items").insert(
+        validatedCourses.map((course) => ({
+          payment_id: payment.id,
+          course_id: course.id,
+          unit_price: course.price,
+          is_primary: course.id === referenceId,
+        })),
+      );
+      if (itemsError) {
+        await supabase.from("payments").delete().eq("id", payment.id);
+        throw new Error("Failed to create payment items");
+      }
+    }
+
     // Build Mercado Pago payment request
     let mpPaymentData: Record<string, unknown> = {
       transaction_amount: finalAmount,
 
-      description,
+      description: referenceType === "course" && validatedCourses.length > 1
+        ? `${validatedCourses.length} cursos Formak`
+        : description,
       external_reference: payment.id,
       notification_url: `${SUPABASE_URL}/functions/v1/mercadopago-webhook`,
       payer: {
@@ -272,6 +347,15 @@ serve(async (req) => {
       .from("payments")
       .update(updateData)
       .eq("id", payment.id);
+
+    if (mpResult.status === "approved") {
+      await fulfillPayment(supabase, {
+        id: payment.id,
+        user_id: userData.user.id,
+        reference_type: referenceType,
+        reference_id: referenceId,
+      });
+    }
 
     // Return response
     return new Response(

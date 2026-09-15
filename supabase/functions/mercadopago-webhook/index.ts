@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { fulfillPayment } from "../_shared/fulfill-payment.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -198,85 +199,10 @@ serve(async (req) => {
       if (status === "approved" && localPayment.reference_type && localPayment.reference_id) {
         console.log(`Updating ${localPayment.reference_type} ${localPayment.reference_id} to active`);
 
-        if (localPayment.reference_type === "student_card") {
-          const expiresAt = new Date();
-          expiresAt.setFullYear(expiresAt.getFullYear() + 1);
-
-          await supabase
-            .from("student_cards")
-            .update({
-              status: "active",
-              paid_at: new Date().toISOString(),
-              issued_at: new Date().toISOString(),
-              expires_at: expiresAt.toISOString(),
-            })
-            .eq("id", localPayment.reference_id);
-        }
-
-        if (localPayment.reference_type === "course") {
-          // Create enrollment for the course
-          // Evita matrícula duplicada quando o MP reenvia a mesma notificação.
-          const { data: existingEnrollment } = await supabase
-            .from("enrollments")
-            .select("id")
-            .eq("user_id", localPayment.user_id)
-            .eq("course_id", localPayment.reference_id)
-            .maybeSingle();
-
-          const { error: enrollmentError } = existingEnrollment
-            ? { error: null }
-            : await supabase
-            .from("enrollments")
-            .insert({
-              user_id: localPayment.user_id,
-              course_id: localPayment.reference_id,
-              status: "in_progress",
-              progress: 0,
-            });
-
-          if (enrollmentError) {
-            console.error("Error creating enrollment:", enrollmentError);
-          } else {
-            console.log(`Enrollment created for user ${localPayment.user_id} in course ${localPayment.reference_id}`);
-          }
-        }
-
-        // ---------------- Trilha de carreira ----------------
-        if (localPayment.reference_type === "track") {
-          const trackId = localPayment.reference_id;
-
-          // Matrícula na trilha (idempotente)
-          await supabase
-            .from("track_enrollments")
-            .upsert(
-              { user_id: localPayment.user_id, track_id: trackId },
-              { onConflict: "user_id,track_id", ignoreDuplicates: true },
-            );
-
-          const { data: trackCourses } = await supabase
-            .from("track_courses")
-            .select("course_id")
-            .eq("track_id", trackId);
-
-          for (const tc of trackCourses ?? []) {
-            const { data: existing } = await supabase
-              .from("enrollments")
-              .select("id")
-              .eq("user_id", localPayment.user_id)
-              .eq("course_id", tc.course_id)
-              .maybeSingle();
-
-            if (!existing) {
-              const { error: err } = await supabase.from("enrollments").insert({
-                user_id: localPayment.user_id,
-                course_id: tc.course_id,
-                status: "in_progress",
-                progress: 0,
-              });
-              if (err) console.error("Error creating track enrollment:", err);
-            }
-          }
-          console.log(`Track ${trackId} liberada para ${localPayment.user_id}`);
+        try {
+          await fulfillPayment(supabase, localPayment);
+        } catch (fulfillmentError) {
+          console.error("Error fulfilling payment:", fulfillmentError);
         }
       }
 

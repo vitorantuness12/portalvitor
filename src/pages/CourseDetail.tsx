@@ -25,6 +25,7 @@ import { CourseImage } from '@/components/courses/CourseImage';
 import { FreeCourseDisclaimer } from '@/components/courses/FreeCourseDisclaimer';
 import { HealthDisclaimer } from '@/components/courses/HealthDisclaimer';
 import { ProfessionDisclaimer, hasProfessionDisclaimer } from '@/components/courses/ProfessionDisclaimer';
+import { RelatedCourses } from '@/components/courses/RelatedCourses';
 import { Seo } from '@/components/seo/Seo';
 import { SITE_URL } from '@/lib/site';
 
@@ -389,6 +390,8 @@ export default function CourseDetail() {
                   </div>
                 </div>
               </Card>
+
+              <RelatedCourses categoryId={course.category_id} currentCourseId={course.id} />
             </motion.div>
 
             {/* Sidebar - Hidden on mobile, sticky purchase card on desktop */}

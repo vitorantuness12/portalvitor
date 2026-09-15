@@ -31,11 +31,6 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://formak.com.br/categoria/seguranca-do-trabalho</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://formak.com.br/categoria/desenvolvimento-pessoal</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>

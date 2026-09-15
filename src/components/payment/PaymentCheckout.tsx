@@ -136,46 +136,39 @@ export function PaymentCheckout({
 
     setValidatingCoupon(true);
     try {
-      let couponAmount = subtotal;
-      let couponScopeId = referenceId;
-
-      if (referenceType === 'course' && selectedCourses.length > 0) {
-        const { data: couponRecord, error: couponLookupError } = await supabase
-          .from('coupons')
-          .select('scope, scope_id')
-          .ilike('code', code)
-          .maybeSingle();
-        if (couponLookupError) throw couponLookupError;
-
-        if (couponRecord?.scope === 'course' && couponRecord.scope_id) {
-          const eligibleCourse = [primaryCourse, ...selectedCourses].find(
-            (course) => course?.id === couponRecord.scope_id,
-          );
-          if (!eligibleCourse) {
-            toast.error('Cupom não válido para os cursos selecionados');
-            return;
-          }
-          couponAmount = eligibleCourse.price;
-          couponScopeId = eligibleCourse.id;
-        }
-      }
-
-      const { data, error } = await supabase.rpc('validate_coupon', {
+      let { data, error } = await supabase.rpc('validate_coupon', {
         _code: code,
-        _amount: couponAmount,
+        _amount: subtotal,
         _scope: referenceType,
-        _scope_id: couponScopeId,
+        _scope_id: referenceId,
       });
 
       if (error) throw error;
 
-      const result = data as unknown as {
+      let result = data as unknown as {
         valid: boolean;
         error?: string;
         code?: string;
         discount?: number;
         final_amount?: number;
       };
+
+      if (!result?.valid && referenceType === 'course' && selectedCourses.length > 0) {
+        for (const selectedCourse of selectedCourses) {
+          const validation = await supabase.rpc('validate_coupon', {
+            _code: code,
+            _amount: selectedCourse.price,
+            _scope: referenceType,
+            _scope_id: selectedCourse.id,
+          });
+          if (validation.error) throw validation.error;
+          const candidate = validation.data as unknown as typeof result;
+          if (candidate?.valid) {
+            result = candidate;
+            break;
+          }
+        }
+      }
 
       if (!result?.valid) {
         setCoupon(null);

@@ -64,8 +64,11 @@ serve(async (req) => {
       });
     }
 
-    // If payment is already approved/rejected, just return current status
+    // Reexecuta a liberação aprovada de forma idempotente para recuperar falhas transitórias.
     if (payment.status === "approved" || payment.status === "rejected") {
+      if (payment.status === "approved") {
+        await fulfillPayment(supabase, payment);
+      }
       return new Response(
         JSON.stringify({
           paymentId: payment.id,

@@ -324,8 +324,8 @@ export function PaymentCheckout({
         animate={{ opacity: 1, scale: 1 }}
         className="text-center py-8"
       >
-        <div className="inline-flex items-center justify-center p-4 bg-emerald-500/10 rounded-full mb-4">
-          <CheckCircle className="h-12 w-12 text-emerald-500" />
+        <div className="mb-4 inline-flex items-center justify-center rounded-full bg-success/10 p-4">
+          <CheckCircle className="h-12 w-12 text-success" />
         </div>
         <h3 className="text-xl font-semibold mb-2">Pagamento Aprovado!</h3>
         <p className="text-muted-foreground">
@@ -404,7 +404,7 @@ export function PaymentCheckout({
               onClick={handleCopyPixCode}
             >
               {copied ? (
-                <Check className="h-4 w-4 text-emerald-500" />
+                  <Check className="h-4 w-4 text-success" />
               ) : (
                 <Copy className="h-4 w-4" />
               )}
@@ -517,7 +517,7 @@ export function PaymentCheckout({
                 <span>Subtotal</span>
                 <span className="line-through">R$ {subtotal.toFixed(2).replace('.', ',')}</span>
               </div>
-              <div className="flex items-center justify-between text-emerald-600 font-medium">
+              <div className="flex items-center justify-between font-medium text-success">
                 <span>Cupom {coupon.code}</span>
                 <span>- R$ {coupon.discount.toFixed(2).replace('.', ',')}</span>
               </div>

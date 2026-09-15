@@ -23,7 +23,7 @@ import { useIsPwa } from '@/hooks/useIsPwa';
 import { cn } from '@/lib/utils';
 import { CourseImage } from '@/components/courses/CourseImage';
 import { FreeCourseDisclaimer } from '@/components/courses/FreeCourseDisclaimer';
-import { HealthDisclaimer, hasHealthDisclaimer } from '@/components/courses/HealthDisclaimer';
+import { HealthDisclaimer } from '@/components/courses/HealthDisclaimer';
 import { ProfessionDisclaimer, hasProfessionDisclaimer } from '@/components/courses/ProfessionDisclaimer';
 import { Seo } from '@/components/seo/Seo';
 import { SITE_URL } from '@/lib/site';
@@ -359,7 +359,9 @@ export default function CourseDetail() {
 
               {/* Free course disclaimer */}
               <FreeCourseDisclaimer />
-              {hasHealthDisclaimer(course.id) && <HealthDisclaimer />}
+              {course.categories?.name?.trim().toLocaleLowerCase('pt-BR') === 'saúde' && (
+                <HealthDisclaimer />
+              )}
 
               {/* Includes - shown inline on mobile since sidebar is hidden */}
               <Card className="p-4 sm:p-6 lg:hidden">

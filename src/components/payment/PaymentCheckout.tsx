@@ -398,7 +398,7 @@ export function PaymentCheckout({
 
         {/* QR Code */}
         <div className="flex justify-center">
-          <div className="p-4 bg-white rounded-xl shadow-lg">
+          <div className="rounded-xl bg-background p-4 shadow-lg">
             {pixData.qrCodeBase64 ? (
               <img
                 src={`data:image/png;base64,${pixData.qrCodeBase64}`}

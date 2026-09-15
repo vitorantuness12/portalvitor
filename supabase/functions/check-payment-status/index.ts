@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { fulfillPayment } from "../_shared/fulfill-payment.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -105,45 +106,7 @@ serve(async (req) => {
             updateData.status = "approved";
             updateData.paid_at = new Date().toISOString();
 
-            // Update reference if needed
-            if (payment.reference_type === "student_card") {
-              const expiresAt = new Date();
-              expiresAt.setFullYear(expiresAt.getFullYear() + 1);
-
-              await supabase
-                .from("student_cards")
-                .update({
-                  status: "active",
-                  paid_at: new Date().toISOString(),
-                  issued_at: new Date().toISOString(),
-                  expires_at: expiresAt.toISOString(),
-                })
-                .eq("id", payment.reference_id);
-            }
-
-            if (payment.reference_type === "course") {
-              const { data: existingEnrollment } = await supabase
-                .from("enrollments")
-                .select("id")
-                .eq("user_id", payment.user_id)
-                .eq("course_id", payment.reference_id)
-                .maybeSingle();
-
-              if (!existingEnrollment) {
-                const { error: enrollmentError } = await supabase
-                  .from("enrollments")
-                  .insert({
-                    user_id: payment.user_id,
-                    course_id: payment.reference_id,
-                    status: "in_progress",
-                    progress: 0,
-                  });
-
-                if (enrollmentError) {
-                  throw new Error("Failed to release course access");
-                }
-              }
-            }
+            await fulfillPayment(supabase, payment);
           } else if (mpPayment.status === "rejected") {
             newStatus = "rejected";
             updateData.status = "rejected";

@@ -24,7 +24,7 @@ export interface HealthDisclaimerProps {
 }
 
 export const HEALTH_DISCLAIMER_TEXT =
-  'Este curso tem finalidade exclusivamente educacional. Não oferece consulta, diagnóstico, prescrição, tratamento ou acompanhamento individual. O certificado não habilita o aluno a exercer profissão da área da saúde. As informações apresentadas não devem ser utilizadas para iniciar, interromper ou alterar tratamentos. Para orientação individual, procure um profissional de saúde habilitado.';
+  'Curso de caráter informativo e educativo. Não substitui avaliação, diagnóstico ou tratamento profissional e não habilita o aluno para o exercício de atividades regulamentadas na área da saúde.';
 
 export const HealthDisclaimer = ({ className, compact = false }: HealthDisclaimerProps) => (
   <div

@@ -21,9 +21,8 @@ export function FreeCourseDisclaimer({ className }: FreeCourseDisclaimerProps) {
       </div>
       <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
         Este é um curso livre, de caráter educacional. O certificado é próprio da Formak e
-        comprova a conclusão do conteúdo disponibilizado. O curso não é autorizado ou reconhecido
-        pelo MEC, não equivale a diploma ou pós-graduação e não habilita para o exercício de
-        profissões regulamentadas.
+        comprova a conclusão do conteúdo disponibilizado. Não equivale a diploma ou pós-graduação
+        e não habilita para o exercício de profissões regulamentadas.
       </p>
     </div>
   );

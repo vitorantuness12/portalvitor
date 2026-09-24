@@ -25,6 +25,7 @@ import SupportTicket from "./pages/SupportTicket";
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminCourses from "./pages/admin/Courses";
+import CourseTextDownloads from "./pages/admin/CourseTextDownloads";
 import AdminUsers from "./pages/admin/Users";
 import AdminCategories from "./pages/admin/Categories";
 import AdminCertificates from "./pages/admin/Certificates";
@@ -105,6 +106,7 @@ function App() {
                 <Route path="/admin" element={<AdminLayout />}>
                   <Route index element={<AdminDashboard />} />
                   <Route path="cursos" element={<AdminCourses />} />
+                  <Route path="conteudos-txt" element={<CourseTextDownloads />} />
                   <Route path="usuarios" element={<AdminUsers />} />
                   <Route path="categorias" element={<AdminCategories />} />
                   <Route path="certificados" element={<AdminCertificates />} />

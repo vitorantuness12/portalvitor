@@ -67,13 +67,16 @@ interface CertificateRecord {
 
 export default function AdminUsers() {
   const [search, setSearch] = useState('');
-  const [selectedUser, setSelectedUser] = useState<UserWithEnrollments | null>(null);
-  const [enrollUserModal, setEnrollUserModal] = useState<UserWithEnrollments | null>(null);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [enrollUserId, setEnrollUserId] = useState<string | null>(null);
   const [selectedCourseId, setSelectedCourseId] = useState<string>('');
   const queryClient = useQueryClient();
 
   const { data: users, isLoading } = useQuery({
     queryKey: ['admin-users'],
+    staleTime: 0,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
     queryFn: async () => {
       // Usa Edge Function que busca email direto do auth.users
       const response = await fetch(
@@ -91,6 +94,9 @@ export default function AdminUsers() {
       return result.data as UserWithEnrollments[];
     },
   });
+
+  const selectedUser = users?.find((user) => user.user_id === selectedUserId) ?? null;
+  const enrollUserModal = users?.find((user) => user.user_id === enrollUserId) ?? null;
 
   const { data: courses } = useQuery({
     queryKey: ['admin-courses-list'],
@@ -124,28 +130,36 @@ export default function AdminUsers() {
 
   const enrollMutation = useMutation({
     mutationFn: async ({ userId, courseId }: { userId: string; courseId: string }) => {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('enrollments')
         .insert({
           user_id: userId,
           course_id: courseId,
           status: 'in_progress',
           progress: 0,
-        });
+        })
+        .select('id')
+        .single();
 
       if (error) throw error;
+      if (!data) throw new Error('A liberação não foi confirmada. Atualize a página antes de tentar novamente.');
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
-      toast.success('Curso adicionado com sucesso!');
-      setEnrollUserModal(null);
+    onSuccess: async (_data, { userId, courseId }) => {
+      setEnrollUserId(null);
       setSelectedCourseId('');
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['admin-users'] }),
+        queryClient.invalidateQueries({ queryKey: ['my-enrollments', userId] }),
+        queryClient.invalidateQueries({ queryKey: ['student-enrollments', userId] }),
+        queryClient.invalidateQueries({ queryKey: ['enrollment', courseId, userId] }),
+      ]);
+      toast.success('Curso liberado para o aluno.');
     },
-    onError: (error: any) => {
+    onError: (error: Error & { code?: string }) => {
       if (error.code === '23505') {
         toast.error('Usuário já está matriculado neste curso');
       } else {
-        toast.error('Erro ao adicionar curso');
+        toast.error(`Não foi possível liberar o curso: ${error.message}`);
       }
     },
   });
@@ -160,7 +174,7 @@ export default function AdminUsers() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      void queryClient.invalidateQueries({ queryKey: ['admin-users'] });
       toast.success('Matrícula removida com sucesso!');
     },
     onError: () => {
@@ -294,7 +308,7 @@ export default function AdminUsers() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => setEnrollUserModal(user)}
+                      onClick={() => setEnrollUserId(user.user_id)}
                       title="Adicionar curso"
                     >
                       <Plus className="h-4 w-4" />
@@ -302,7 +316,7 @@ export default function AdminUsers() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => setSelectedUser(user)}
+                      onClick={() => setSelectedUserId(user.user_id)}
                       title="Ver detalhes"
                     >
                       <Eye className="h-4 w-4" />
@@ -404,7 +418,7 @@ export default function AdminUsers() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => setEnrollUserModal(user)}
+                          onClick={() => setEnrollUserId(user.user_id)}
                           title="Adicionar curso"
                         >
                           <Plus className="h-4 w-4" />
@@ -412,7 +426,7 @@ export default function AdminUsers() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => setSelectedUser(user)}
+                          onClick={() => setSelectedUserId(user.user_id)}
                           title="Ver detalhes"
                         >
                           <Eye className="h-4 w-4" />
@@ -428,7 +442,7 @@ export default function AdminUsers() {
       </div>
 
       {/* Modal de Detalhes do Aluno */}
-      <Dialog open={!!selectedUser} onOpenChange={() => setSelectedUser(null)}>
+      <Dialog open={!!selectedUserId} onOpenChange={(open) => { if (!open) setSelectedUserId(null); }}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Detalhes do Aluno</DialogTitle>
@@ -457,8 +471,8 @@ export default function AdminUsers() {
                     variant="outline"
                     size="sm"
                     onClick={() => {
-                      setSelectedUser(null);
-                      setEnrollUserModal(selectedUser);
+                      setSelectedUserId(null);
+                      setEnrollUserId(selectedUser.user_id);
                     }}
                   >
                     <Plus className="h-4 w-4 mr-2" />
@@ -585,8 +599,9 @@ export default function AdminUsers() {
       </Dialog>
 
       {/* Modal de Adicionar Curso */}
-      <Dialog open={!!enrollUserModal} onOpenChange={() => {
-        setEnrollUserModal(null);
+      <Dialog open={!!enrollUserId} onOpenChange={(open) => {
+        if (open || enrollMutation.isPending) return;
+        setEnrollUserId(null);
         setSelectedCourseId('');
       }}>
         <DialogContent>
@@ -626,7 +641,7 @@ export default function AdminUsers() {
                 <Button
                   variant="outline"
                   onClick={() => {
-                    setEnrollUserModal(null);
+                     setEnrollUserId(null);
                     setSelectedCourseId('');
                   }}
                 >

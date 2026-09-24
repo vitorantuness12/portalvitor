@@ -74,7 +74,7 @@ export default function CourseVideos() {
 
   const startUpload = async (file: File) => {
     if (!course || uploading || removing) return;
-    const extension = VIDEO_TYPES[file.type];
+    const extension = VIDEO_TYPES[file.type] ?? (file.name.toLowerCase().endsWith('.mp4') ? 'mp4' : file.name.toLowerCase().endsWith('.webm') ? 'webm' : undefined);
     if (!extension || file.size === 0 || file.size > MAX_VIDEO_BYTES) {
       toast.error('Envie um MP4 ou WebM de até 500 MB.');
       return;
@@ -82,8 +82,11 @@ export default function CourseVideos() {
 
     const courseId = course.id;
     const previousPath = course.video_path;
+    const contentType = extension === 'mp4' ? 'video/mp4' : 'video/webm';
     // A unique path keeps the old video playable until the new upload and database update succeed.
     const path = `${courseId}/${crypto.randomUUID()}.${extension}`;
+    let uploadCompleted = false;
+    let courseUpdated = false;
     setUploading(true);
     setProgress(0);
 
@@ -94,15 +97,17 @@ export default function CourseVideos() {
         rejectUploadRef.current = reject;
         const upload = new TusUpload(file, {
           endpoint: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/upload/resumable`,
-          headers: {
-            authorization: `Bearer ${session.access_token}`,
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          headers: { apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
+          onBeforeRequest: async (request) => {
+            const { data, error } = await supabase.auth.getSession();
+            if (error || !data.session) throw new Error('Sua sessão expirou. Entre novamente para enviar o vídeo.');
+            request.setHeader('authorization', `Bearer ${data.session.access_token}`);
           },
           uploadDataDuringCreation: true,
           storeFingerprintForResuming: false,
           chunkSize: 6 * 1024 * 1024,
           retryDelays: [0, 3000, 5000, 10000, 20000],
-          metadata: { bucketName: 'course-videos', objectName: path, contentType: file.type, cacheControl: '3600' },
+          metadata: { bucketName: 'course-videos', objectName: path, contentType, cacheControl: '3600' },
           onProgress: (sent, total) => setProgress(Math.round(sent / total * 100)),
           onError: reject,
           onSuccess: () => resolve(),
@@ -110,15 +115,16 @@ export default function CourseVideos() {
         uploadRef.current = upload;
         upload.start();
       });
+      uploadCompleted = true;
 
       const update = supabase.from('courses').update({ video_path: path })
         .eq('id', courseId);
       const { data, error } = await (previousPath ? update.eq('video_path', previousPath) : update.is('video_path', null))
         .select('id').maybeSingle();
       if (error || !data) {
-        await supabase.storage.from('course-videos').remove([path]);
         throw error ?? new Error('O vídeo do curso mudou durante o envio. Atualize e tente novamente.');
       }
+      courseUpdated = true;
       await refreshCourses(courseId);
       if (previousPath) {
         const { error: cleanupError } = await supabase.storage.from('course-videos').remove([previousPath]);
@@ -127,6 +133,9 @@ export default function CourseVideos() {
       toast.success('Vídeo aula salvo com sucesso.');
       setSelectedId(null);
     } catch (error) {
+      if (uploadCompleted && !courseUpdated) {
+        await supabase.storage.from('course-videos').remove([path]);
+      }
       toast.error(error instanceof Error ? error.message : 'Não foi possível enviar o vídeo. Tente novamente.');
     } finally {
       uploadRef.current = null;

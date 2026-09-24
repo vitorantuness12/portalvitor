@@ -125,7 +125,10 @@ export default function CourseVideos() {
         throw error ?? new Error('O vídeo do curso mudou durante o envio. Atualize e tente novamente.');
       }
       courseUpdated = true;
-      await refreshCourses(courseId);
+      // Database save is authoritative; a refresh failure must not report a saved video as failed.
+      void refreshCourses(courseId).catch(() => {
+        toast.warning('Vídeo salvo. Atualize a lista para ver a alteração.');
+      });
       if (previousPath) {
         const { error: cleanupError } = await supabase.storage.from('course-videos').remove([previousPath]);
         if (cleanupError) toast.warning('Novo vídeo salvo, mas não foi possível limpar o arquivo anterior.');
@@ -133,7 +136,8 @@ export default function CourseVideos() {
       toast.success('Vídeo aula salvo com sucesso.');
       setSelectedId(null);
     } catch (error) {
-      if (uploadCompleted && !courseUpdated) {
+      if (!courseUpdated) {
+        await uploadRef.current?.abort();
         await supabase.storage.from('course-videos').remove([path]);
       }
       toast.error(error instanceof Error ? error.message : 'Não foi possível enviar o vídeo. Tente novamente.');
@@ -153,7 +157,9 @@ export default function CourseVideos() {
       const { data, error } = await supabase.from('courses').update({ video_path: null })
         .eq('id', id).eq('video_path', path).select('id').maybeSingle();
       if (error || !data) throw error ?? new Error('O vídeo mudou. Atualize a página.');
-      await refreshCourses(id);
+      void refreshCourses(id).catch(() => {
+        toast.warning('Vídeo removido. Atualize a lista para ver a alteração.');
+      });
       const { error: cleanupError } = await supabase.storage.from('course-videos').remove([path]);
       if (cleanupError) toast.warning('Vídeo removido do curso, mas o arquivo antigo ainda precisa ser limpo.');
       else toast.success('Vídeo aula removido.');

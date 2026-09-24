@@ -34,6 +34,7 @@ export default function CourseVideos() {
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const uploadRef = useRef<TusUpload | null>(null);
+  const rejectUploadRef = useRef<((reason: Error) => void) | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
 
@@ -57,7 +58,10 @@ export default function CourseVideos() {
   const course = courses.find((item) => item.id === selectedId);
   const filtered = courses.filter((item) => item.title.toLocaleLowerCase('pt-BR').includes(search.trim().toLocaleLowerCase('pt-BR')));
 
-  useEffect(() => () => { void uploadRef.current?.abort(); }, []);
+  useEffect(() => () => {
+    void uploadRef.current?.abort();
+    rejectUploadRef.current?.(new Error('Envio interrompido.'));
+  }, []);
 
   const refreshCourses = async (courseId: string) => {
     await Promise.all([
@@ -87,6 +91,7 @@ export default function CourseVideos() {
       const { data: { session }, error: authError } = await supabase.auth.getSession();
       if (authError || !session) throw new Error('Entre novamente na sua conta para enviar o vídeo.');
       await new Promise<void>((resolve, reject) => {
+        rejectUploadRef.current = reject;
         const upload = new TusUpload(file, {
           endpoint: `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/upload/resumable`,
           headers: {
@@ -94,7 +99,7 @@ export default function CourseVideos() {
             apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
           },
           uploadDataDuringCreation: true,
-          removeFingerprintOnSuccess: true,
+          storeFingerprintForResuming: false,
           chunkSize: 6 * 1024 * 1024,
           retryDelays: [0, 3000, 5000, 10000, 20000],
           metadata: { bucketName: 'course-videos', objectName: path, contentType: file.type, cacheControl: '3600' },
@@ -103,10 +108,7 @@ export default function CourseVideos() {
           onSuccess: () => resolve(),
         });
         uploadRef.current = upload;
-        void upload.findPreviousUploads().then((previous) => {
-          if (previous.length > 0) upload.resumeFromPreviousUpload(previous[0]);
-          upload.start();
-        }).catch(reject);
+        upload.start();
       });
 
       const update = supabase.from('courses').update({ video_path: path })
@@ -128,6 +130,7 @@ export default function CourseVideos() {
       toast.error(error instanceof Error ? error.message : 'Não foi possível enviar o vídeo. Tente novamente.');
     } finally {
       uploadRef.current = null;
+      rejectUploadRef.current = null;
       setUploading(false);
       if (fileRef.current) fileRef.current.value = '';
     }
@@ -193,7 +196,7 @@ export default function CourseVideos() {
             {uploading && <div role="status" className="space-y-2"><div className="flex justify-between text-sm"><span>Enviando vídeo...</span><span>{progress}%</span></div><Progress value={progress} /></div>}
             <div className="flex flex-wrap gap-2">
               <Button disabled={uploading || removing} onClick={() => fileRef.current?.click()}><UploadCloud aria-hidden="true" />{course?.video_path ? 'Substituir vídeo' : 'Selecionar vídeo'}</Button>
-              {uploading && <Button variant="outline" onClick={() => { void uploadRef.current?.abort(); setUploading(false); uploadRef.current = null; toast.info('Envio interrompido. Selecione o arquivo novamente para retomar.'); }}><X aria-hidden="true" /> Interromper</Button>}
+              {uploading && <Button variant="outline" onClick={() => { void uploadRef.current?.abort(); rejectUploadRef.current?.(new Error('Envio interrompido.')); }}><X aria-hidden="true" /> Interromper</Button>}
               {course?.video_path && <Button variant="outline" className="text-destructive" disabled={uploading || removing} onClick={() => setConfirmRemove(true)}><Trash2 aria-hidden="true" /> Remover vídeo</Button>}
             </div>
           </div>

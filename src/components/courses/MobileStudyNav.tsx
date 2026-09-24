@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
-import { BookOpen, StickyNote, FileText, Trophy, Lock, ChevronLeft, ChevronRight } from 'lucide-react';
+import { BookOpen, StickyNote, FileText, Trophy, Lock, ChevronLeft, ChevronRight, Video } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 interface MobileStudyNavProps {
@@ -16,6 +17,7 @@ interface MobileStudyNavProps {
 }
 
 const tabs = [
+  { id: 'video', label: 'Vídeo', icon: Video },
   { id: 'conteudo', label: 'Conteúdo', icon: BookOpen },
   { id: 'notas', label: 'Notas', icon: StickyNote },
   { id: 'exercicios', label: 'Exercícios', icon: FileText },
@@ -43,7 +45,9 @@ export function MobileStudyNav({
           animate={{ y: 0, opacity: 1 }}
           className="flex items-center justify-between px-4 py-2 bg-muted/95 backdrop-blur-lg border-t border-border/50"
         >
-          <button
+          <Button
+            type="button"
+            variant="ghost"
             onClick={onPrevModule}
             disabled={currentModuleIndex === 0}
             className={cn(
@@ -55,7 +59,7 @@ export function MobileStudyNav({
           >
             <ChevronLeft className="h-4 w-4" />
             Anterior
-          </button>
+          </Button>
           
           <div className="flex items-center gap-1.5">
             {Array.from({ length: totalModules }).map((_, i) => (
@@ -73,7 +77,9 @@ export function MobileStudyNav({
             ))}
           </div>
           
-          <button
+          <Button
+            type="button"
+            variant="ghost"
             onClick={onNextModule}
             disabled={currentModuleIndex === totalModules - 1}
             className={cn(
@@ -85,7 +91,7 @@ export function MobileStudyNav({
           >
             Próximo
             <ChevronRight className="h-4 w-4" />
-          </button>
+          </Button>
         </motion.div>
       )}
 
@@ -110,12 +116,14 @@ export function MobileStudyNav({
           const Icon = tab.icon;
 
           return (
-            <button
+            <Button
+              type="button"
+              variant="ghost"
               key={tab.id}
               onClick={() => !isLocked && onTabChange(tab.id)}
               disabled={isLocked}
               className={cn(
-                "flex-1 flex flex-col items-center justify-center gap-1 py-3 relative transition-colors",
+                "min-w-0 flex-1 h-16 flex flex-col items-center justify-center gap-1 px-0 py-2 relative transition-colors",
                 isActive 
                   ? "text-primary" 
                   : isLocked 
@@ -137,7 +145,7 @@ export function MobileStudyNav({
                 )}
               </div>
               <span className="text-[10px] font-medium">{tab.label}</span>
-            </button>
+            </Button>
           );
         })}
       </nav>

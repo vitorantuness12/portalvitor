@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   BookOpen, FileText, CheckCircle, ArrowLeft, ArrowRight, 
   Trophy, Lock, ChevronDown, ChevronUp, Award, StickyNote,
-  Sparkles, Target, Clock, AlertTriangle, RotateCcw, WifiOff
+  Sparkles, Target, Clock, AlertTriangle, RotateCcw, WifiOff, Video
 } from 'lucide-react';
 
 import { Header } from '@/components/layout/Header';
@@ -25,6 +25,7 @@ import { CourseNotes } from '@/components/courses/CourseNotes';
 import { FormattedContent } from '@/components/courses/FormattedContent';
 import { QuestionCard } from '@/components/courses/QuestionCard';
 import { MobileStudyNav } from '@/components/courses/MobileStudyNav';
+import { CourseVideo } from '@/components/courses/CourseVideo';
 import { CourseDownloadActions } from '@/components/courses/CourseDownloadActions';
 import { OfflineDownloadButton } from '@/components/courses/OfflineDownloadButton';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -603,7 +604,11 @@ export default function CourseStudy() {
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
             {/* Desktop tabs - hidden on mobile */}
-            <TabsList className="hidden md:grid w-full grid-cols-4 h-auto p-1">
+            <TabsList className="hidden md:grid w-full grid-cols-5 h-auto p-1">
+              <TabsTrigger value="video" className="gap-2 px-2 py-2 text-sm">
+                <Video className="h-4 w-4" />
+                Vídeo aula
+              </TabsTrigger>
               <TabsTrigger value="conteudo" className="gap-2 px-2 py-2 text-sm">
                 <BookOpen className="h-4 w-4" />
                 Conteúdo
@@ -632,6 +637,7 @@ export default function CourseStudy() {
             {/* Mobile current section indicator */}
             <div className="md:hidden flex items-center gap-3 p-3 bg-card rounded-xl border border-border">
               <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                {activeTab === 'video' && <Video className="h-5 w-5 text-primary" />}
                 {activeTab === 'conteudo' && <BookOpen className="h-5 w-5 text-primary" />}
                 {activeTab === 'notas' && <StickyNote className="h-5 w-5 text-primary" />}
                 {activeTab === 'exercicios' && <FileText className="h-5 w-5 text-primary" />}
@@ -639,12 +645,14 @@ export default function CourseStudy() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-sm">
+                  {activeTab === 'video' && 'Vídeo aula'}
                   {activeTab === 'conteudo' && 'Conteúdo do Curso'}
                   {activeTab === 'notas' && 'Minhas Anotações'}
                   {activeTab === 'exercicios' && 'Exercícios de Fixação'}
                   {activeTab === 'prova' && 'Prova Final'}
                 </p>
                 <p className="text-xs text-muted-foreground truncate">
+                  {activeTab === 'video' && course.title}
                   {activeTab === 'conteudo' && `Módulo ${currentModuleIndex + 1} de ${modules.length}`}
                   {activeTab === 'notas' && 'Faça anotações para revisar depois'}
                   {activeTab === 'exercicios' && 'Teste seus conhecimentos'}
@@ -652,6 +660,16 @@ export default function CourseStudy() {
                 </p>
               </div>
             </div>
+
+            <TabsContent value="video">
+              <CourseVideo
+                courseId={course.id}
+                courseTitle={course.title}
+                videoPath={course.video_path}
+                online={online}
+                active={activeTab === 'video'}
+              />
+            </TabsContent>
 
             {/* Content Tab */}
             <TabsContent value="conteudo" className="space-y-3 sm:space-y-4">

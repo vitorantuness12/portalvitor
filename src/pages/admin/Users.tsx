@@ -144,15 +144,15 @@ export default function AdminUsers() {
       if (error) throw error;
       if (!data) throw new Error('A liberação não foi confirmada. Atualize a página antes de tentar novamente.');
     },
-    onSuccess: async (_data, { userId, courseId }) => {
+    onSuccess: (_data, { userId, courseId }) => {
       setEnrollUserId(null);
       setSelectedCourseId('');
-      await Promise.all([
+      void Promise.all([
         queryClient.invalidateQueries({ queryKey: ['admin-users'] }),
         queryClient.invalidateQueries({ queryKey: ['my-enrollments', userId] }),
         queryClient.invalidateQueries({ queryKey: ['student-enrollments', userId] }),
         queryClient.invalidateQueries({ queryKey: ['enrollment', courseId, userId] }),
-      ]);
+      ]).catch(() => toast.warning('Curso liberado. Atualize a lista para ver a alteração.'));
       toast.success('Curso liberado para o aluno.');
     },
     onError: (error: Error & { code?: string }) => {
@@ -641,7 +641,7 @@ export default function AdminUsers() {
                 <Button
                   variant="outline"
                   onClick={() => {
-                     setEnrollUserId(null);
+                    setEnrollUserId(null);
                     setSelectedCourseId('');
                   }}
                 >

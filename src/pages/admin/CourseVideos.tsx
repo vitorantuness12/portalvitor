@@ -85,7 +85,6 @@ export default function CourseVideos() {
     const contentType = extension === 'mp4' ? 'video/mp4' : 'video/webm';
     // A unique path keeps the old video playable until the new upload and database update succeed.
     const path = `${courseId}/${crypto.randomUUID()}.${extension}`;
-    let uploadCompleted = false;
     let courseUpdated = false;
     setUploading(true);
     setProgress(0);
@@ -115,8 +114,6 @@ export default function CourseVideos() {
         uploadRef.current = upload;
         upload.start();
       });
-      uploadCompleted = true;
-
       const update = supabase.from('courses').update({ video_path: path })
         .eq('id', courseId);
       const { data, error } = await (previousPath ? update.eq('video_path', previousPath) : update.is('video_path', null))

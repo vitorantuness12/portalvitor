@@ -22,6 +22,7 @@ import {
   Gift,
   BadgeDollarSign,
   FileDown,
+  Video,
 
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
@@ -35,6 +36,7 @@ import logo from '@/assets/icone_formak.png';
 const sidebarLinks = [
   { href: '/admin', icon: LayoutDashboard, label: 'Dashboard', exact: true },
   { href: '/admin/cursos', icon: BookOpen, label: 'Cursos' },
+  { href: '/admin/video-aulas', icon: Video, label: 'Vídeo aula' },
   { href: '/admin/conteudos-txt', icon: FileDown, label: 'Conteúdo em TXT' },
   { href: '/admin/criar-curso', icon: Sparkles, label: 'Criar com IA' },
   { href: '/admin/criar-cursos-massa', icon: Layers, label: 'Criar em Massa' },

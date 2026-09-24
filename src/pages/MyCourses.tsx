@@ -28,6 +28,10 @@ export default function MyCourses() {
 
   const { data: enrollments, isLoading } = useQuery({
     queryKey: ['my-enrollments', user?.id],
+    // A manual grant can happen from another session while this page is open.
+    staleTime: 0,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
     queryFn: async () => {
       if (!user) return [];
       const { data, error } = await supabase

@@ -41,6 +41,9 @@ export default function StudentDashboard() {
 
   const { data: enrollments, isLoading: enrollmentsLoading } = useQuery({
     queryKey: ['student-enrollments', user?.id],
+    staleTime: 0,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
     queryFn: async () => {
       if (!user) return [];
       const { data, error } = await supabase

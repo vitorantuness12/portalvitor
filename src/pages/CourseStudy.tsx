@@ -94,6 +94,9 @@ export default function CourseStudy() {
   // Fetch enrollment
   const { data: enrollment, isLoading: enrollmentLoading } = useQuery({
     queryKey: ['enrollment', id, user?.id],
+    staleTime: 0,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
     queryFn: async () => {
       if (!user) return null;
       const { data, error } = await supabase

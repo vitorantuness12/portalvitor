@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Loader2, Video, WifiOff } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,17 +13,17 @@ export interface CourseVideoProps {
 }
 
 export function CourseVideo({ courseId, courseTitle, videoPath, online, active }: CourseVideoProps) {
+  const [playbackError, setPlaybackError] = useState(false);
   const { data: url, isLoading, isError, refetch } = useQuery({
     queryKey: ['course-video-url', courseId, videoPath],
     queryFn: async () => {
       if (!videoPath?.startsWith(`${courseId}/`)) throw new Error('Vídeo inválido para este curso.');
-      const { data, error } = await supabase.storage.from('course-videos').createSignedUrl(videoPath, 3600);
+      const { data, error } = await supabase.storage.from('course-videos').createSignedUrl(videoPath, 86400);
       if (error) throw error;
       return data.signedUrl;
     },
     enabled: active && online && !!videoPath,
-    staleTime: 45 * 60 * 1000,
-    refetchInterval: active && online && videoPath ? 45 * 60 * 1000 : false,
+    staleTime: 23 * 60 * 60 * 1000,
     retry: false,
   });
 
@@ -38,7 +39,7 @@ export function CourseVideo({ courseId, courseTitle, videoPath, online, active }
   }
 
   if (isLoading) return <div role="status" className="flex items-center gap-2 py-10 text-muted-foreground"><Loader2 className="size-5 animate-spin" /> Carregando vídeo aula...</div>;
-  if (isError || !url) return <div role="alert" className="flex items-center gap-3 py-10 text-sm text-muted-foreground">Não foi possível carregar o vídeo aula. <Button size="sm" variant="outline" onClick={() => void refetch()}>Tentar novamente</Button></div>;
+  if (isError || !url || playbackError) return <div role="alert" className="flex items-center gap-3 py-10 text-sm text-muted-foreground">Não foi possível carregar o vídeo aula. <Button size="sm" variant="outline" onClick={() => { setPlaybackError(false); void refetch(); }}>Tentar novamente</Button></div>;
 
   return (
     <div className="mx-auto w-full max-w-5xl">
@@ -51,7 +52,7 @@ export function CourseVideo({ courseId, courseTitle, videoPath, online, active }
         controlsList="nodownload"
         className="aspect-video w-full bg-foreground"
         aria-label={`Vídeo aula de ${courseTitle}`}
-        onError={() => void refetch()}
+        onError={() => setPlaybackError(true)}
       >
         <source src={url} type={videoPath.endsWith('.webm') ? 'video/webm' : 'video/mp4'} />
         Seu navegador não consegue reproduzir este vídeo.

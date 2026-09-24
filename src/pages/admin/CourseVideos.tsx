@@ -26,6 +26,14 @@ const PAGE_SIZE = 500;
 const VIDEO_TYPES: Record<string, string> = { 'video/mp4': 'mp4', 'video/webm': 'webm' };
 const MAX_VIDEO_BYTES = 500 * 1024 * 1024;
 
+function getUploadErrorMessage(error: unknown): string {
+  const message = error instanceof Error ? error.message : '';
+  if (message.includes('413') || message.toLowerCase().includes('maximum size exceeded') || message.toLowerCase().includes('payload too large')) {
+    return 'O vídeo ultrapassa o limite de tamanho do armazenamento. Envie um arquivo menor ou aumente o limite de arquivos do projeto no Supabase.';
+  }
+  return message || 'Não foi possível enviar o vídeo. Tente novamente.';
+}
+
 export default function CourseVideos() {
   const [search, setSearch] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -137,7 +145,7 @@ export default function CourseVideos() {
         await uploadRef.current?.abort();
         await supabase.storage.from('course-videos').remove([path]);
       }
-      toast.error(error instanceof Error ? error.message : 'Não foi possível enviar o vídeo. Tente novamente.');
+      toast.error(getUploadErrorMessage(error));
     } finally {
       uploadRef.current = null;
       rejectUploadRef.current = null;

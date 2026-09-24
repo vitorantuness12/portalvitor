@@ -24,7 +24,7 @@ interface VideoCourse {
 
 const PAGE_SIZE = 500;
 const VIDEO_TYPES: Record<string, string> = { 'video/mp4': 'mp4', 'video/webm': 'webm' };
-const MAX_VIDEO_BYTES = 500 * 1024 * 1024;
+const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
 
 function getUploadErrorMessage(error: unknown): string {
   const message = error instanceof Error ? error.message : '';
@@ -84,7 +84,7 @@ export default function CourseVideos() {
     if (!course || uploading || removing) return;
     const extension = VIDEO_TYPES[file.type] ?? (file.name.toLowerCase().endsWith('.mp4') ? 'mp4' : file.name.toLowerCase().endsWith('.webm') ? 'webm' : undefined);
     if (!extension || file.size === 0 || file.size > MAX_VIDEO_BYTES) {
-      toast.error('Envie um MP4 ou WebM de até 500 MB.');
+      toast.error('Envie um MP4 ou WebM de até 50 MB.');
       return;
     }
 
@@ -211,7 +211,7 @@ export default function CourseVideos() {
           <DialogHeader><DialogTitle>Vídeo aula · {course?.title}</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">{course?.video_path ? 'Um vídeo já está disponível para este curso. Você pode substituí-lo ou removê-lo.' : 'Este curso ainda não tem vídeo aula.'}</p>
-            <p className="text-xs text-muted-foreground">Formatos MP4 ou WebM, até 500 MB. O limite de armazenamento da plataforma também se aplica.</p>
+            <p className="text-xs text-muted-foreground">Formatos MP4 ou WebM, até 50 MB.</p>
             <input ref={fileRef} type="file" accept="video/mp4,video/webm" className="sr-only" aria-label="Selecionar vídeo aula" onChange={(event) => { const file = event.target.files?.[0]; if (file) void startUpload(file); }} />
             {uploading && <div role="status" className="space-y-2"><div className="flex justify-between text-sm"><span>Enviando vídeo...</span><span>{progress}%</span></div><Progress value={progress} /></div>}
             <div className="flex flex-wrap gap-2">
